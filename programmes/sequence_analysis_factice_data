@@ -1,0 +1,66 @@
+# Analyse de la trajectoire d'un participant au sein d'un dispositif
+
+N.sections=10 # Nombre de sections du dispositif auquel on s'intéresse. Une section : un module, une activité, une durée déterminée (heure, jour, semaine, etc)
+N.users= 15 # Nombre d'utilisateurs du dispositif
+N.states=6  # Nombre d'états différents dans lequel un utilisateur peut être sur une section données
+
+# Création d'une matrice correspondant à une séquence d'états données pour "N.sections" sections consécutives du dispositif
+users.sections.mat=matrix(NA,N.users,N.sections) 
+
+for (i in 1: N.users){
+states.seq=sample(c(1:N.states), N.sections, replace=T) # Pour chaque utilisateur, la séquence d'états est choisie de manière aléatoire
+users.sections.mat[i,]=states.seq }
+
+
+# Analyse de séquence sur la matrice d'états
+
+install.packages(TraMineR) # Installation des packages spécialisés dans l'analyse de séquence
+library(TraMineR)
+users.sections.seq=seqdef(users.sections.mat) # Transformation en objet "séquence"
+ 
+seqdplot(users.sections.seq, withlegend = FALSE, border = NA) # Evolution des proportions relatives des différents états
+#Evolution de l'entropie au fil du temps 
+seqHtplot(users.sections.seq)
+#Importance relative des différents états à l'échelle du dispositif
+seqmtplot(users.sections.seq, withlegend = F)
+# Réalisation de la matrice de transition d'états
+transition.mat=seqtrate(users.sections.seq,time.varying=T)
+transition.mat[,,1] # Exemple d'un sous-ensemble de la matrice de transition. Exemple :
+
+          [-> 1] [-> 2] [-> 3]    [-> 4]    [-> 5]    [-> 6]
+[1 ->] 0.0000000      0   0.00 0.3333333 0.3333333 0.3333333
+[2 ->] 0.0000000      0   0.50 0.0000000 0.5000000 0.0000000
+[3 ->] 0.3333333      0   0.00 0.3333333 0.0000000 0.3333333
+[4 ->] 0.2500000      0   0.25 0.0000000 0.2500000 0.2500000
+[5 ->] 0.0000000      0   1.00 0.0000000 0.0000000 0.0000000
+[6 ->] 0.0000000      0   1.00 0.0000000 0.0000000 0.0000000
+
+
+# Représentation des dix séquences les plus fréquentes
+seqiplot(users.sections.seq, withlegend = FALSE, border = NA)
+# Réordonnancement des séquences en fonction de l'état initial
+seqIplot(users.sections.seq, sortv = "from.start")
+# Réordonnancement des séquences en fonction de l'état final
+seqIplot(users.sections.seq, sortv = "from.end")
+ 
+
+# Calcul des distances optimales. Algorithme permettant de calculer les distances entre trajectoires
+dist.om1 <- seqdist(users.sections.seq, method = "OM", indel = 1, sm = "TRATE",with.missing=TRUE)
+# Création d'une typologie des trajectoires
+library(cluster)
+clusterward1 <- agnes(dist.om1, diss = TRUE, method = "ward")
+par(mfrow=c(2,1))
+plot(clusterward1, which.plot = 2)
+plot(sort(clusterward1$height, decreasing=TRUE)[1:20], type='s', xlab="nb de classes", ylab="inertie")
+#s'il y a un grand saut, alors il est intéressant de regarder ce nombre de classes
+nb_classe=4 # Nombre de classes choisies par l'utilisateur
+cl1.4 <- cutree(clusterward1, k = nb_classe)
+cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:nb_classe))
+
+# 3.Représentation des séquences regroupées par cluster
+par(mfrow = c(2,round(nb_classe/2,0)))
+ #par(mar=c(1,1,1,1))
+seqIplot(users.sections.seq, group = cl1.4fac, sortv = "from.start")
+ 
+# 4.Représentation des distributions d'état par cluster
+seqdplot(users.sections.seq, group = cl1.4fac)
