@@ -1,0 +1,52 @@
+#Equivalent de prescribed_sequence_of_interest
+seq.videos=seq(1:10) #10 vidéos successives ordonnées selon leur place dans la séquence pédagogique
+list.users=seq(1:20) # Données de 20 utilisateurs dont on s'intéresse au comportement d'échantillonage
+n.users=length(list.users) # Nombre d’utilisateurs
+n.videos=length(seq.videos) #Nombre de vidéos
+
+# Génération de traces factices
+l.analytics.mat=as.data.frame(matrix(0, n.users*n.videos, 3 ))
+names(l.analytics.mat)=c("user.id", "video.id", "viewed")
+# Créons toutes les combinaisons uniques vidéos / utilisateurs
+l.analytics.mat[,c("user.id","video.id")]=expand.grid(list.users,seq.videos)
+ 
+# Création d'un jeu factice de traces d'apprentissage. Le nombre de traces d'apprentissage est N.log
+l.analytics.int=l.analytics.mat # Création d’une entité intermédiaire, préalable à la création des traces
+N.log=130
+lines.viewed=sample(1:(n.users*n.videos), N.log) #Sélection aléatoire des utilisateurs ayant vu une vidéo
+l.analytics.int[lines.viewed,3]=1 
+log.data=l.analytics.int[which(l.analytics.int["viewed"]==1), c(1,2)]  #On élimine du jeu de données les combinaisons ne donnant pas lieu à une trace pour créer un jeu de données d’apparence réelle
+# Pour construire les indicateurs, on peuple une matrice préconstruite à partir des traces réelles 
+for (i in 1: N.log) {
+user.id.i= log.data[i,1] 
+video.id.i=log.data[i,2] 
+l.analytics.mat[which((l.analytics.mat$user.id==user.id.i)&(l.analytics.mat$video.id==video.id.i)),3]=1
+  }
+# Proportion des vidéos vues par rapport au nombre maximal de vidéos vues possibles
+mean(l.analytics.mat$viewed) # INDICATEUR RECOMMANDE
+user.viewing.score=rep(NA, n.users)
+# Création du vecteur attribuant pour chaque utilisateur un score correspondant à la proportion des vidéos qu’il a vues
+for (i in 1:n.users) {user.viewing.score[i]= mean(l.analytics.mat[which(l.analytics.mat$user.id==i),]$viewed)}
+# Création du vecteur attribuant pour chaque video un score correspondant à la proportion des utilisateurs qui l’ont vue
+video.viewing.score=rep(NA, n.videos)
+for (i in 1:n.videos) {video.viewing.score[i]= mean(l.analytics.mat[which(l.analytics.mat$video.id==i),]$viewed)}
+# Proportion des utilisateurs ayant "sauté" la ressource N de la séquence 
+activity.skipping.score=1-video.viewing.score
+plot(seq.videos, activity.skipping.score , ylab="Score d'échantillonage", xlab="Numéro de la vidéo sur la séquence pédagogique") 
+
+# Echantillonnage des utilisateurs à l'échelle du dispositif
+int=NULL
+for (i in 1: n.videos) {
+  N1=length(which(user.viewing.score>i/n.videos)) # Nombre d'utilisateurs qui ont vu plus de i/n.videos*100 % des vidéos
+  int=c(int,N1/n.users) } # Corriger par le nombre d'utilisateurs  
+                              
+plot(100*seq(1:n.videos)/n.videos,100*int, type=”l”, ylab="Proportions des utilisateurs visualisant plus de R%  des vidéos du dispositif", xlab="R") # Plot qui permet de visualiser à l’échelle des utilisateurs du MOOC.
+
+# Création de la matrice utilisateur x ressources, permettant de savoir qui a visionné quoi
+user.video.mat=matrix(NA, n.users, n.videos)
+for (i in 1:n.users) {
+  for (j in 1:n.videos) {
+    user.video.mat[i,j]=   l.analytics.mat[which((l.analytics.mat["user.id"]==i)& (l.analytics.mat["video.id"]==j)),3] 
+  }
+}
+user.video.mat=as.data.frame( user.video.mat)
