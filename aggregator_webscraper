@@ -1,0 +1,237 @@
+library(XML)
+path="C:/MOOC_Data/ClassCentral"
+setwd(path)
+library(rvest)
+
+library(RJSONIO)
+library(RCurl)
+
+
+read_html(url)
+
+
+Coursera.root="https://www.mooc-list.com/initiatives-and-categories?field_initiative_tid[]=4&field_start_date_value_op=between&field_start_date_value[value][date]=&field_start_date_value[min][date]=&field_start_date_value[max][date]=&sort_by=field_start_date_value&sort_order=DESC&page="
+
+root2="https://www.mooc-list.com/api/course-list.json?offset="
+
+path="C:/MOOC_Data/ClassCentral/MOOC.List"
+setwd(path)
+N=1
+
+NP=174 # Nombre de pages
+249/20.68
+
+
+count=1
+for (N in 1: NP) {
+#N=1  
+  URL=paste(root2,N, sep="")
+  raw_data <- getURL(URL)
+  data <- fromJSON(raw_data)
+  final_data <- do.call(rbind, data)
+  K=nrow(final_data)
+  L=ncol(final_data)
+  
+    for(k in 1:K) {
+   #  k=1
+    for(l in 1:L) {
+      #l=1
+     input=as.data.frame(final_data)[k,l][[1]]
+     if (length(input)==1) {ML.df[count,l]=input} else {ML.df[count,l]=length(input)}
+    }
+    count=count+1
+  }
+}
+
+
+
+colnames(ML.df)=attributes(as.data.frame(final_data)[1,])$names  
+head(ML.df, 30)
+
+summary(ML.df)
+
+
+# Then write it to a flat csv file
+write.csv(ML.df[,c(1:3,5:7,9:25)], "final_data11.csv")
+
+
+LINKS=NULL
+ROOT="https://www.mooc-list.com/initiatives-and-categories?field_initiative_tid[0]=7055&field_initiative_tid[1]=7747&field_initiative_tid[2]=3112&field_initiative_tid[3]=2172&field_initiative_tid[4]=2360&field_initiative_tid[5]=6294&field_initiative_tid[6]=2899&field_initiative_tid[7]=3287&field_initiative_tid[8]=5&field_initiative_tid[9]=8&field_initiative_tid[10]=2582&field_initiative_tid[11]=2911&field_initiative_tid[12]=4&field_initiative_tid[13]=1317&field_initiative_tid[14]=7305&field_initiative_tid[15]=4349&field_initiative_tid[16]=6700&field_initiative_tid[17]=7975&field_initiative_tid[18]=6425&field_initiative_tid[19]=3&field_initiative_tid[20]=3928&field_initiative_tid[21]=8403&field_initiative_tid[22]=7887&field_initiative_tid[23]=7418&field_initiative_tid[24]=4362&field_initiative_tid[25]=5183&field_initiative_tid[26]=
+626&field_initiative_tid[27]=3590&field_initiative_tid[28]=5614&field_initiative_tid[29]=6201&field_initiative_tid[30]=3982&field_initiative_tid[31]=6273&field_initiative_tid[32]=1809&field_initiative_tid[33]=9542&field_initiative_tid[34]=7720&field_initiative_tid[35]=2605&field_initiative_tid[36]=7793&field_initiative_tid[37]=524&field_initiative_tid[38]=4466&field_initiative_tid[39]=9258&field_initiative_tid[40]=3009&field_initiative_tid[41]=10&field_initiative_tid[42]=1722&field_initiative_tid[43]=7&field_initiative_tid[44]=2813&field_initiative_tid[45]=9&field_initiative_tid[46]=8239&field_initiative_tid[47]=5905&field_initiative_tid[48]=1128&field_initiative_tid[49]=3636&field_initiative_tid[50]=2&field_initiative_tid[51]=1&field_initiative_tid[52]=1356&field_initiative_tid[53]=1293&field_initiative_tid[54]=587&field_initiative_tid[55]
+=432&field_initiative_tid[56]=6601&field_initiative_tid[57]=563&field_initiative_tid[58]=7255&field_initiative_tid[59]=590&field_initiative_tid[60]=8207&field_initiative_tid[61]=5196&field_initiative_tid[62]=5721&field_initiative_tid[63]=4806&field_initiative_tid[64]=4344&field_initiative_tid[65]=3582&field_initiative_tid[66]=4584&field_initiative_tid[67]=6&field_initiative_tid[68]=1525&field_initiative_tid[69]=431&field_initiative_tid[70]=2931&field_initiative_tid[71]=577&field_initiative_tid[72]=4128&field_initiative_tid[73]=3772&field_initiative_tid[74]=5468&field_initiative_tid[75]=4367&field_initiative_tid[76]=3786&field_initiative_tid[77]=6535&field_initiative_tid[78]=3985&field_initiative_tid[79]=1142&field_initiative_tid[80]=2961&field_initiative_tid[81]=4266&&&field_start_date_value_op=between&field_start_date_value[value][date]=&field_start_date_value[min][date]=&field_start_date_value[max][date]=&sort_by=field_start_date_value&sort_order=DESC&page="
+
+for (N in 1: 98) {
+URL=paste(Coursera.root,N,"&static=true", sep="")
+page.ex<-read_html(URL)
+doc <- htmlParse(page.ex)
+links <- xpathSApply(doc, "//a/@href")
+LINKS=c(LINKS, links[grep("course/", links)])
+ }
+ 
+ length(unique(LINKS))
+
+MOOC.list=LINKS
+write.csv(MOOC.list, "mooc.list.links.csv", row.names=F)
+
+# Une fois que le fichiers LINKS a bien ?t? g?n?r?
+
+LINKS=read.csv("mooc.list.links.csv", h=T, sep=",")
+ MOOC.list=as.data.frame(unique(LINKS))
+ head(MOOC.list)
+ MOOC.list[[1]][1]
+ names(MOOC.list)
+table(MOOC.list)
+
+List.courses=NULL
+for (i in 434: length(MOOC.list[[1]])) {
+url=paste( "https://www.mooc-list.com",MOOC.list[[1]][i], sep="")
+course.ex <- read_html(url)
+
+titre=course.ex %>%   html_nodes("#page-title") %>%   html_text()
+corpus=course.ex %>%   html_nodes("p") %>%   html_text()
+provider=course.ex %>%   html_nodes(".field-name-field-initiative .even") %>%   html_text()
+institution=course.ex %>%   html_nodes(".field-name-field-university-entity .even") %>%   html_text()
+tags= course.ex %>%   html_nodes(".field-name-field-categories .field-items") %>%   html_text()
+country= course.ex %>%   html_nodes(".field-name-field-country a") %>%   html_text()
+duration= course.ex %>%   html_nodes(".field-length") %>%   html_text()
+workload= course.ex %>%   html_nodes(".field-name-field-estimated-effort .even") %>%   html_text()
+exam= course.ex %>%   html_nodes(".field-name-field-exam a") %>%   html_text()
+certificate= course.ex %>%   html_nodes(".field-certificate") %>%   html_text()
+languages= course.ex %>%   html_nodes(".field-name-field-language a") %>%   html_text()
+subtitles= course.ex %>%   html_nodes(".field-name-field-subtitles a") %>%   html_text()
+target= course.ex %>%   html_nodes(".field-type-text .even") %>%   html_text()
+tagsbis= course.ex %>%   html_nodes(".field-name-field-tags .field-items") %>%   html_text()
+infos=c(titre, provider, institution, country, duration, workload, exam, certificate, languages,target, tags, tagsbis, subtitles)
+List.courses=rbind(List.courses,infos)}
+
+List.courses2=List.courses
+for (i in 1:13) {
+List.courses2[,i]=gsub("\n","",List.courses2[,i])
+List.courses2[,i]=gsub("\t","",List.courses2[,i])
+List.courses2[,i]=gsub(","," ",List.courses2[,i])}
+#List.courses2=List.courses2[,-1]
+#List.courses2=List.courses2[,-2]
+#for (i in 1:13) {List.courses2[,i]=as.factor(List.courses2[,i])}
+summary(List.courses2)
+colnames(List.courses2)=c("Course.name","Provider","Institution", "Country", "Duration", "Workload", "Examination", "Certificate", "Language", "Date", "Subject", "Tags", "Notsure" )
+write.csv(List.courses2, "mooc.list.2810.csv", row.names=F)
+List.courses2=read.csv("mooc.list.2810.csv", h=T, sep=";")
+
+
+List.courses2=as.data.frame(List.courses2)
+List.courses2$Duration=gsub(" Weeks","",List.courses2$Duration)
+List.courses2$Duration=gsub("Course length not available",NA,List.courses2$Duration)
+List.courses2$Duration=gsub(" Week","",List.courses2$Duration)
+List.courses2$Duration=gsub(" weeks","",List.courses2$Duration)
+List.courses2$Duration=as.factor(List.courses2$Duration)
+levels(List.courses2$Duration)
+summary(as.numeric(as.character(List.courses2[,5])))
+
+List.courses2$Workload=gsub("No information",NA,List.courses2$Workload)
+List.courses2$Workload=gsub(" hours/week","",List.courses2$Workload)
+List.courses2$Workload=gsub(" hour/week","",List.courses2$Workload)
+
+List.courses2$Workload=as.factor(List.courses2$Workload)
+levels(List.courses2$Workload)
+List.courses2$Workload.min=List.courses2$Workload
+
+for (i in 40:2) {
+pattern=paste("-", i, sep="")
+List.courses2$Workload.min=gsub(pattern,"",List.courses2$Workload.min)
+}
+List.courses2$Workload.min=as.factor(List.courses2$Workload.min)
+levels(List.courses2$Workload.min)
+
+List.courses2$Workload.max=List.courses2$Workload
+for (i in 40:1) {
+pattern=paste(i, "-", sep="")
+List.courses2$Workload.max=gsub(pattern,"",List.courses2$Workload.max)
+}
+List.courses2$Workload.max=as.numeric(as.character(List.courses2$Workload.max))
+summary(List.courses2$Workload.max)
+
+List.courses2$Workload.max=as.numeric(as.character(List.courses2$Workload.max))
+summary(List.courses2$Workload.max)
+List.courses2$Workload.min=as.numeric(as.character(List.courses2$Workload.min))
+summary(List.courses2$Workload.min)
+
+
+
+
+summary(List.courses2$Workload.min)
+summary(List.courses2$Workload.max)
+
+List.courses2$Workload2=List.courses2$Workload
+
+
+
+
+List.courses2$Date=gsub("Self Paced Course - Start anytime","Self Paced",List.courses2$Date)
+List.courses2$Date=gsub("- Self-Paced","",List.courses2$Date)
+List.courses2$Date=gsub("Starts early 2016",NA,List.courses2$Date)
+List.courses2$Date=gsub("Starts every Monday",NA,List.courses2$Date)
+List.courses2$Date=gsub(" (enrollment still open)","",List.courses2$Date)
+List.courses2$Date=gsub("th","",List.courses2$Date)
+List.courses2$Date=gsub("rd","",List.courses2$Date)
+List.courses2$Date=gsub("nd","",List.courses2$Date)
+List.courses2$Date=gsub("  ","",List.courses2$Date)
+List.courses2$Date=gsub("st","",List.courses2$Date)
+List.courses2$Date=gsub("No sessions available",NA,List.courses2$Date)
+List.courses2$Date=gsub(" Archived - Future Dates To Be Announced",NA,List.courses2$Date)
+
+List.courses2$Date=gsub("2014 ","2014",List.courses2$Date)
+List.courses2$Date=gsub("2015 ","2015",List.courses2$Date)
+
+List.courses2$Date=gsub("Jan","Janv.",List.courses2$Date)
+List.courses2$Date=gsub("Feb","F?vr.",List.courses2$Date)
+List.courses2$Date=gsub("Mar","Mars",List.courses2$Date)
+List.courses2$Date=gsub("Apr.","Avr.",List.courses2$Date)
+List.courses2$Date=gsub("May","Mai",List.courses2$Date)
+List.courses2$Date=gsub("Jun","Juin",List.courses2$Date)
+List.courses2$Date=gsub("Jul","Juil.",List.courses2$Date)
+List.courses2$Date=gsub("Aug","ao?t",List.courses2$Date)
+List.courses2$Date=gsub("Sep","sept.",List.courses2$Date)
+List.courses2$Date=gsub("Oct","oct.",List.courses2$Date)
+List.courses2$Date=gsub("Nov","nov.",List.courses2$Date)
+List.courses2$Date=gsub("Dec","d?c.",List.courses2$Date)
+List.courses2$Date=gsub("Oc ","oct.",List.courses2$Date)
+List.courses2$Date=gsub("Juil.y","Juil.",List.courses2$Date)
+List.courses2$Date=gsub("- Self Paced","",List.courses2$Date)
+List.courses2$Date=gsub("Self Paced ","Self-Paced",List.courses2$Date)
+List.courses2$Date=gsub("Self Paced","Self-Paced",List.courses2$Date)
+List.courses2$Date=gsub("To Be Announced","To be announced",List.courses2$Date)
+
+List.courses2$Date=gsub("Starts ao?tu 21, 2015","ao?t 21 2015",List.courses2$Date)
+List.courses2$Date=gsub("Starts late nov.ember 2015","20 nov. 2015",List.courses2$Date)
+List.courses2$Date=gsub("oct. 3 2015(enrollment ill open)","oct. 3 2015",List.courses2$Date)
+List.courses2$Date=gsub(" sept.","sept.",List.courses2$Date)
+List.courses2$Date=gsub("Juine","Juin",List.courses2$Date)
+List.courses2$Date=gsub("Juine","Juin",List.courses2$Date)
+List.courses2$Date=gsub("20 nov. 2015","nov. 20 2015",List.courses2$Date)
+List.courses2$Date=gsub("17 Juin 2013","Juin 17 2015",List.courses2$Date)
+List.courses2$Date=gsub("0013","2013",List.courses2$Date)
+List.courses2$Date=as.factor(List.courses2$Date)
+levels(List.courses2$Date)
+
+as.Date(levels(List.courses2$Date), "%b %d %Y")
+
+min(levels(List.courses2$Date))
+max(levels(List.courses2$Date))
+
+List.courses2$Date2=as.Date(List.courses2$Date, "%b %d %Y")
+
+summary(List.courses2$Date2)
+List.courses2$Date2[which(List.courses2$Date2==min(List.courses2$Date2, na.rm=T))]="2013-05-20"
+min(List.courses2$Date2, na.rm=T) # Date du cours le plus ancien r?pertori? dans la MOOC List
+
+List.courses2$Examination = gsub("No Exam and/or Final Project information",NA,List.courses2$Examination)
+List.courses2$Examination=as.factor(List.courses2$Examination)
+List.courses2$Certificate = gsub("No certificate information",NA,List.courses2$Certificate)
+List.courses2$Certificate=as.factor(List.courses2$Certificate)
+
+summary(List.courses2)
+
+
+
+
+
