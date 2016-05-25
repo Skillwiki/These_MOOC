@@ -1,0 +1,988 @@
+####################################################################################
+################### COURSERA 2. GLOBAL EVOLUTION ###################################
+####################################################################################
+
+# timestamp - This is a standard UTC timestamp containing the number of milliseconds(1sec=1000milisec) since the UNIX epoch.
+library(chron)
+library(ggplot2)
+library(scales)
+
+
+# graphic option
+temp.width<-800
+temp.height<-800
+par(mar=c(5,4,1,2)) #bottom, left, up, right : c(5,4,4,2)
+#export path
+out<-paste0("out/",mooc,"/")
+
+
+#########################
+###### Registrants ######
+#########################
+
+#Distribution function
+users$inscription_day<-as.Date(as.POSIXct(users$registration_time,origin=origin, tz = "America/Los_Angeles"),format = "%d/%m/%Y")#sans as.Date => ajoute l'heure
+users$inscription_hour<-format(as.POSIXct(users$registration_time,origin=origin, tz = "America/Los_Angeles"), format="%Y/%m/%d %H")
+table(users$inscription_day)
+table(users$inscription_day[users$inscription_day>=open_inscription_date])
+users$last_access_time_day<-as.Date(as.POSIXct(users$last_access_time,origin=origin, tz = "America/Los_Angeles"),format = "%d/%m/%Y")
+users$last_access_time_hour<-format(as.POSIXct(users$last_access_time,origin=origin, tz = "America/Los_Angeles"), format="%Y/%m/%d %H")
+table(users$last_access_time_hour)
+# We only keep "Student" people
+users2<-merge(users,access_groups[,c("id","forum_title")],by.x="access_group_id",by.y="id",all.x=T)
+students<-users2[users2$forum_title=="Student",]
+table(students$inscription_day)
+min(students$inscription_day) #check here open_inscription_date
+# on ne garde que les individus entre open_inscription_date et close_inscription_date
+students<-students[students$inscription_day>=open_inscription_date & students$inscription_day<=close_inscription_date,]
+
+
+#inscription_week
+table(students$inscription_day,useNA="ifany")
+sort(unique(students$inscription_day))
+#permet de trouver date d'inscription et de fermeture
+# c(min(dates),max(dates))
+# se fait en 2 temps : on récupère toute les semaines entre open_inscription_date et close_inscription_date (lundi au lundi)
+# on remplace les semaines durant le cours par les dates de week_course (les ouvertures de sections peuvent se faire un autre jour que le lundi)
+dates<-seq(as.Date(min(sort(students$inscription_day))),as.Date(b_date), by = "week")
+dates<-as.Date(cut(as.Date(dates), "weeks"))
+dates2<-seq(as.Date(b_date), as.Date(close_inscription_date), by = "week")
+dates2<-as.character(dates2)
+dates2[1:ncol(week_course)]<-week_course[1,]
+dates2<-as.Date(dates2,"%Y-%m-%d")
+dates<-c(dates,dates2)
+
+
+# quelle semaine d'inscription
+for(i in 1:(length(dates)-1)){
+#  i<-1
+  students$inscription_week[students$inscription_day>=dates[i] & students$inscription_day<dates[i+1]]<-as.character(dates[i])
+}
+students$inscription_week[students$inscription_day>=dates[length(dates)]]<-dates[length(dates)]
+students$inscription_week<-as.Date(students$inscription_week,"%Y-%m-%d")
+# on ne veut pas de NA
+table(students$inscription_week,useNA="ifany")
+# date des NA
+table(students$inscription_day[is.na(students$inscription_week)],useNA="ifany")
+
+#last_access_time_week
+for (i in 1:(length(dates)-1)){
+  students$last_access_time_week[students$last_access_time_day>=dates[i] & students$last_access_time_day< dates[i+1]]<-as.character(dates[i])
+}
+students$last_access_time_week[students$last_access_time_day>=dates[length(dates)]]<-as.character(dates[length(dates)])
+table(students$last_access_time_week,useNA="ifany")
+
+
+#Registrants by day
+png(paste0(out,"activ temp/registration day.png") , temp.width,temp.height, pointsize = 15)
+freq<-table(students$inscription_day)#[students$inscription_day>=b_date]
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# d'inscrits",type="l",cex.lab = 1.5) # ,main="Registration"type="l" for line only; "b" for point and line
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = seq(as.Date(open_inscription_date), as.Date(close_inscription_date), by = "week"), format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq),-1),by=100), las=1, cex.axis=1.2)
+dev.off()
+
+
+#Registrants by week
+png(paste0(out,"activ temp/registration week.png"), temp.width,temp.height, pointsize = 15)
+freq<-table(students$inscription_week)
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# d'inscrits",type="b",cex.lab = 1.5)#,main="Registration by week" #type="l" for line only; "b" for point and line
+#lines(dates,freq) #type="l" for line only; "b" for point and line
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = seq(as.Date(open_inscription_date), as.Date(close_inscription_date), by = "week"), format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq),-1),by=1000), las=1, cex.axis=1.2)
+dev.off()
+
+
+#ggplot2 graphic
+freq_registrant<-as.data.frame(table(students$inscription_week))
+freq_registrant$type<-"inscription"
+colnames(freq_registrant)<-c("time","freq","Action")
+freq_registrant$time<-as.Date(freq_registrant$time)
+p<-ggplot(data=freq_registrant, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(12,24)) + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red", "dark blue"),name="Action") + #couleur
+  #                      ,labels=c("inscriptions","dernières\nconnexions")) #crée 2 légendes
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# de logs d'inscription") +
+  #scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(as.Date(open_inscription_date), max(freq_registrant$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq_registrant$freq),-1),500)) + #échelle y
+  theme(legend.position='none')+
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/registrant week.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/registrant week2.png"), width=12, height=6, dpi=500)
+
+#cum % of registrants
+prop_freq<-cumsum(table(students$inscription_week))
+prop_freq<-cumsum(round(prop.table(table(students$inscription_week))*100,2))
+png(paste0(out,"cumulative percent registrant.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% d'inscrits",type="l",cex.lab=1.2)#,main="Cumulative percent of registration"
+axis.Date(side = 1, at = seq(as.Date(open_inscription_date), as.Date(close_inscription_date), by = "week"), format = "%d-%m", las = 1, cex.axis=1.2)
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis(side=2, at=seq(0,100,20), las=1, cex.axis=1.2)
+dev.off()
+
+
+#####################
+## Last access time #
+#####################
+dates<-seq(as.Date(min(sort(students$inscription_day))),as.Date(b_date), by = "week")
+dates<-as.Date(cut(as.Date(dates), "weeks"))
+dates2<-seq(as.Date(b_date), as.Date(close_inscription_date), by = "week")
+dates2<-as.character(dates2)
+dates2[1:ncol(week_course)]<-week_course[1,]
+dates2<-as.Date(dates2)
+dates<-c(dates,dates2)
+dates<-as.character(dates)
+for (i in dates){
+  students$last_access_time_week[students$last_access_time_day>=as.Date(i,"%Y-%m-%d") & students$last_access_time_day< (as.Date(i,"%Y-%m-%d")+7)]<-i
+}
+students$last_access_time_week<-as.Date(students$last_access_time_week,"%Y-%m-%d")
+table(students$last_access_time_week,useNA="ifany")
+table(students$last_access_time_day[is.na(students$last_access_time_week)],useNA="ifany")
+
+table(students$last_access_time_week,students$last_access_time_day)
+#day
+freq<-table(students$last_access_time_day[students$last_access_time_day>=as.Date(b_date)])
+max(students$last_access_time_day)
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# of last access",type="l",main="Last access") #type="l" for line only; "b" for point and line
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = seq(as.Date(open_inscription_date), as.Date(close_inscription_date), by = "week"), format = "%d %b %y", las = 2, cex.axis=0.7)
+axis(side=2, at=seq(0,round(max(freq),-1),by=100), las=1)
+
+
+#week
+png(paste0(out,"activ temp/last access week.png"), temp.width,temp.height, pointsize = 15)
+freq<-table(students$last_access_time_week[students$last_access_time_week>=as.Date(b_date)])
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# de dernières connexions",type="b") #,main="Dernière semaine de connexion" #type="l" for line only; "b" for point and line
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = seq(as.Date(open_inscription_date), as.Date(close_inscription_date), by = "week"), format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq),-1),by=100), las=1, cex.axis=1.2)
+dev.off()
+
+#registrant + last connexions
+freq_registrant<-as.data.frame(table(students$inscription_week))
+freq_registrant$type<-"inscription"
+colnames(freq_registrant)<-c("time","freq","Action")
+freq_last_connexion<-as.data.frame(table(students$last_access_time_week))
+freq_last_connexion$type<-"dernière connexion"
+colnames(freq_last_connexion)<-c("time","freq","Action")
+freq_tot<-rbind(freq_registrant,freq_last_connexion)
+freq_tot$Action<-factor(freq_tot$Action , levels = c("inscription","dernière connexion")) #mettre les levels dans l'ordre qu'on veut
+freq_tot$time<-as.Date(freq_tot$time)
+p<-ggplot(data=freq_tot, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(12,24)) + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red", "dark blue"),name="Action") + #couleur
+  #                      ,labels=c("inscriptions","dernières\nconnexions")) #crée 2 légendes
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# d'individus") +
+  #scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(as.Date(open_inscription_date), max(freq_tot$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq_tot$freq),-1),500)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted") #ajout des dates ouverture, fermeture
+#geom_vline(xintercept=c(as.numeric(b_week1),as.numeric(b_week2),as.numeric(b_week3),as.numeric(b_week4),as.numeric(b_week5),as.numeric(b_week6),as.numeric(b_week7),as.numeric(b_week8),as.numeric(b_week9)), linetype="dotted") #ajout des ouvertures des sections
+
+
+ggsave(paste0(out,"activ temp/registrant last_connexion week.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/registrant last_connexion week2.png"), width=12, height=6, dpi=500)
+
+
+save.image(paste0(mooc,"_after_registrant.RData"))
+load(paste0(mooc,"_after_registrant.RData"))
+
+
+
+#########################
+####### LECTURE #########
+#########################
+
+# METADATA
+dates<-as.Date(names(table(lecture_metadata$open_day[lecture_metadata$open_day>b_date])))
+#merge sections opened in the same time at the beginning
+lecture_metadata$open_week[lecture_metadata$display_order2 %in% section_1]<-week_course[1,1]
+
+#lecture_metadata$open_week
+for (i in 2:ncol(week_course)){
+  lecture_metadata$open_week[lecture_metadata$display_order2==i]<-week_course[1,i]
+}
+
+# lecture_metadata2: keep lecture having a parent_id>0 (<0 being duplicated) & havin an open_day & having a display_order2 (i.e. being in a section)
+lecture_metadata2<-lecture_metadata[lecture_metadata$parent_id>0 & is.na(lecture_metadata$open_day)==F & is.na(lecture_metadata$display_order2)==F,]
+lecture_metadata2<-lecture_metadata2[order(lecture_metadata2$display_order2),]
+
+
+# SUBMISSION
+lecture_submission_metadata$sub_day<-as.Date(as.POSIXct(lecture_submission_metadata$submission_time,origin=origin),format = "%d/%m/%Y")
+lecture_submission_metadata<-merge(lecture_submission_metadata,users2[,c("session_user_id","forum_title")],by.x="session_user_id",by.y="session_user_id",all.x=T)
+table(lecture_submission_metadata$forum_title)
+table(lecture_submission_metadata$sub_day)
+lecture_submission_metadata<-merge(lecture_submission_metadata,lecture_metadata[,c("parent_id","open_day","display_order2","display_order_bis","title_section")],by.x="item_id",by.y="parent_id",all.x=T)
+#table(lecture_submission_metadata$open_day,lecture_submission_metadata$display_order2), should be at least one section for at most one week
+
+# Loop for attribute aggregate by week
+dates<-as.Date(names(table(lecture_metadata$open_day))) 
+c(min(dates),max(dates))
+dates<-seq(as.Date(b_date), as.Date(max(sort(unique(lecture_submission_metadata$sub_day)))), by = "week")
+dates<-as.character(dates)
+dates[1:ncol(week_course)]<-week_course[1,]
+for (i in 1:(length(dates)-1)){
+  lecture_submission_metadata$sub_week[lecture_submission_metadata$sub_day>=as.Date(dates[i],"%Y-%m-%d") & lecture_submission_metadata$sub_day< as.Date(dates[i+1],"%Y-%m-%d")]<-dates[i]
+}
+lecture_submission_metadata$sub_week[lecture_submission_metadata$sub_day>=as.Date(dates[length(dates)],"%Y-%m-%d")]<-as.Date(dates[length(dates)],"%Y-%m-%d")
+lecture_submission_metadata$sub_week<-as.Date(lecture_submission_metadata$sub_week,"%Y-%m-%d")
+table(lecture_submission_metadata$sub_week[lecture_submission_metadata$sub_day>b_date],useNA="ifany")
+table(lecture_submission_metadata$sub_day[is.na(lecture_submission_metadata$sub_week[lecture_submission_metadata$sub_day>b_date])])
+# length(table(lecture_submission_metadata$item_id))
+# length(items_sections_order$section_order[items_sections_order$item_type=="lecture"])
+
+# lecture_submission_metadata2: keep submission from "Student" & submitted after open_inscirption_date
+lecture_submission_metadata2<-lecture_submission_metadata[lecture_submission_metadata$sub_day>=as.Date(open_inscription_date) & lecture_submission_metadata$forum_title=="Student",]
+# lecture_submission_metadata3: keep item being in the table lecture_metadata
+lecture_submission_metadata3<-lecture_submission_metadata2[as.numeric(as.character(lecture_submission_metadata2$item_id)) %in% as.numeric(as.character(lecture_metadata2$parent_id)),]
+lecture_submission_metadata3$action_type<-"vidéos"
+
+#### GRAPHIC REPRESENTATION ####
+#Number of active registrant (lecture)
+test<-aggregate(lecture_submission_metadata3,by=list(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$sub_week), FUN=length)
+freq<-table(test$Group.2[test$Group.2>=b_date])
+dates<-as.Date(names(freq))
+png(paste0(out,"activ temp/active registrant video.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# d'inscrits actifs",type="b", cex.lab = 1.2) #,main="Number of active registrant (lecture)"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1 , cex.axis = 1.2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=500), las=1 , cex.axis = 1.2)
+dev.off()
+
+#Lecture consumption
+freq<-table(lecture_submission_metadata3$sub_week[lecture_submission_metadata3$sub_week>=b_date])
+dates<-as.Date(names(freq))
+png(paste0(out,"activ temp/consumption video.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# de vidéos",type="b", cex.lab = 1.2) #,main="Lecture consumption"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=2000), las=1,cex.axis=1)
+dev.off()
+
+
+#nb lecture by Active registrant#
+freq1<-table(lecture_submission_metadata3$sub_week)
+freq2<-table(test$Group.2)
+freq3<-freq1/freq2
+png(paste0(out,"activ temp/ratio video registrant.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq3,xaxt="n",yaxt="n",xlab="",ylab="# de vidéos par inscrits actifs",type="b", cex.lab = 1.2)#,main="Lecture consumption by Active"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq3),-1),by=5), las=1,cex.axis=1.2)
+dev.off()
+
+
+#% of cumulative lecture submission
+prop_freq<-cumsum(round(prop.table(table(lecture_submission_metadata3$sub_week))*100,2))
+dates<-as.Date(names(prop_freq))
+plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% of video consumptions",type="l",main="% cumulative video consumptions")
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,100,10), las = 2)
+
+
+### LECTURE VISION MODULAIRE #####
+# #nb de lecture par video
+# freq<-table(lecture_submission_metadata3$display_order2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% as.numeric(names(freq))])
+# names(freq)<-names
+# png(paste0(out,"activ mod/consumption video.png"), 1000, temp.height, pointsize = 15)
+# plot(freq,yaxt="n",ylab="# vidéos", cex.lab=1.2)
+# axis(side=2, at=seq(0,round(max(freq),-2),2000), las = 2, cex.axis=1)
+# dev.off()
+# 
+# 
+# #Number of active registrant (lecture)
+# test<-aggregate(lecture_submission_metadata3,by=list(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$display_order2), FUN=length)
+# freq<-table(test$Group.2) 
+# names<-as.factor(sections$title2[sections$display_order2 %in% as.numeric(names(freq))])
+# names(freq)<-names
+# png(paste0(out,"activ mod/active registrant video.png"), 1000, temp.height, pointsize = 15)
+# plot(freq,yaxt="n",ylab="# d'inscrits actifs", cex.lab=1.2)
+# axis(side=2, at=seq(0,round(max(freq),-2),200), las = 1)
+# dev.off()
+# 
+# # nb assignment by Active registrant #
+# freq1<-table(lecture_submission_metadata3$display_order2)
+# freq2<-table(test$Group.2) 
+# freq3<-freq1/freq2
+# names(freq3)<-names
+# png(paste0(out,"activ mod/ratio video registrant.png"), 1000, temp.height, pointsize = 15)
+# plot(freq3,yaxt="n",ylab="# vidéos par inscrits actifs", cex.lab=1.2)#,main="assignment submission per registrant"
+# axis(side=2, at=seq(0,round(max(freq3)),by=1), las=1)
+# dev.off()
+
+#########################
+###### QUIZ ##########
+#########################
+
+# METADATA
+quiz_metadata$type<-"quiz"
+quiz_metadata$type_id<-paste(quiz_metadata$type,quiz_metadata$parent_id,sep="_")
+quiz_metadata$open_day<-as.Date(as.POSIXct(quiz_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+quiz_metadata$last_updated_day<-as.Date(as.POSIXct(quiz_metadata$last_updated,origin=origin),format = "%d/%m/%Y")
+quiz_metadata$soft_close_time_day<-as.Date(as.POSIXct(quiz_metadata$soft_close_time,origin=origin),format = "%d/%m/%Y")
+quiz_metadata$hard_close_time_day<-as.Date(as.POSIXct(quiz_metadata$hard_close_time,origin=origin),format = "%d/%m/%Y")
+table(quiz_metadata$open_day)
+quiz_metadata<-merge(quiz_metadata,items_sections_order[,c("type_id","display_order2","display_order_bis","title")],by="type_id",all.x=T)
+colnames(quiz_metadata)[grep("title.y",colnames(quiz_metadata))]<-"title_section"
+colnames(quiz_metadata)[grep("title.x",colnames(quiz_metadata))]<-"title"
+quiz_metadata<-merge(quiz_metadata,lecture_metadata[,c("quiz_id","display_order2")],by.x="id",by.y="quiz_id",all.x=T)
+quiz_metadata$display_order2<-ifelse(is.na(quiz_metadata$display_order2.x),quiz_metadata$display_order2.y,quiz_metadata$display_order2.x)
+
+
+
+#merge sections opened in the same time at the beginning
+quiz_metadata$open_week[quiz_metadata$display_order2 %in% section_1]<-week_course[1,1]
+#quiz_metadata$open_week
+for (i in 2:length(week_course[1,])){
+  quiz_metadata$open_week[quiz_metadata$display_order2==i]<-week_course[1,i]
+}
+table(quiz_metadata$open_week)
+
+# quiz_metadata2: keep quiz having a parent_id>0 (<0 being duplicated) & havin an open_day & having a display_order2 (i.e. being in a section)
+quiz_metadata2<-quiz_metadata[quiz_metadata$parent_id>0 & is.na(quiz_metadata$open_day)==F & is.na(quiz_metadata$display_order2)==F,]
+quiz_metadata2<-quiz_metadata2[order(quiz_metadata2$display_order2),]
+table(quiz_metadata2$open_day)
+table(quiz_metadata2$open_week)
+
+# SUBMISSION
+quiz_submission_metadata$sub_day<-as.Date(as.POSIXct(quiz_submission_metadata$submission_time,origin=origin),format = "%d/%m/%Y")
+quiz_submission_metadata<-merge(quiz_submission_metadata,users2[,c("session_user_id","forum_title")],by.x="session_user_id",by.y="session_user_id",all.x=T)
+table(quiz_submission_metadata$forum_title)
+table(quiz_submission_metadata$sub_day)
+quiz_submission_metadata<-merge(quiz_submission_metadata,quiz_metadata2[,c("parent_id","open_day","display_order2","title_section")],by.x="item_id",by.y="parent_id",all.x=T)
+table(quiz_submission_metadata$open_day,quiz_submission_metadata$display_order2)
+
+# Loop for attribute aggregate by week
+dates<-as.Date(names(table(quiz_metadata$open_day))) 
+c(min(dates),max(dates))
+dates<-seq(as.Date(b_date), as.Date(max(sort(unique(quiz_submission_metadata$sub_day)))), by = "week")
+dates<-as.character(dates)
+dates[1:ncol(week_course)]<-week_course[1,]
+for (i in 1:(length(dates)-1)){
+  quiz_submission_metadata$sub_week[quiz_submission_metadata$sub_day>=as.Date(dates[i],"%Y-%m-%d") & quiz_submission_metadata$sub_day< as.Date(dates[i+1],"%Y-%m-%d")]<-dates[i]
+}
+quiz_submission_metadata$sub_week[quiz_submission_metadata$sub_day>=as.Date(dates[length(dates)],"%Y-%m-%d")]<-as.Date(dates[length(dates)],"%Y-%m-%d")
+quiz_submission_metadata$sub_week<-as.Date(quiz_submission_metadata$sub_week,"%Y-%m-%d")
+table(quiz_submission_metadata$sub_week[quiz_submission_metadata$sub_day>b_date],useNA="ifany")
+table(quiz_submission_metadata$sub_day[is.na(quiz_submission_metadata$sub_week[quiz_submission_metadata$sub_day>b_date])])
+
+# length(table(quiz_submission_metadata$item_id))
+# length(items_sections_order$section_order[items_sections_order$item_type=="quiz"])
+
+# quiz_submission_metadata2: keep submission from "Student" & submitted after open_inscirption_date
+quiz_submission_metadata2<-quiz_submission_metadata[quiz_submission_metadata$sub_day>=as.Date(open_inscription_date) & quiz_submission_metadata$forum_title=="Student",]
+# quiz_submission_metadata3: keep item being in the table lecture_metadata
+quiz_submission_metadata3<-quiz_submission_metadata2[as.numeric(as.character(quiz_submission_metadata2$item_id)) %in% as.numeric(as.character(quiz_metadata2$parent_id)),]
+quiz_submission_metadata3$action_type<-"quiz"
+
+
+#### GRAPHIC REPRESENTATION ####
+#Number of active registrant (quiz)
+test<-aggregate(quiz_submission_metadata3,by=list(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$sub_week), FUN=length)
+freq<-table(test$Group.2[test$Group.2>=b_date])
+dates<-as.Date(names(freq))
+png(paste0(out,"activ temp/active registrant quiz.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# d'inscrits actifs",type="b", cex.lab = 1.2) #,main="Number of active registrant (quiz)"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1 , cex.axis = 1.2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=100), las=1 , cex.axis = 1)
+dev.off()
+
+#quiz consumption
+freq<-table(quiz_submission_metadata3$sub_week[quiz_submission_metadata3$sub_week>=b_date])
+dates<-as.Date(names(freq))
+png(paste0(out,"activ temp/consumption quiz.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# de quiz",type="b", cex.lab = 1.2) #,main="quiz consumption"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=500), las=1,cex.axis=1)
+dev.off()
+
+
+#nb quiz by Active registrant#
+freq1<-table(quiz_submission_metadata3$sub_week)
+freq2<-table(test$Group.2)
+freq3<-freq1/freq2
+png(paste0(out,"activ temp/ratio quiz registrant.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq3,xaxt="n",yaxt="n",xlab="",ylab="# de quiz par inscrits actifs",type="b", cex.lab = 1.2)#,main="quiz consumption by Active"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq3),-1),by=5), las=1,cex.axis=1.2)
+dev.off()
+
+#% of cumulative lecture submission
+prop_freq<-cumsum(round(prop.table(table(quiz_submission_metadata3$sub_week))*100,2))
+dates<-as.Date(names(prop_freq))
+plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% of quiz consumptions",type="l",main="% cumulative quiz consumptions")
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,100,10), las = 2)
+
+# VISION MODULAIRE ####
+# #nb de quiz par quiz
+# freq<-table(quiz_submission_metadata3$display_order2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% as.numeric(names(freq))])
+# names(freq)<-names
+# 
+# png(paste0(out,"activ mod/consumption quiz.png"), 1000, temp.height, pointsize = 15)
+# plot(freq,yaxt="n",ylab="# quiz", cex.lab=1.2)
+# axis(side=2, at=seq(0,round(max(freq),-2),1000), las = 2, cex.axis=1)
+# dev.off()
+# 
+# 
+# #Number of active registrant (quiz)
+# test<-aggregate(quiz_submission_metadata3,by=list(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$display_order2), FUN=length)
+# freq<-table(test$Group.2) 
+# names<-as.factor(sections$title2[sections$display_order2 %in% as.numeric(names(freq))])
+# names(freq)<-names
+# 
+# png(paste0(out,"activ mod/active registrant quiz.png"), 1000, temp.height, pointsize = 15)
+# plot(freq,yaxt="n",ylab="# d'inscrits actifs", cex.lab=1.2)
+# axis(side=2, at=seq(0,round(max(freq),-2),200), las = 1)
+# dev.off()
+# 
+# # nb assignment by Active registrant #
+# freq1<-table(quiz_submission_metadata3$display_order2)
+# freq2<-table(test$Group.2) 
+# freq3<-freq1/freq2
+# names(freq3)<-names
+# 
+# png(paste0(out,"activ mod/ratio quiz registrant.png"), 1000, temp.height, pointsize = 15)
+# plot(freq3,yaxt="n",ylab="# quiz par inscrits actifs", cex.lab=1.2)#,main="assignment submission per registrant"
+# axis(side=2, at=seq(0,round(max(freq3)),by=5), las=1)
+# dev.off()
+
+#########################
+##### Assignments #######
+#########################
+
+# METADATA
+assignment_metadata$type<-"assignment"
+assignment_metadata$type_id<-paste(assignment_metadata$type,assignment_metadata$parent_id,sep="_")
+assignment_metadata$open_day<-as.Date(as.POSIXct(assignment_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+assignment_metadata<-merge(assignment_metadata,items_sections_order[,c("type_id","display_order2","display_order_bis","title")],by="type_id",all.x=T)
+colnames(assignment_metadata)[grep("title.y",colnames(assignment_metadata))]<-"title_section"
+colnames(assignment_metadata)[grep("title.x",colnames(assignment_metadata))]<-"title"
+
+#merge sections opened in the same time at the beginning
+assignment_metadata$open_week[assignment_metadata$display_order2 %in% section_1]<-week_course[1,1]
+#lecture_metadata$open_week
+for (i in 2:ncol(week_course)){
+  assignment_metadata$open_week[assignment_metadata$display_order2==i]<-week_course[1,i]
+}
+table(assignment_metadata$open_week)
+
+# assignment_metadata2: keep assignment having a parent_id>0 (<0 being duplicated) & havin an open_day & having a display_order2 (i.e. being in a section)
+assignment_metadata2<-assignment_metadata[assignment_metadata$parent_id>0 & is.na(assignment_metadata$display_order2)==F,]
+assignment_metadata2<-assignment_metadata2[order(assignment_metadata2$display_order2),]
+table(assignment_metadata2$open_day)
+table(assignment_metadata2$open_week)
+# head(assignment_metadata$open_day)
+# table(assignment_metadata$open_day)
+
+
+# SUBMISSION
+assignment_submission_metadata$sub_day<-as.Date(as.POSIXct(assignment_submission_metadata$submission_time,origin=origin),format = "%d/%m/%Y")
+assignment_submission_metadata<-merge(assignment_submission_metadata,users2[,c("session_user_id","forum_title")],by.x="session_user_id",by.y="session_user_id",all.x=T)
+assignment_submission_metadata<-merge(assignment_submission_metadata,assignment_part_metadata[,c("id","assignment_id")],by.x="item_id",by.y="id",all.x=T)
+assignment_submission_metadata<-merge(assignment_submission_metadata,assignment_metadata2[,c("parent_id","open_day","display_order2","title_section")],by.x="assignment_id",by.y="parent_id",all.x=T)
+table(assignment_submission_metadata$forum_title)
+# Instructor    Student 
+# 101      19749 
+table(assignment_submission_metadata$sub_day)
+
+# Loop for attribute aggregate by week
+dates<-as.Date(names(table(assignment_metadata$open_day))) 
+c(min(dates),max(dates))
+dates<-seq(as.Date(b_date), as.Date(max(sort(unique(assignment_submission_metadata$sub_day)))), by = "week")
+dates<-as.character(dates)
+dates[1:ncol(week_course)]<-week_course[1,]
+for (i in 1:length(dates)){
+  assignment_submission_metadata$sub_week[assignment_submission_metadata$sub_day>=as.Date(dates[i],"%Y-%m-%d") & assignment_submission_metadata$sub_day< as.Date(dates[i+1],"%Y-%m-%d")]<-dates[i]
+}
+assignment_submission_metadata$sub_week[assignment_submission_metadata$sub_day>=as.Date(dates[length(dates)],"%Y-%m-%d")]<-as.Date(dates[length(dates)],"%Y-%m-%d")
+assignment_submission_metadata$sub_week<-as.Date(assignment_submission_metadata$sub_week,"%Y-%m-%d")
+table(assignment_submission_metadata$sub_week[assignment_submission_metadata$sub_day>b_date],useNA="ifany")
+table(assignment_submission_metadata$sub_day[is.na(assignment_submission_metadata$sub_week[assignment_submission_metadata$sub_day>b_date])])
+
+# length(table(assignment_submission_metadata$item_id))
+# length(items_sections_order$section_order[items_sections_order$item_type=="assignment"])
+
+
+# assignment_submission_metadata2: keep submission from "Student" & submitted after open_inscirption_date & look only at the first submission (submission_number==1)
+assignment_submission_metadata2<-assignment_submission_metadata[assignment_submission_metadata$sub_day>=as.Date(open_inscription_date) & assignment_submission_metadata$forum_title=="Student" & assignment_submission_metadata$submission_number==1,]
+# assignment_submission_metadata3: keep item being in the table lecture_metadata
+assignment_submission_metadata3<-assignment_submission_metadata2[as.numeric(as.character(assignment_submission_metadata2$item_id)) %in% as.numeric(as.character(assignment_part_metadata$id)) & assignment_submission_metadata2$forum_title=="Student",]
+# assignment 16 does not seem to be one of the assignments, so remove them (71)
+table(assignment_submission_metadata3$assignment_id)
+assignment_submission_metadata3<-assignment_submission_metadata3[assignment_submission_metadata3$assignment_id!=16,]
+assignment_submission_metadata3$action_type<-"devoirs"
+
+#### GRAPHIC REPRESENTATION ####
+#Number of active registrant (assignment)
+test<-aggregate(assignment_submission_metadata3,by=list(assignment_submission_metadata3$session_user_id,assignment_submission_metadata3$sub_week), FUN=length)
+freq<-table(test$Group.2[test$Group.2>=b_date])
+dates<-as.Date(names(freq))
+png(paste0(out,"activ temp/active registrant assignment.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# d'inscrits actifs",type="b", cex.lab = 1.2) #,main="Number of active registrant (assignment)"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1 , cex.axis = 1.2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=100), las=1 , cex.axis = 1)
+dev.off()
+
+#assignment consumption
+freq<-table(assignment_submission_metadata3$sub_week[assignment_submission_metadata3$sub_week>=b_date])
+dates<-as.Date(names(freq))
+png(paste0(out,"activ temp/consumption assignment.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# de devoirs",type="b", cex.lab = 1.2) #,main="assignment consumption"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=500), las=1,cex.axis=1)
+dev.off()
+
+
+#nb assignment by Active registrant#
+freq1<-table(assignment_submission_metadata3$sub_week)
+freq2<-table(test$Group.2)
+freq3<-freq1/freq2
+png(paste0(out,"activ temp/ratio assignment registrant.png"), temp.width,temp.height, pointsize = 15)
+plot(dates,freq3,xaxt="n",yaxt="n",xlab="",ylab="# de devoirs par inscrits actifs",type="b", cex.lab = 1.2)#,main="assignment consumption by Active"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d/%m", las = 1, cex.axis=1.2)
+axis(side=2, at=seq(0,round(max(freq3),-1),by=1), las=1,cex.axis=1.2)
+dev.off()
+
+#% of cumulative lecture submission
+prop_freq<-cumsum(round(prop.table(table(assignment_submission_metadata3$sub_week))*100,2))
+dates<-as.Date(names(prop_freq))
+plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% of assignment consumptions",type="l",main="% cumulative assignment consumptions")
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,100,10), las = 2)
+
+### VISION MODULAIRE #####
+# #nb de assignment par assignment
+# freq<-table(assignment_submission_metadata3$display_order2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% as.numeric(names(freq))])
+# names(freq)<-names
+# png(paste0(out,"activ mod/consumption assignment.png"), 1000, temp.height, pointsize = 15)
+# plot(freq,yaxt="n",ylab="# devoirs", cex.lab=1.2)
+# axis(side=2, at=seq(0,round(max(freq),-2),500), las = 2, cex.axis=1)
+# dev.off()
+# 
+# #Number of active registrant (assignment)
+# test<-aggregate(assignment_submission_metadata3,by=list(assignment_submission_metadata3$session_user_id,assignment_submission_metadata3$display_order2), FUN=length)
+# freq<-table(test$Group.2) 
+# names<-as.factor(sections$title2[sections$display_order2 %in% as.numeric(names(freq))])
+# names(freq)<-names
+# png(paste0(out,"activ mod/active registrant assignment.png"), 1000, temp.height, pointsize = 15)
+# plot(freq,yaxt="n",ylab="# d'inscrits actifs", cex.lab=1.2)
+# axis(side=2, at=seq(0,round2(max(freq),-2),100), las = 1)
+# dev.off()
+# 
+# # nb assignment by Active registrant #
+# freq1<-table(assignment_submission_metadata3$display_order2)
+# freq2<-table(test$Group.2) 
+# freq3<-freq1/freq2
+# names(freq3)<-names
+# png(paste0(out,"activ mod/ratio assignment registrant.png"), 1000, temp.height, pointsize = 15)
+# plot(freq3,yaxt="n",ylab="# devoirs par inscrits actifs", cex.lab=1.2)#,main="assignment submission per registrant"
+# axis(side=2, at=seq(0,round2(max(freq3),-1),by=2), las=1)
+# dev.off()
+
+
+###########################################################################
+######## GRAPHIC REPRESENTATION for LECTURE & QUIZ & ASSIGNMENT ###########
+###########################################################################
+library(ggplot2)
+library(scales)
+# http://bioinfo-fr.net/guide-de-demarrage-pour-ggplot2-un-package-graphique-pour-r#sthash.6H828cJ5.dpuf
+
+###TEMPOREL####
+#Consumption
+freq_vid<-as.data.frame(table(lecture_submission_metadata3$sub_week))
+freq_vid$type<-"vidéos"
+freq_quiz<-as.data.frame(table(quiz_submission_metadata3$sub_week))
+freq_quiz$type<-"quiz"
+freq_ass<-as.data.frame(table(assignment_submission_metadata3$sub_week))
+freq_ass$type<-"devoirs"
+freq1<-rbind(freq_vid[,2:3],freq_quiz[,2:3],freq_ass[,2:3])
+freq1$time<-c(sort(unique(lecture_submission_metadata3$sub_week)),sort(unique(quiz_submission_metadata3$sub_week)),sort(unique(assignment_submission_metadata3$sub_week)))
+colnames(freq1)<-c("freq","Action","time")
+freq1$Action<-factor(freq1$Action , levels = c( "vidéos" , "quiz", "devoirs")) #mettre les levels dans l'ordre qu'on veut
+p<-ggplot(data=freq1, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(15,16,17),name="") + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red","blue","forestgreen"),name="") + #couleur
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# de logs") +
+  #scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(b_date, max(freq1$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq1$freq),-2),1000)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/consumption.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/consumption2.png"), width=10, height=6, dpi=500)
+
+
+#Number of active registrant
+test<-aggregate(lecture_submission_metadata3,by=list(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$sub_week), FUN=length)
+freq_vid<-as.data.frame(table(test$Group.2))
+freq_vid$type<-"vidéos"
+test<-aggregate(quiz_submission_metadata3,by=list(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$sub_week), FUN=length)
+freq_quiz<-as.data.frame(table(test$Group.2))
+freq_quiz$type<-"quiz"
+test<-aggregate(assignment_submission_metadata3,by=list(assignment_submission_metadata3$session_user_id,assignment_submission_metadata3$sub_week), FUN=length)
+freq_ass<-as.data.frame(table(test$Group.2))
+freq_ass$type<-"devoirs"
+freq2<-rbind(freq_vid[,2:3],freq_quiz[,2:3],freq_ass[,2:3])
+freq2$time<-c(sort(unique(lecture_submission_metadata3$sub_week)),sort(unique(quiz_submission_metadata3$sub_week)),sort(unique(assignment_submission_metadata3$sub_week)))
+colnames(freq2)<-c("freq","Action","time")
+freq2$Action<-factor(freq2$Action , levels = c( "vidéos" , "quiz", "devoirs")) #mettre les levels dans l'ordre qu'on veut
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq2, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(15,16,17),name="") + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red","blue","forestgreen"),name="") + #couleur
+  #                      ,labels=c("inscriptions","dernières\nconnexions")) #crée 2 légendes
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# d'inscrits actifs") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(b_date, max(freq2$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq2$freq),-2),100)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/active registrant.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/active registrant2.png"), width=10, height=6, dpi=500)
+
+# RATIO #
+freq3<-freq1
+freq3$freq<-round(freq1$freq/freq2$freq,2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq3, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(15,16,17),name="") + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red","blue","forestgreen"),name="") + #couleur
+  #                      ,labels=c("inscriptions","dernières\nconnexions")) #crée 2 légendes
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# moyen de logs par inscrit actif") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(b_date, max(freq3$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq3$freq),-1),5)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/ratio.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/ratio2.png"), width=10, height=6, dpi=500)
+
+
+
+####MODULAIRE####
+#consumption
+# test<-rbind(lecture_submission_metadata3[,c("session_user_id","display_order2","title_section","action_type")],quiz_submission_metadata3[,c("session_user_id","display_order2","title_section","action_type")],assignment_submission_metadata3[,c("session_user_id","display_order2","title_section","action_type")])
+freq_vid<-as.data.frame(table(lecture_submission_metadata3$display_order2))
+freq_vid$type<-"vidéos"
+freq_quiz<-as.data.frame(table(quiz_submission_metadata3$display_order2))
+freq_quiz$type<-"quiz"
+freq_ass<-as.data.frame(table(assignment_submission_metadata3$display_order2))
+freq_ass$type<-"devoirs"
+freq1<-rbind(freq_vid,freq_quiz,freq_ass)
+# freq1$Var1<-as.numeric(as.character(freq1$Var1))
+# freq1<-freq1[freq1$Var1<9,]
+# sections$display_order2<-as.numeric(as.character(sections$display_order2))
+freq1<-merge(freq1,sections[,c("display_order2","title2")],by.x="Var1",by.y="display_order2",all.x=T)
+# freq1$Var1<-as.factor(sections$title2[sections$display_order2 %in% freq1$Var1])
+colnames(freq1)<-c("section","freq","Action","Titre")
+freq1$Action<-factor(freq1$Action , levels = c( "vidéos" , "quiz", "devoirs")) #mettre les levels dans l'ordre qu'on veut
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq1, aes(x=Titre, y=freq,fill=Action))
+p + geom_bar(stat='identity', position='dodge') +
+  theme_bw(15) +# fond blanc + taille police
+  scale_fill_manual(values=c("dark red", "blue","forestgreen"),name="") +#set color
+  theme(axis.title.x = element_blank(),axis.text.x = element_text(angle = 45, hjust=1)) +# manage x-axis
+  ylab("# de logs") +
+  scale_y_continuous(breaks = seq(0,round2(max(freq1$freq),-2),2000))
+
+ggsave(paste0(out,"activ mod/consumption_mod.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ mod/consumption_mod2.png"), width=10, height=6, dpi=500)
+
+#Number of active registrant
+test<-aggregate(lecture_submission_metadata3,by=list(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$display_order2), FUN=length)
+freq_vid<-as.data.frame(table(test$Group.2))
+freq_vid$type<-"vidéos"
+test<-aggregate(quiz_submission_metadata3,by=list(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$display_order2), FUN=length)
+freq_quiz<-as.data.frame(table(test$Group.2))
+freq_quiz$type<-"quiz"
+test<-aggregate(assignment_submission_metadata3,by=list(assignment_submission_metadata3$session_user_id,assignment_submission_metadata3$display_order2), FUN=length)
+freq_ass<-as.data.frame(table(test$Group.2))
+freq_ass$type<-"devoirs"
+freq2<-rbind(freq_vid,freq_quiz,freq_ass)
+freq2<-merge(freq2,sections[,c("display_order2","title2")],by.x="Var1",by.y="display_order2",all.x=T)
+colnames(freq2)<-c("section","freq","Action","Titre")
+# freq2$Var1<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+freq2$Action<-factor(freq2$Action , levels = c( "vidéos" , "quiz", "devoirs")) #mettre les levels dans l'ordre qu'on veut
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq2, aes(x=Titre, y=freq,fill=Action))
+p + geom_bar(stat='identity', position='dodge') + #histogram 
+  theme_bw(17) + # fond blanc + taille police
+  scale_fill_manual(values=c("dark red","blue","forestgreen"),name="") + #set color
+  theme(axis.title.x = element_blank(),axis.text.x = element_text(angle = 45, hjust=1)) +# manage x-axis
+  ylab("# d'inscrits actifs") +
+  scale_y_continuous(breaks = seq(0,round2(max(freq2$freq),-1),500))
+
+ggsave(paste0(out,"activ mod/active_registrant_mod.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ mod/active_registrant_mod2.png"), width=10, height=6, dpi=500)
+
+
+# RATIO #
+freq3<-freq1
+freq3$freq<-round(freq1$freq/freq2$freq,2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq3, aes(x=Titre, y=freq,fill=Action))  
+p + geom_bar(stat='identity', position='dodge') + #histogram 
+  theme_bw(17) + # fond blanc + taille police
+  scale_fill_manual(values=c("dark red","blue","forestgreen"),name="") + #set color
+  theme(axis.title.x = element_blank(),axis.text.x = element_text(angle = 45, hjust=1)) +# manage x-axis
+  ylab("# moyen de logs par inscrit actif") +
+  scale_y_continuous(breaks = seq(0,round2(max(freq3$freq),0),2))
+
+ggsave(paste0(out,"activ mod/ratio_mod.png"), width=8, height=8, dpi=600)
+ggsave(paste0(out,"activ mod/ratio_mod2.png"), width=10, height=6, dpi=500)
+
+
+
+#################################################################
+## NO SHOW : inscrit mais ne fait aucune action par la suite ####
+#################################################################
+active_user<-c(unique(lecture_submission_metadata3$session_user_id),unique(quiz_submission_metadata3$session_user_id),unique(assignment_submission_metadata3$session_user_id))
+active_user<-unique(active_user)
+students$noshow[!(students$session_user_id %in% active_user)]<-1
+students$noshow[students$session_user_id %in% active_user]<-0
+table(students$noshow)
+
+#registrant + last connexions
+freq_registrant<-as.data.frame(table(students$inscription_week))
+freq_registrant$type<-"inscription"
+colnames(freq_registrant)<-c("time","freq","Action")
+freq_noshow<-as.data.frame(table(students$last_access_time_week))
+freq_noshow$type<-"noshow"
+colnames(freq_noshow)<-c("time","freq","Action")
+freq_tot<-rbind(freq_registrant,freq_noshow)
+freq_tot$Action<-factor(freq_tot$Action , levels = c("inscription","noshow")) #mettre les levels dans l'ordre qu'on veut
+freq_tot$time<-as.Date(freq_tot$time)
+p<-ggplot(data=freq_tot, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(12,24)) + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red", "dark blue"),name="Action") + #couleur
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# d'individus") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(as.Date(open_inscription_date), max(freq_tot$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq_tot$freq),-1),50)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted") #ajout des dates ouverture, fermeture
+
+
+ggsave(paste0(out,"activ temp/registrant_noshow.png"), width=12, height=8, dpi=500)
+
+save.image(paste0(mooc,"_avt_forum.RData"))
+load(paste0(mooc,"_avt_forum.RData"))
+
+
+################################################################################################
+################################################################################################
+############################   FORUM  ##########################################################
+################################################################################################
+################################################################################################
+# "activity_log"                "forum_comments"              "forum_forums"               
+# "forum_posts"                 "forum_reporting"             "forum_reputation_points"    
+# "forum_reputation_record"     "forum_subscribe_forums"      "forum_subscribe_threads"    
+# "forum_tags"                  "forum_tags_threads"          "forum_threads"              
+
+table(activity_log$action)
+
+#################
+# Forum threads #
+#################
+summary(forum_threads)
+forum_threads$pasted_time_day<-as.Date(as.POSIXct(forum_threads$posted_time,origin=origin),format = "%d/%m/%Y")
+table(forum_threads$pasted_time_day)
+#only between 2013-10-27 (0 quiz done before)
+dates<-sort(unique(forum_threads$pasted_time_day)) #1er lundi 2014-10-09, dernier lundi 2015-01-12
+c(min(dates),max(dates))
+dates<-seq(b_date, as.Date(close_inscription_date), by = "week")
+dates<-as.character(dates)
+
+#merge sections opened in the same time at the beginning
+dates[1:ncol(week_course)]<-week_course[1,]
+#lecture_metadata$open_week
+for (i in 1:length(dates)){
+  forum_threads$pasted_time_week[forum_threads$pasted_time_day>=as.Date(dates[i],"%Y-%m-%d") & forum_threads$pasted_time_day< as.Date(dates[i+1],"%Y-%m-%d")]<-dates[i]
+}
+table(forum_threads$pasted_time_week)
+
+#"Forum threads" graphic
+freq<-table(forum_threads$pasted_time_week[forum_threads$pasted_time_week>=b_date])
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",xlab="",yaxt="n",ylab="# forum threads",type="b")#,main="Forum threads"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq),-1),5),las=1)
+
+###############
+# Forum posts #
+###############
+#submission
+forum_posts$post_time_day<-as.Date(as.POSIXct(forum_posts$post_time,origin=origin),format = "%d/%m/%Y")
+table(forum_posts$post_time_day)
+dates<-sort(unique(forum_posts$post_time_day)) #1er lundi 2014-10-09, dernier lundi 2015-01-12
+c(min(dates),max(dates))
+dates<-seq(b_date, as.Date(close_inscription_date), by = "week")
+dates<-as.character(dates)
+#merge sections opened in the same time at the beginning
+dates[1:ncol(week_course)]<-week_course[1,]
+#lecture_metadata$open_week
+for (i in 1:length(dates)){
+  forum_posts$post_time_week[forum_posts$post_time_day>=as.Date(dates[i],"%Y-%m-%d") & forum_posts$post_time_day< as.Date(dates[i+1],"%Y-%m-%d")]<-dates[i]
+}
+forum_posts$post_time_week<-as.Date(forum_posts$post_time_week,"%Y-%m-%d")
+table(forum_posts$post_time_week)
+
+
+#### GRAPHIC ####
+# nb of Active registrant
+test<-aggregate(forum_posts,by=list(forum_posts$user_id,forum_posts$post_time_week), FUN=length)
+dates<-sort(unique(test$Group.2[test$Group.2>=b_date]))
+freq<-table(test$Group.2[test$Group.2>=b_date])
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# of active registrant",type="b") #,main="Number of active registrant (post)"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq),-1),by=5), las=1)
+
+
+#nb of posts by week
+dates<-sort(unique(forum_posts$post_time_week[forum_posts$post_time_week>=b_date]))
+freq<-table(forum_posts$post_time_week[forum_posts$post_time_week>=b_date])
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# of post",type="b") #,main="Number of posts"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq),-1),by=20), las=1)
+
+
+# nb posts by Active registrant #
+freq1<-table(forum_posts$post_time_week)
+freq2<-table(test$Group.2)
+freq3<-freq1/freq2
+dates<-as.Date(names(freq3))
+
+plot(dates,freq3,xaxt="n",yaxt="n",xlab="",ylab="# of posts per active registrant",type="b")#,main="Post submission by Active"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq3)),by=1), las=1)
+
+#%
+# prop_freq<-round(prop.table(table(forum_posts2$post_time_week))*100,2)
+# plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% of post",type="l",main="% Posts")
+# abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+# axis.Date(side = 1, at = seq(as.Date("2014-06-30"), as.Date(max(dates)), by = "week"), format = "%d %b %y", las = 2)
+# axis(side=2, at=seq(0,20,5), las = 2)
+
+
+
+#submission cumulative
+# cumfreq0<-cumsum(table(forum_posts$post_time_week))
+# dates<-as.Date(names(cumfreq0))
+# plot(dates,cumfreq0,xaxt="n",xlab="",yaxt="n",ylab="# of posts consumptions",type="l",main="Cumulative posts consumption")
+# abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+# axis.Date(side = 1, at = seq(min(dates), max(dates), by = "week"), format = "%d %b %y", las = 2)
+# axis(side=2, at=seq(0,round(max(cumfreq0),-2),by=500), las = 1)
+
+#%
+prop_freq<-cumsum(round(prop.table(table(forum_posts$post_time_week))*100,2))
+dates<-as.Date(names(prop_freq))
+plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% of posts consumptions",type="l",main="% cumulative posts consumptions")
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = seq(b_date, as.Date(max(dates)), by = "week"), format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,100,10), las = 2)
+
+
+##################
+# Forum comments #
+##################
+#submission
+forum_comments$post_time_day<-as.Date(as.POSIXct(forum_comments$post_time,origin=origin),format = "%d/%m/%Y")
+table(forum_comments$post_time_day)
+dates<-sort(unique(forum_comments$post_time_day)) 
+c(min(dates),max(dates))
+dates<-seq(as.Date(b_date), as.Date(close_inscription_date), by = "week")
+dates<-as.character(dates)
+#merge sections opened in the same time at the beginning
+dates[1:ncol(week_course)]<-week_course[1,]
+#lecture_metadata$open_week
+for (i in 1:length(dates)){
+  forum_comments$post_time_week[forum_comments$post_time_day>=as.Date(dates[i],"%Y-%m-%d") & forum_comments$post_time_day< as.Date(dates[i+1],"%Y-%m-%d")]<-dates[i]
+}
+forum_comments$post_time_week<-as.Date(forum_comments$post_time_week,"%Y-%m-%d")
+table(forum_comments$post_time_week)
+
+
+#### GRAPHIC ####
+# nb of Active registrant
+test<-aggregate(forum_comments,by=list(forum_comments$user_id,forum_comments$post_time_week), FUN=length)
+freq<-table(test$Group.2)
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# of active registrant",type="b") #,main="Number of active registrant (comment)"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq),-1),by=10), las=1)
+# nrow(test[test$Group.2=="2014-10-27",]) #1124
+# length(unique(test$Group.1[test$Group.2=="2014-10-27" ])) #1124
+
+#nb of comments by week
+freq<-table(forum_comments$post_time_week)
+dates<-as.Date(names(freq))
+plot(dates,freq,xaxt="n",yaxt="n",xlab="",ylab="# of comment",type="b") #,main="Number of comments"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq),-2),by=10), las=1)
+
+
+#nb comments by Active registrant#
+freq1<-table(forum_comments$post_time_week)
+freq2<-table(test$Group.2)
+freq3<-freq1/freq2
+dates<-as.Date(names(freq3))
+plot(dates,freq3,xaxt="n",yaxt="n",xlab="",ylab="# of comments per active registrant",type="b")#,main="Comment by Active"
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = dates, format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,round(max(freq3)),by=1), las=1)
+
+
+#%
+prop_freq<-cumsum(round(prop.table(table(forum_comments2$post_time_day))*100,2))
+dates<-as.Date(names(prop_freq))
+plot(dates,prop_freq,xaxt="n",xlab="",yaxt="n",ylab="% of comments submission",type="l",main="% cumulative comments consumptions")
+abline(v=c(as.numeric(b_date),as.numeric(e_date)),col="blue")
+axis.Date(side = 1, at = seq(b_date, as.Date(max(dates)), by = "week"), format = "%d %b %y", las = 2)
+axis(side=2, at=seq(0,100,10), las = 2)
+
+save.image(paste0(mooc,"_avt_consommation_indiv.RData"))
+load(paste0(mooc,"_avt_consommation_indiv.RData"))
