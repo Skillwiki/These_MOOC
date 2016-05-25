@@ -1,0 +1,28 @@
+ path="C:/MOOC_Data/ENSCachan/"
+setwd(path)
+Fils=read.csv("fils.discus.csv", h=T, sep=";")
+summary(Fils)
+
+i=2
+
+sum.fils=NULL
+for (i in 1: length(names(Fils))) {
+sum.fils=rbind(sum.fils,summary(as.numeric(as.character(Fils[,i]))))}
+rownames(sum.fils)= names(Fils)
+sum.fils
+write.csv(as.data.frame(sum.fils), "summary.fils.csv")
+
+
+long.fils=NULL
+sd.fils=NULL
+sum.fils=NULL
+orphelins=NULL
+for (i in 1: length(names(Fils))) {
+long.fils=c(long.fils, length(which(is.na(Fils[,i])==F)))
+sd.fils=c(sd.fils, sd(as.numeric(as.character(Fils[,i])), na.rm=T))
+sum.fils=c(sum.fils, sum(as.numeric(as.character(Fils[,i])), na.rm=T))
+orphelins=c(orphelins, length(which(as.numeric(as.character(Fils[,i]))==1)))
+}
+stats.fils=cbind(long.fils, sd.fils, sum.fils, orphelins)
+rownames(stats.fils)= names(Fils)
+write.csv(as.data.frame(stats.fils), "stats.fils.csv")
