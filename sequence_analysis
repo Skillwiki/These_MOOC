@@ -1,3 +1,143 @@
+
+################################################################################
+################################################################################
+############### COURSERA 4. PATTERN OF ACTIONS BY INDIVIDUAL : preparation #####
+################################################################################
+################################################################################
+
+
+#on veut une table session_user_id, timestamp, action
+#action cummule video (view, download) ; quiz sub ; assignment ; #forum
+#we want matrix with : one line = one session_user_id + one timestamp
+#col: user (only student) ; timestamp ; type (lecture,quiz,assignment,#forum) ; action (view,download,quiz,assignment,#post,#comment)
+
+#lecture sub => lecture_submission_metadata2
+#rappel: lecture_submission_metadata2<-lecture_submission_metadata[lecture_submission_metadata$sub_day>=as.Date(open_inscription_date) & lecture_submission_metadata$forum_title=="Student",]
+
+#we keep only what we need for lecture, quiz and assignment
+lecture_action<-cbind(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$submission_time,lecture_submission_metadata3$item_id,rep("lecture",nrow(lecture_submission_metadata3)),lecture_submission_metadata3$action,as.character(lecture_submission_metadata3$sub_day),as.character(lecture_submission_metadata3$sub_week),lecture_submission_metadata3$open_day,lecture_submission_metadata3$display_order2,lecture_submission_metadata3$title_section)
+lecture_action<-as.data.frame(lecture_action)
+colnames(lecture_action)<-c("session_user_id","timestamp","item_id","type","action","sub_day","sub_week","open_day","display_order2","title_section")
+
+quiz_action<-cbind(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$submission_time,quiz_submission_metadata3$item_id,rep("quiz",nrow(quiz_submission_metadata3)),rep("quiz",nrow(quiz_submission_metadata3)),as.character(quiz_submission_metadata3$sub_day),as.character(quiz_submission_metadata3$sub_week),quiz_submission_metadata3$open_day,quiz_submission_metadata3$display_order2,quiz_submission_metadata3$title_section)
+quiz_action<-as.data.frame(quiz_action)
+colnames(quiz_action)<-c("session_user_id","timestamp","item_id","type","action","sub_day","sub_week","open_day","display_order2","title_section")
+
+assignment_action<-cbind(assignment_submission_metadata3$session_user_id,assignment_submission_metadata3$submission_time,assignment_submission_metadata3$assignment_id,rep("assignment",nrow(assignment_submission_metadata3)),rep("assignment",nrow(assignment_submission_metadata3)),as.character(assignment_submission_metadata3$sub_day),as.character(assignment_submission_metadata3$sub_week),assignment_submission_metadata3$open_day,assignment_submission_metadata3$display_order2,assignment_submission_metadata3$title_section)
+assignment_action<-as.data.frame(assignment_action)
+colnames(assignment_action)<-c("session_user_id","timestamp","item_id","type","action","sub_day","sub_week","open_day","display_order2","title_section")
+
+#forum: post and comments : algoprog_001_post_comments
+# IDENTIFIANT NE CORRESPONDENT PAS
+# algoprog_001_post_comments$type<-"forum"
+# algoprog_001_post_comments$action[algoprog_001_post_comments$comments_id=="post_initial"]<-"post"
+# algoprog_001_post_comments$action[algoprog_001_post_comments$comments_id!="post_initial"]<-"comment"
+# algoprog_001_post_comments$post_time_day<-as.character(algoprog_001_post_comments$post_time_day)
+# algoprog_001_post_comments2<-algoprog_001_post_comments[as.Date(algoprog_001_post_comments$post_time_day)>=as.Date(b_date) & 
+#                                                         as.Date(algoprog_001_post_comments$post_time_day)<=as.Date(e_date) &
+#                                                         match(algoprog_001_post_comments$user_id,students$session_user_id),]
+
+library(reshape)
+library(reshape2)
+
+
+# merge metadata of each item (lecture, quiz, assignment)
+action_metadata<-rbind(lecture_metadata[,c("parent_id","title","open_week","type","display_order2","title_section")],quiz_metadata[,c("parent_id","title","open_week","type","display_order2","title_section")],assignment_metadata[,c("parent_id","title","open_week","type","display_order2","title_section")])
+action_metadata$type_id<-paste(action_metadata$type,action_metadata$parent_id,sep="_")
+action_metadata<-action_metadata[order(action_metadata$open_week,action_metadata$title),]
+
+# replace for french accent
+action_metadata$title<-gsub("\xe9","é",action_metadata$title)
+action_metadata$title<-gsub("\xfc\xbe\x99\x96\x94\xbc","î",action_metadata$title)
+action_metadata$title<-gsub("\xfc\xbe\x99\xa6\x94\xbc","ri",action_metadata$title)
+action_metadata$title<-gsub("\xe0","à",action_metadata$title)
+action_metadata$title<-gsub("\xea","ê",action_metadata$title)
+action_metadata$title<-gsub("\xe8","è",action_metadata$title)
+
+unique(action_metadata$title[grep("Cours II-4",action_metadata$title)])
+
+
+action_metadata$type_id
+items_sections$type_id
+action_metadata$type_id[match(action_metadata$type_id,items_sections$type_id)]
+action_metadata<-merge(action_metadata,sections[,c("display_order2","title2")],by="display_order2",all.x=T)
+#suppr des quiz or lecture that seems not important
+action_metadata2<-action_metadata[ is.na(action_metadata$display_order2)==F & action_metadata$parent_id>0,]
+action_metadata2$type_id
+action_metadata2$type_id[match(action_metadata2$type_id,items_sections$type_id)]
+structure_course<-table(action_metadata2$title2,action_metadata2$type)
+
+
+# merge action submission
+action<-rbind(lecture_action,quiz_action,assignment_action)
+action<-action[order(action$session_user_id,as.numeric(as.character(action$timestamp))),]
+action$action2<-action$action
+levels(action$action2)<-c("D","V","Q","A")
+action$precise_sec<-as.POSIXct(as.numeric(as.character(action$timestamp)),origin=origin, tz = "America/Los_Angeles")
+action$precise_hour<-as.POSIXct(as.character(action$precise_sec),format = "%Y-%m-%d %H")
+action<-action[order(action$timestamp,action$session_user_id),]
+
+# action$open_week
+for (i in 1:ncol(week_course)){
+  action$open_week[action$display_order2==i]<-week_course[1,i]
+}
+
+
+action$id<-paste(action$session_user_id,action$sub_day,sep="_") #identifiant user + sub_day
+action$id_modul<-paste(action$session_user_id,action$display_order2,sep="_") #identifiant user + display_order2
+action$action_order<-ave(action$id,action$id, FUN=seq_along) #numeroter les actions
+action$type_item_id<-paste(action$type,action$item_id,sep="_")
+action$user_timestamp_item_id<-paste(action$id,action$type_item_id,sep="_")
+action<-action[is.na(action$session_user_id)==F,]
+action$user_item_id<-paste(action$session_user_id,action$type_item_id,sep="_")
+action$user_action_id<-paste(action$session_user_id,action$action, action$item_id,sep="_")
+action$unique_id<-seq(1:nrow(action))
+
+#We remove 2 exact same actions happening at the exact same time
+action_unique<-action[!duplicated(action$user_timestamp_item_id),] 
+# action_unique2: Remove action without open_day
+action_unique2<-action_unique[is.na(action_unique$open_day)==F,]
+# test<-action_unique2[match(action_unique2$type_item_id,action_metadata2$type_id),] #none loss
+
+#suppression des actions doublons de user_timestamp_item_id 
+#=> on ne visionne au plus qu'1 fois la même video/quiz/assignment pendant 1j
+action_unique$action_order<-ave(action_unique$id,action_unique$id, FUN=seq_along)
+action_unique$action_order<-as.numeric(action_unique$action_order)
+action_unique$timestamp<-as.numeric(action_unique$timestamp)
+
+action_unique2$action_order<-ave(action_unique2$id,action_unique2$id, FUN=seq_along)
+action_unique2$action_order<-as.numeric(action_unique2$action_order)
+action_unique2$timestamp<-as.numeric(action_unique2$timestamp)
+
+#same by module (only on action_unique2 we need open_week)
+action_unique2$action_order_modul<-ave(action_unique2$id_modul,action_unique2$id_modul, FUN=seq_along)
+action_unique2$action_order_modul<-as.numeric(action_unique2$action_order_modul)
+
+
+
+# 5 states with action: view, download, quiz attempt, assignment submission
+table(action_unique$action)
+table(action_unique2$action)
+
+# 8 états with action_bis : view unique, dl unique, 1er view, 1er dl, review (svt 1er view), redl (svt 1er dl), dl svt view, view svt dl
+action_unique$item_occurence <- ave(action_unique$user_action_id, action_unique$user_action_id, FUN = seq_along)
+action_unique2$item_occurence <- ave(action_unique2$user_action_id, action_unique2$user_action_id, FUN = seq_along)
+# action_unique$action_bis<-ifelse(action_unique$item_occurence>1,paste("re-",action_unique$action,sep=""),as.character(action_unique$action))
+# action_unique$action_bis[action_unique$item_occurence<2 & action_unique$item_occurence>2 & action_unique$action=="download"]<-"download_unique"
+# action_unique$action_bis[action_unique$item_occurence<2 & action_unique$action=="view"]<-"view_unique"
+# action_unique$action_bis[action_unique$item_occurence<2 & action_unique$action=="view"]
+# action_unique$action_bis[action_unique$item_occurence<2 & action_unique$action=="assignment"]<-"assignment_1st"
+# action_unique$action_bis[action_unique$item_occurence<2 & action_unique$action=="quiz"]<-"quiz_1st"
+action_unique$action_bis<-ifelse(action_unique$item_occurence>1,paste("re",action_unique$action,sep=""),as.character(action_unique$action))
+action_unique2$action_bis<-ifelse(action_unique2$item_occurence>1,paste("re",action_unique2$action,sep=""),as.character(action_unique2$action))
+table(action_unique$action_bis)
+table(action_unique2$action_bis)
+# length(unique(action$session_user_id))
+
+save.image(paste0(mooc,"_avt_seq.RData"))
+load(paste0(mooc,"_avt_seq.RData"))
+
+
 ################################################################################
 ################################################################################
 ################################################################################
