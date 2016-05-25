@@ -1,0 +1,734 @@
+################################################################################
+################################################################################
+################################################################################
+###### COURSERA 6 PATTERN OF ACTIONS BY INDIVIDUAL: exploration of sequences ###
+################################################################################
+################################################################################
+################################################################################
+
+
+#####################################################################################
+################ TraMineR: http://traminer.unige.ch/preview-main.shtml ##############
+# http://quanti.hypotheses.org/686/ #
+#####################################################################################
+
+library(TraMineR)
+
+
+
+##### ATTENTION, CHOIX A FAIRE ENTRE CALENDAIRE ET MODULAIRE #########
+
+# 8 states
+# w.alphabet<-c("assignment","download","Inactive","quiz","redownload", "requiz", "review", "view")
+# w.labels<-c("assignment","download","Inactive","quiz","redownload", "requiz", "review", "view")
+# w.scodes<-c("A","D","I","Q","RD","RQ","RV","V")
+
+# 5 states
+w.alphabet<-c("assignment","download","Inactive","quiz","view")
+w.labels<-c("assignment","download","Inactive","quiz","view")
+w.scodes<-c("A","D","I","Q","V")
+
+# 5 états => action_unique$action
+# 8 états => action_unique$action_bis
+act<-"action"
+########################################## VISION TEMP A FAIRE EN 1ER
+vision<-"temp" 
+vision<-"mod"
+
+act_order<-ifelse(vision=="temp","action_order","action_order_mod")
+
+#action_unique2$sub_week #vision calendaire
+#action_unique2$open_week #vision modulaire 
+if(vision=="temp"){table(action_unique2$sub_week,action_unique2$display_order)}
+if(vision=="mod"){table(action_unique2$open_week,action_unique2$display_order)}
+
+for(i in 1:ncol(week_course)){
+  #i=1
+  semaine<-week_course[1,i]
+  num_week<-which(week_course[1,]==semaine)
+  column<-ifelse(vision=="temp","sub_week","open_week")
+  action_bis<-action_unique2[as.character(action_unique2[,column])==semaine,c("session_user_id",act_order,act)]
+
+  
+  w <- reshape(action_bis, 
+               timevar = act_order,
+               idvar = c("session_user_id"),
+               direction = "wide")
+  w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+  
+  w.seq <- seqdef(w, 2:ncol(w), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 5, cpal=c("darkgreen","chocolate1","aliceblue","darkorchid","firebrick1"))
+  # w.seq <- seqdef(w, 2:ncol(w), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 8, cpal=c("black","chocolate1","aliceblue","darkorchid1","gold","cyan","deeppink","firebrick1"))
+  a<-as.data.frame(matrix(NA,nrow=nrow(w.seq),ncol=4)) #7 colnames for 8 states
+  for(l in 1:4){a[,l]<-as.character(a[,l])} 
+  colnames(a)<-c("assignment","download","quiz", "view") #c("assignment","download","quiz","redownload","requiz","review", "view")
+  w.seq2<- seqdss(w.seq,with.missing=F)
+  w.seq2<-cbind(w$session_user_id,w.seq2)
+  for(j in 1:ncol(w.seq2)){w.seq2[,j]<-as.character(w.seq2[,j])}
+  
+  w.seq3<-as.data.frame(cbind(as.character(w.seq2[,1]),as.character(seqconc(w.seq2[,2:ncol(w.seq2)],sep="-"))))
+  colnames(w.seq3)<-c("session_user_id","sequence")
+  w.seq3<-cbind(w.seq3,a)
+  
+  # renommer les états en fonction de ce que contient la séquence
+  w.seq3$assignment[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^A-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-A-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-A$",w.seq3$sequence)]]<-"A"
+  w.seq3$download[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^D-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-D-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-D$",w.seq3$sequence)]]<-"D"
+  w.seq3$quiz[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^Q-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-Q-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-Q$",w.seq3$sequence)]]<-"Q"
+  #w.seq3$redownload[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^RD-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-RD-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-RQ$",w.seq3$sequence)]]<-"RD"
+  #w.seq3$requiz[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^RQ-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-RQ-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-RQ$",w.seq3$sequence)]]<-"RQ"
+  #w.seq3$review[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^RV-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-RV-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-RV$",w.seq3$sequence)]]<-"RV"
+  w.seq3$view[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^V-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-V-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-V$",w.seq3$sequence)]]<-"V"
+  w.seq3[,paste0("seq_finale_",i)]<-paste3(w.seq3$assignment,w.seq3$download,w.seq3$quiz,w.seq3$redownload,w.seq3$requiz,w.seq3$review,w.seq3$view,sep="")
+  name<-paste("seq_week",i,sep="_")
+  assign(name,w.seq3)
+  
+}
+
+
+# On regroupe dans sequence_finale les séquences de chaque semaine/module
+sequence_finale<-merge(seq_week_1[,c("session_user_id","seq_finale_1")],seq_week_2[,c("session_user_id","seq_finale_2")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_3[,c("session_user_id","seq_finale_3")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_4[,c("session_user_id","seq_finale_4")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_5[,c("session_user_id","seq_finale_5")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_6[,c("session_user_id","seq_finale_6")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_7[,c("session_user_id","seq_finale_7")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_8[,c("session_user_id","seq_finale_8")],all=T)
+sequence_finale<-merge(sequence_finale,seq_week_9[,c("session_user_id","seq_finale_9")],all=T)
+sequence_finale[is.na(sequence_finale)]<-"I"
+
+
+# A posteriori :
+# 1. Solver pur => que assignment
+# 2. Viewer pur => que V+RV
+# 3. Dolwloader pur => D, D+RD, RD...
+# 4. Quizzer pur => que Q+RQ
+# 
+# 6. V+D+Q ; V+Q ; D+Q => action video + quiz => 
+# 
+# 7. V+Q+A ; D+Q+A ; V+D+Q+A .... => video + quiz + assignment =>
+# 
+# 8. V+A; D+A ; V+D+A .... => video + assignment
+# 
+# 9. Inactive sur 1 semaine => reussir à recuperer les sortants d'1 semaine a l'autre
+
+# on remplace les états par ce qui est défini au-dessus
+sequence_finale2<-sequence_finale
+sequence_finale2[sequence_finale=="A"]<-"Solver"
+sequence_finale2[sequence_finale=="D"]<-"Collector" # | sequence_finale=="RD" |sequence_finale=="RDD"
+sequence_finale2[sequence_finale=="Q"]<-"Quizzer" # | sequence_finale=="RQ" |sequence_finale=="RQQ"
+sequence_finale2[sequence_finale=="V" | sequence_finale=="DV"]<-"Viewer" # | sequence_finale=="RV" |sequence_finale=="RVV"
+
+sequence_finale2[sequence_finale=="DQV" | sequence_finale=="QV" |sequence_finale=="DQ"]<-"Active viewer"
+sequence_finale2[sequence_finale=="AQV" | sequence_finale=="ADQ" |sequence_finale=="ADQV"]<-"Completer"
+sequence_finale2[sequence_finale=="AV" | sequence_finale=="AD" |sequence_finale=="ADV" |sequence_finale=="AQ"]<-"Low completer"
+
+sequence_finale2[sequence_finale=="I"]<-"Inactive"
+colnames(sequence_finale2)<-c("Registrant",colnames(week_course))
+if(vision=="temp"){user_temp<-unique(sequence_finale2$Registrant)} #A FAIRE AU MOMENT DU TEMPOREL
+if(vision=="mod"){sequence_finale2<-sequence_finale2[sequence_finale2$Registrant %in% user_temp,]}
+
+if(vision=="temp"){save.image(paste0(mooc,"_seq_temp.RData"))}
+#load(paste0(mooc,"_seq_temp.RData"))
+
+sapply(sequence_finale2[, grep("week", colnames(sequence_finale2))], table)
+# prop.etat gives by week/section the proportion of each states
+prop.etat<-as.data.frame(matrix(NA,9,9))
+colnames(prop.etat)<-c("Week","Viewer","Collector","Quizzer","Active viewer","Completer","Low completer","Solver","Inactive")
+prop.etat$Week<-colnames(week_course)
+for(w in colnames(sequence_finale2[, grep("week", colnames(sequence_finale2))])){
+  print(w)
+  a<-round(100*prop.table(table(sequence_finale2[,w])),2)
+  for (s in names(a)){
+    prop.etat[prop.etat$Week==w,s]<-a[s]
+  }
+}
+prop.etat$Week<-week_course[1,]
+
+#proportion des états par semaine
+write.csv(prop.etat,paste0(out,"seq 8 etats/",vision,"/prop etats.csv"))
+
+
+
+# refaire sur vision="mod" le cas échéant
+
+
+####### Re TraMineR sur sequence_finale2 #####
+
+###########################
+# I. Creation des data ####
+###########################
+
+# 8 états
+seqstatl(sequence_finale2[,2:ncol(sequence_finale2)])
+w.alphabet<-c("Viewer","Collector","Quizzer","Active viewer","Completer","Low completer","Solver","Inactive")
+w.labels<-c("Viewer","Collector","Quizzer","Active viewer","Completer","Low completer","Solver","Inactive")
+w.scodes<-c("V","Col","Q","AV","Comp","LComp","S","I")
+w.seq <- seqdef(sequence_finale2, 2:ncol(sequence_finale2), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 8, cnames=week_course[1,],cpal=c("firebrick1","chocolate1","cyan","black","darkorchid1","gold","deeppink","aliceblue"))
+# Active viewer = noir ; collector = orange ; completer = violet ; Inactive = blanc; low completer = jaune ; quizzer = bleu ;  solver = rose ; viewer = rouge
+
+
+###########################
+# II. Visualisation #######
+###########################
+
+par(mfrow = c(1, 1))
+#Plot the legend for the state colors.
+png(paste0(out,"seq 8 etats/",vision,"/legend.png"),temp.width,temp.height, pointsize = 15)
+seqlegend(w.seq, fontsize=1) # assignment = vert ; download = orange ; Inactive = bleu clair ; quiz = violet ; view = rouge
+dev.off()
+
+#Plot the first 10 sequences in the mvad.seq sequence object.
+seqiplot(w.seq, withlegend = "right", border = NA)
+
+#Plot all the sequences in the data set, sorted by states from start.
+png(paste0(out,"seq 8 etats/",vision,"/tapis.png"),temp.width,temp.height, pointsize = 30)
+seqIplot(w.seq, sortv = "from.end", axes = F,yaxis=F,ylab=paste0("N = ",dim(w.seq)[1]),withlegend = F)# , title="MOOC activity" from.start
+axis(2, at=seq(0,round(nrow(w.seq),-3),500),las=1,cex.axis=0.75)
+ifelse(vision=="temp",axis(1, at=c(1:ncol(week_course))-.5, labels=week_course[1,],las=2,cex.axis=0.75),axis(1, at=c(1:ncol(week_course))-.5, labels=sections$title2[1:ncol(week_course)],las=2,cex.axis=0.75))
+dev.off()
+
+#Plot the most frequent 10 sequences.
+seqfplot(w.seq, withlegend = FALSE, border = NA)
+
+
+###########################
+# III. Describe ###########
+###########################
+# Compute and plot the state distributions by time points. 
+# Borders surrounding the bars are removed for nicer output. 
+png(paste0(out,"seq 8 etats/",vision,"/prop states by week.png"),temp.width,temp.height, pointsize = 15)
+seqdplot(w.seq,, border = NA, axes = F,withlegend = F,cex.legend=0.45)# , title="MOOC activity"
+ifelse(vision=="temp",axis(1, at=c(1:ncol(week_course))-.5, labels=week_course[1,],las=2,cex.axis=0.75),axis(1, at=c(1:ncol(week_course))-.5, labels=sections$title2[1:ncol(week_course)],las=2,cex.axis=0.75))
+dev.off()
+#Compute and plot the transversal entropy index (sequence of entropies of the transversal state distributions).
+seqHtplot(w.seq)
+
+#Plot the sequence of modal states of the transversal state distributions.
+seqmsplot(w.seq, withlegend = FALSE, border = NA, title="MOOC activity")
+
+#Plot the mean time spent in each state of the alphabet.
+seqmtplot(w.seq, withlegend = F, title="MOOC activity")
+
+# proba de transitions
+transition<-list()
+for (i in 1:ncol(week_course)){
+  transition[[i]]<-round(100*seqtrate(w.seq,time.varying=T),2)[,,i]
+}
+names(transition)<-week_course[1,1:(ncol(week_course)-1)]
+
+#round(100*seqtrate(w.seq,time.varying=F),2)
+
+
+#########################
+### IV. TYPOLOGY ########
+#########################
+
+# 1.Compute the optimal matching distances using substitution costs based on transition rates
+# observed in the data and a 1 indel cost. The resulting distance matrix is stored in the dist.om1 object.
+dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "TRATE",with.missing=TRUE)
+#dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "CONSTANT",with.missing=TRUE)
+
+
+# 2.Make a typology of the trajectories: load the cluster library, build a Ward hierarchical clustering 
+# of the sequences from the optimal matching distances and retrieve for each individual sequence 
+# the cluster membership of the 4 class solution. We do not show here the dendrogram produced 
+# by plot(clusterward1), which, indeed, is not a TraMineR feature.
+library(cluster)
+
+clusterward1 <- agnes(dist.om1, diss = TRUE, method = "ward")
+# save.image("test.RData")
+# load("test.RData")
+#plot(clusterward1, which.plot = 2)
+plot(sort(clusterward1$height, decreasing=TRUE)[1:10], type='s', xlab="nb de classes", ylab="inertie")
+#s'il y a un grand saut, alors il est intéressant de regarder ce nb de classes
+#algoprog_001 : temp 3,6 ; mod 3,5
+#algoprog_002 : temp 4,6 et 10 ; mod 3 et 7
+vect_nb_classe<-c(3,6) #a la main
+for (i in vect_nb_classe){
+  nb_classe<-i
+  nb_classe<-3
+  cl1.4 <- cutree(clusterward1, k = nb_classe)
+  cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:nb_classe))
+  
+  # 3.Plot all the sequences within each cluster.
+  png(paste0(out,"seq 8 etats/",vision,"/",nb_classe,"classes.png"),temp.width,temp.height, pointsize = 25)
+  par(mfrow = c(2,round2(nb_classe/2,0)))# par(mar=c(1,1,1,1)) #plot en carré
+  #par(mfrow = c(1,nb_classe))# par(mar=c(1,1,1,1)) #plot à l'horizontale
+  #par(mfrow = c(nb_classe,1))# par(mar=c(1,1,1,1)) #plot à la verticale
+  # seqIplot(w.seq, group = cl1.4fac, sortv = "from.start", title="MOOC activity")
+  for (j in 1:nb_classe){
+    type<- paste("Type", j)
+    om.4 <- dist.om1[which(cl1.4fac==type), which(cl1.4fac==type)]
+    seqIplot(w.seq[which(cl1.4fac==type),], sortv = cmdscale(as.dist(om.4),k=1),ylab=paste0("N = ",dim(w.seq[which(cl1.4fac==type),])[1]), axes = F,yaxis=F,withlegend = F,cex.legend=0.45, title=paste0("MOOC activity - ",type," (N = ",dim(w.seq[which(cl1.4fac==type),])[1],")"))
+    #axis(2, at=seq(0,round(nrow(w.seq[which(cl1.4fac==type),]),-1),round(nrow(w.seq[which(cl1.4fac==type),]),-1)/10),las=2,cex.axis=0.9)
+    ifelse(vision=="temp",axis(1, at=c(1:ncol(week_course))-.5, labels=week_course[1,],las=2,cex.axis=0.8),axis(1, at=c(1:ncol(week_course))-.5, labels=sections$title2[1:ncol(week_course)],las=2,cex.axis=0.8))
+  }
+  dev.off()
+}
+
+par(mfrow = c(1,1))
+#seqIplot(w.seq, group = cl1.4fac, sortv = cmdscale(as.dist(dist.om1),k=1), title="MOOC activity")
+
+
+# etudier 1 seule classe
+par(mfrow = c(1, 1))
+om.4 <- dist.om1[which(cl1.4fac=="Type 4"), which(cl1.4fac=="Type 4")]
+seqIplot(w.seq[which(cl1.4fac=="Type 4"),], sortv = cmdscale(as.dist(om.4),k=1), title="MOOC activity")
+
+
+
+# 4.Plot the state distribution within each cluster.
+seqdplot(w.seq, group = cl1.4fac, border = NA, title=paste("Semaine",num_week))
+
+# 5. Entropie des classes
+seqHtplot(w.seq, group=w.seq$"week 1", xtlab=1:9, withlegend=T)
+
+# 6.Plot the representative sequences of each cluster.
+seqrplot(w.seq, dist.matrix = dist.om1, group = cl1.4fac,border = NA, title="Representative sequences of each cluster")
+# savePlot(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster",sep=""),type="png")
+# png(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster.png",sep=""),width=12,height=8)
+
+# Distribution des classes
+distri.eff <- table(cl1.4fac)
+distri.eff
+round(distri.eff/sum(distri.eff)*100,1)
+
+################################################################################
+######### PATTERN OF ACTIONS BY INDIVIDUAL: KIZILCEK  ##########################
+################################################################################
+
+
+#####################################################################################
+################ TraMineR: http://traminer.unige.ch/preview-main.shtml ##############
+# http://quanti.hypotheses.org/686/ #
+#####################################################################################
+
+library(TraMineR)
+
+
+##############################################
+##############################################
+##### KIZILCEK 1 : only on assignment ########
+##############################################
+##############################################
+
+# “on track” (did the assessment on time),
+# “behind” (turned in the assessment late),
+# “auditing” (didn’t do the assessment but engaged by watching a video or doing a quiz),
+# “out” (didn’t participate in the course at all).
+
+action_metadata2
+assignment_part_metadata
+assignment_submission_metadata2$item_id[match(assignment_part_metadata$id,assignment_submission_metadata2$item_id)]
+
+
+
+#need action by individuals by week
+action_unique2$kizil_type<-ifelse(as.character(action_unique2$sub_week)<=as.character(action_unique2$open_week) & action_unique2$type=="assignment","Ontrack",ifelse(as.character(action_unique2$sub_week)>as.character(action_unique2$open_week) & action_unique2$type=="assignment","Behind","Auditing"))
+table(action_unique2$kizil_type)
+
+
+w.alphabet<-c("Auditing","Behind","Ontrack")
+w.labels<-c("Auditing","Behind","Ontrack")
+w.scodes<-c("A","B","O")
+
+for(i in 1:ncol(week_course)){
+  semaine<-week_course[1,i]
+  num_week<-which(week_course[1,]==semaine)
+  action_bis<-action_unique2[as.character(action_unique$sub_week)==semaine,c("session_user_id","action_order","kizil_type")]
+  w <- reshape(action_bis, 
+               timevar = "action_order",
+               idvar = c("session_user_id"),
+               direction = "wide")
+  w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+  
+  # seqstatl(w[,2:ncol(w)])   #1ere semaine mais fonctionne avec toutes les colonnes
+  w.seq <- seqdef(w, 2:ncol(w), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 3)
+  a<-as.data.frame(matrix(NA,nrow=nrow(w.seq),ncol=3))
+  for(l in 1:3){a[,l]<-as.character(a[,l])}
+  colnames(a)<-c("auditing","behind","ontrack")
+  w.seq2<- seqdss(w.seq,with.missing=F)
+  w.seq2<-cbind(w$session_user_id,w.seq2)
+  for(j in 1:ncol(w.seq2)){w.seq2[,j]<-as.character(w.seq2[,j])}
+  
+  w.seq3<-as.data.frame(cbind(as.character(w.seq2[,1]),as.character(seqconc(w.seq2[,2:ncol(w.seq2)],sep="-"))))
+  colnames(w.seq3)<-c("session_user_id","sequence")
+  w.seq3<-cbind(w.seq3,a)
+  w.seq3$auditing[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^A-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-A-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-A$",w.seq3$sequence)]]<-"A"
+  w.seq3$behind[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^B-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-B-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-B$",w.seq3$sequence)]]<-"B"
+  w.seq3$ontrack[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^O-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-O-",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("-O$",w.seq3$sequence)]]<-"O"
+  w.seq3[,paste0("seq_finale_",i)]<-paste3(w.seq3$auditing,w.seq3$behind,w.seq3$ontrack,sep="")
+  name<-paste("kizil_seq_week",i,sep="_")
+  assign(name,w.seq3)
+  
+}
+
+
+kizil_sequence_finale<-merge(kizil_seq_week_1[,c("session_user_id","seq_finale_1")],kizil_seq_week_2[,c("session_user_id","seq_finale_2")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_3[,c("session_user_id","seq_finale_3")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_4[,c("session_user_id","seq_finale_4")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_5[,c("session_user_id","seq_finale_5")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_6[,c("session_user_id","seq_finale_6")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_7[,c("session_user_id","seq_finale_7")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_8[,c("session_user_id","seq_finale_8")],by="session_user_id",all=T)
+kizil_sequence_finale<-merge(kizil_sequence_finale,kizil_seq_week_9[,c("session_user_id","seq_finale_9")],by="session_user_id",all=T)
+kizil_sequence_finale[is.na(kizil_sequence_finale)]<-"I"
+colnames(kizil_sequence_finale)<-c("Registrant","week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8","week 9")
+
+kizil_sequence_finale2<-kizil_sequence_finale
+# AB ; AO ; ABO ; BO => O > B > A > I
+kizil_sequence_finale2[kizil_sequence_finale2=="AO"|kizil_sequence_finale2=="ABO"|kizil_sequence_finale2=="BO"]<-"O"
+kizil_sequence_finale2[kizil_sequence_finale2=="AB"]<-"B"
+
+
+sapply(kizil_sequence_finale2[, grep("week", colnames(kizil_sequence_finale))], table)
+
+
+####### Re TraMineR sur kizil_sequence_finale2 #####
+
+###########################
+# I. Creation des data ####
+###########################
+
+# 4 états
+seqstatl(kizil_sequence_finale2[,2:ncol(kizil_sequence_finale2)])
+w.alphabet<-c("A","B","I","O")
+w.labels<-c("Auditing","Behind","Inactive","Ontrack")
+w.scodes<-c("A","B","I","O")
+w.seq <- seqdef(kizil_sequence_finale2, 2:ncol(kizil_sequence_finale2), alphabet = w.alphabet, states = w.scodes,labels = w.labels, cpal=c("black","chocolate1","aliceblue","darkorchid1")) # xtstep = 4,
+# assignment = noir ; behind = orange ; Inactive = bleu clair ; on track = violet
+
+###########################
+# II. Visualisation #######
+###########################
+
+par(mfrow = c(1, 1))
+#Plot the legend for the state colors.
+seqlegend(w.seq) #auditing: noir, behind: orange, Inactive: bleu clair, ontrack: violet
+
+#Plot the first 10 sequences in the mvad.seq sequence object.
+seqiplot(w.seq, withlegend = FALSE, border = NA)
+
+#Plot all the sequences in the data set, sorted by states from start.
+seqIplot(w.seq, sortv = "from.start", withlegend = F, title="MOOC activity")
+
+#Plot the most frequent 10 sequences.
+seqfplot(w.seq, withlegend = FALSE, border = NA)
+
+#Plot the legend for the state colors.
+seqlegend(w.seq) #auditing: noir, behind: orange, Inactive: bleu clair, ontrack: violet
+
+
+###########################
+# III. Describe ###########
+###########################
+# Compute and plot the state distributions by time points. 
+# Borders surrounding the bars are removed for nicer output. 
+seqdplot(w.seq, withlegend = FALSE, border = NA, title="MOOC activity")
+
+#Compute and plot the transversal entropy index (sequence of entropies of the transversal state distributions).
+seqHtplot(w.seq)
+
+#Plot the sequence of modal states of the transversal state distributions.
+seqmsplot(w.seq, withlegend = FALSE, border = NA, title="MOOC activity")
+
+#Plot the mean time spent in each state of the alphabet.
+seqmtplot(w.seq, withlegend = F, title="MOOC activity")
+
+# proba de transitions
+seqtrate(w.seq,time.varying=T)
+
+#########################
+### IV. TYPOLOGY ########
+#########################
+
+# 1.Compute the optimal matching distances using substitution costs based on transition rates
+# observed in the data and a 1 indel cost. The resulting distance matrix is stored in the dist.om1 object.
+dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "TRATE",with.missing=TRUE)
+#dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "CONSTANT",with.missing=TRUE)
+
+
+# 2.Make a typology of the trajectories: load the cluster library, build a Ward hierarchical clustering 
+# of the sequences from the optimal matching distances and retrieve for each individual sequence 
+# the cluster membership of the 4 class solution. We do not show here the dendrogram produced 
+# by plot(clusterward1), which, indeed, is not a TraMineR feature.
+library(cluster)
+
+clusterward1 <- agnes(dist.om1, diss = TRUE, method = "ward")
+par(mfrow=c(2,1))
+par(mfrow=c(1,1))
+plot(clusterward1, which.plot = 2)
+plot(sort(clusterward1$height, decreasing=TRUE)[1:20], type='s', xlab="nb de classes", ylab="inertie")
+#s'il y a un grand saut, alors il est intéressant de regarder ce nb de classes
+nb_classe=3
+cl1.4 <- cutree(clusterward1, k = nb_classe)
+cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:nb_classe))
+
+# 3.Plot all the sequences within each cluster.
+par(mfrow = c(2,round2(nb_classe/2,0)))
+# par(mar=c(1,1,1,1))
+# seqIplot(w.seq, group = cl1.4fac, sortv = "from.start", title="MOOC activity")
+seqIplot(w.seq, group = cl1.4fac, sortv = cmdscale(as.dist(dist.om1),k=1), title="MOOC activity")
+
+# etudier 1 seule classe
+par(mfrow = c(1, 1))
+om.4 <- dist.om1[which(cl1.4fac=="Type 4"), which(cl1.4fac=="Type 4")]
+seqIplot(w.seq[which(cl1.4fac=="Type 4"),], sortv = cmdscale(as.dist(om.4),k=1), title="MOOC activity")
+
+
+
+# 4.Plot the state distribution within each cluster.
+seqdplot(w.seq, group = cl1.4fac, border = NA, title=paste("Semaine",num_week))
+
+# 5. Entropie des classes
+seqHtplot(w.seq, group=w.seq$"week 1", xtlab=1:9, withlegend=T)
+
+# 6.Plot the representative sequences of each cluster.
+seqrplot(w.seq, dist.matrix = dist.om1, group = cl1.4fac,border = NA, title="Representative sequences of each cluster")
+# savePlot(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster",sep=""),type="png")
+# png(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster.png",sep=""),width=12,height=8)
+
+# Distribution des classes
+distri.eff <- table(cl1.4fac)
+distri.eff
+round(distri.eff/sum(distri.eff)*100,1)
+
+#  arbre
+# dt <- seqtree(mvad.seq ~ male + Grammar + funemp +
+#                    +       gcse5eq + fmpr + livboth, weighted = FALSE, data = mvad,
+#                  +       diss = mvad.om, R = 5000)
+# seqtreedisplay(dt, filename = "fg_mvadseqtree.png",
+#                   +       type = "d", border = NA, showtree = FALSE)
+#
+
+
+#############################################################################################
+#############################################################################################
+#############################################################################################
+####### KIZILCEL 2 : doit avoir fait tous les items d'1 semaine pour ête "on-track" #########
+#############################################################################################
+#############################################################################################
+#############################################################################################
+
+action_metadata2 #open_week & type_id donne tous les items pour 1 semaine
+action_metadata2$title<-as.character(action_metadata2$title)
+action_unique2$kizil_type2<-rep(NA,nrow(action_unique2))
+action_unique2<-action_unique2[order(action_unique2$sub_week,action_unique2$session_user_id),]
+
+
+for(i in 1:ncol(week_course)){
+  print(round(i*100/ncol(week_course),2))
+  a<-paste0("action_week",i) 
+  b<-action_unique2[action_unique2$sub_week==week_course[1,i],] #action by week
+  
+  d<-b[b$type=="assignment",] #assignment by week
+  c<-paste(a,"assign",sep="_")
+  
+  e<-paste0("action_metadata_week",i)
+  f<-action_metadata2[action_metadata2$open_week==week_course[1,i],]
+  f<-f[f$title %in% f$title[grep("^Cours",f$title)] | f$title %in% f$title[grep("^Devoir",f$title)],] 
+  #on ne garde que les videos et nom ayant Cours ds le titre + Devoir (supprime video complémentaire)
+  
+  #remplir kizil2
+  for(ind in unique(b$session_user_id)){
+    # i="df0d0578ab9d6c1e8b06ba424313fae54ae35f58"
+    ab<-unique(b$type_item_id[b$session_user_id==ind])
+    s<-sum(f$type_id %in% ab)  #compte nb de TRUE
+    if(s>=length(f$type_id)){b$kizil_type2[b$session_user_id==ind]<-"O"}
+    if(s<length(f$type_id) & length(grep("assignment",ab))>0){b$kizil_type2[b$session_user_id==ind]<-"B"} #action_metadata_week1$type_id[grep("assignment",action_metadata_week1$type_id)] %in% a
+    if(s<length(f$type_id) & length(grep("assignment",ab))==0){b$kizil_type2[b$session_user_id==ind]<-"A"}
+  }
+  #colnames(b)[ncol(b)]<-paste(colnames(b)[ncol(b)],i,sep="_")
+  
+  assign(a,b)
+  assign(c,d)
+  assign(e,f)
+  
+}
+test<-matrix()
+test<-rbind(action_week1[,c("session_user_id","kizil_type2")],action_week2[,c("session_user_id","kizil_type2")],action_week3[,c("session_user_id","kizil_type2")],action_week4[,c("session_user_id","kizil_type2")],action_week5[,c("session_user_id","kizil_type2")],action_week6[,c("session_user_id","kizil_type2")],action_week7[,c("session_user_id","kizil_type2")],action_week8[,c("session_user_id","kizil_type2")],action_week9[,c("session_user_id","kizil_type2")])
+action_unique_coursetime<-action_unique2[action_unique2$sub_week %in% week_course[1,],]
+#normalement les actions  sont dans le même ordre entre action_unique2 et action_unique_coursetime donc c'est bon
+action_unique_coursetime$kizil_type2<-test$kizil_type2 
+
+
+w.alphabet<-c("A","B","O")
+w.labels<-c("Auditing","Behind","Ontrack")
+w.scodes<-c("A","B","O")
+
+for(i in 1:ncol(week_course)){
+  #i=5
+  semaine<-week_course[1,i]
+  num_week<-which(week_course[1,]==semaine)
+  action_bis<-action_unique_coursetime[as.character(action_unique_coursetime$sub_week)==semaine,c("session_user_id","action_order","kizil_type2")]
+  w <- reshape(action_bis, 
+               timevar = "action_order",
+               idvar = c("session_user_id"),
+               direction = "wide")
+  w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+  
+  # seqstatl(w[,2:ncol(w)])   #1ere semaine mais fonctionne avec toutes les colonnes
+  w.seq <- seqdef(w, 2:ncol(w), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 3)
+  a<-as.data.frame(matrix(NA,nrow=nrow(w.seq),ncol=3))
+  for(l in 1:3){a[,l]<-as.character(a[,l])}
+  colnames(a)<-c("auditing","behind","ontrack")
+  w.seq2<- seqdss(w.seq,with.missing=F)
+  w.seq2<-cbind(w$session_user_id,w.seq2)
+  for(j in 1:ncol(w.seq2)){w.seq2[,j]<-as.character(w.seq2[,j])}
+  
+  w.seq3<-as.data.frame(cbind(as.character(w.seq2[,1]),as.character(seqconc(w.seq2[,2:ncol(w.seq2)],sep="-"))))
+  colnames(w.seq3)<-c("session_user_id","sequence")
+  w.seq3<-cbind(w.seq3,a)
+  w.seq3$auditing[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^A",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("A",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("A$",w.seq3$sequence)]]<-"A"
+  w.seq3$behind[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^B",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("B",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("B$",w.seq3$sequence)]]<-"B"
+  w.seq3$ontrack[w.seq3$session_user_id %in% w.seq3$session_user_id[grep("^O",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("O",w.seq3$sequence)] | w.seq3$session_user_id %in% w.seq3$session_user_id[grep("O$",w.seq3$sequence)]]<-"O"
+  w.seq3[,paste0("seq_finale_",i)]<-paste3(w.seq3$auditing,w.seq3$behind,w.seq3$ontrack,sep="")
+  name<-paste("kizil2_seq_week",i,sep="_")
+  assign(name,w.seq3)
+  
+}
+
+
+kizil2_sequence_finale<-merge(kizil2_seq_week_1[,c("session_user_id","seq_finale_1")],kizil2_seq_week_2[,c("session_user_id","seq_finale_2")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_3[,c("session_user_id","seq_finale_3")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_4[,c("session_user_id","seq_finale_4")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_5[,c("session_user_id","seq_finale_5")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_6[,c("session_user_id","seq_finale_6")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_7[,c("session_user_id","seq_finale_7")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_8[,c("session_user_id","seq_finale_8")],by="session_user_id",all=T)
+kizil2_sequence_finale<-merge(kizil2_sequence_finale,kizil2_seq_week_9[,c("session_user_id","seq_finale_9")],by="session_user_id",all=T)
+kizil2_sequence_finale[is.na(kizil2_sequence_finale)]<-"I"
+colnames(kizil2_sequence_finale)<-c("Registrant","week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8","week 9")
+
+
+sapply(kizil2_sequence_finale[, grep("week", colnames(kizil2_sequence_finale))], table)
+
+kizil2_sequence_finale2<-kizil2_sequence_finale
+# AB ; AO ; ABO ; BO => O > B > A > I
+kizil2_sequence_finale2[kizil2_sequence_finale2=="AO"|kizil2_sequence_finale2=="ABO"|kizil2_sequence_finale2=="BO"]<-"O"
+kizil2_sequence_finale2[kizil2_sequence_finale2=="AB"]<-"B"
+sapply(kizil2_sequence_finale2[, grep("week", colnames(kizil2_sequence_finale2))], table)
+####### Re TraMineR sur kizil_sequence_finale2 #####
+
+###########################
+# I. Creation des data ####
+###########################
+
+# 4 états
+seqstatl(kizil2_sequence_finale2[,2:ncol(kizil2_sequence_finale2)])
+w.alphabet<-c("A","B","I","O")
+w.labels<-c("Auditing","Behind","Inactive","Ontrack")
+w.scodes<-c("A","B","I","O")
+w.seq <- seqdef(kizil2_sequence_finale2, 2:ncol(kizil2_sequence_finale2), alphabet = w.alphabet, states = w.scodes,labels = w.labels, cpal=c("black","chocolate1","aliceblue","darkorchid1")) # xtstep = 4,
+
+###########################
+# II. Visualisation #######
+###########################
+
+par(mfrow = c(1, 1))
+#Plot the legend for the state colors.
+seqlegend(w.seq) #auditing: noir, behind: orange, Inactive: bleu clair, ontrack: violet
+
+#Plot the first 10 sequences in the mvad.seq sequence object.
+seqiplot(w.seq, withlegend = FALSE, border = NA)
+
+#Plot all the sequences in the data set, sorted by states from start.
+seqIplot(w.seq, sortv = "from.start", withlegend = F, title="MOOC activity")
+
+#Plot the most frequent 10 sequences.
+seqfplot(w.seq, withlegend = FALSE, border = NA)
+
+#Plot the legend for the state colors.
+seqlegend(w.seq) #auditing: noir, behind: orange, Inactive: bleu clair, ontrack: violet
+
+
+###########################
+# III. Describe ###########
+###########################
+# Compute and plot the state distributions by time points. 
+# Borders surrounding the bars are removed for nicer output. 
+seqdplot(w.seq, withlegend = FALSE, border = NA, title="MOOC activity")
+
+#Compute and plot the transversal entropy index (sequence of entropies of the transversal state distributions).
+seqHtplot(w.seq)
+
+#Plot the sequence of modal states of the transversal state distributions.
+seqmsplot(w.seq, withlegend = FALSE, border = NA, title="MOOC activity")
+
+#Plot the mean time spent in each state of the alphabet.
+seqmtplot(w.seq, withlegend = F, title="MOOC activity")
+
+# proba de transitions
+seqtrate(w.seq,time.varying=T)
+
+#########################
+### IV. TYPOLOGY ########
+#########################
+
+# 1.Compute the optimal matching distances using substitution costs based on transition rates
+# observed in the data and a 1 indel cost. The resulting distance matrix is stored in the dist.om1 object.
+dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "TRATE",with.missing=TRUE)
+#dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "CONSTANT",with.missing=TRUE)
+
+
+# 2.Make a typology of the trajectories: load the cluster library, build a Ward hierarchical clustering 
+# of the sequences from the optimal matching distances and retrieve for each individual sequence 
+# the cluster membership of the 4 class solution. We do not show here the dendrogram produced 
+# by plot(clusterward1), which, indeed, is not a TraMineR feature.
+library(cluster)
+
+clusterward1 <- agnes(dist.om1, diss = TRUE, method = "ward")
+par(mfrow=c(2,1))
+par(mfrow=c(1,1))
+plot(clusterward1, which.plot = 2)
+plot(sort(clusterward1$height, decreasing=TRUE)[1:20], type='s', xlab="nb de classes", ylab="inertie")
+#s'il y a un grand saut, alors il est intéressant de regarder ce nb de classes
+nb_classe=3
+cl1.4 <- cutree(clusterward1, k = nb_classe)
+cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:nb_classe))
+
+# 3.Plot all the sequences within each cluster.
+par(mfrow = c(2,round2(nb_classe/2,0)))
+# par(mar=c(1,1,1,1))
+# seqIplot(w.seq, group = cl1.4fac, sortv = "from.start", title="MOOC activity")
+seqIplot(w.seq, group = cl1.4fac, sortv = cmdscale(as.dist(dist.om1),k=1), title="MOOC activity")
+
+# etudier 1 seule classe
+par(mfrow = c(1, 1))
+om.4 <- dist.om1[which(cl1.4fac=="Type 4"), which(cl1.4fac=="Type 4")]
+seqIplot(w.seq[which(cl1.4fac=="Type 4"),], sortv = cmdscale(as.dist(om.4),k=1), title="MOOC activity")
+
+
+
+# 4.Plot the state distribution within each cluster.
+seqdplot(w.seq, group = cl1.4fac, border = NA, title=paste("Semaine",num_week))
+
+# 5. Entropie des classes
+seqHtplot(w.seq, group=w.seq$"week 1", xtlab=1:9, withlegend=T)
+
+# 6.Plot the representative sequences of each cluster.
+seqrplot(w.seq, dist.matrix = dist.om1, group = cl1.4fac,border = NA, title="Representative sequences of each cluster")
+# savePlot(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster",sep=""),type="png")
+# png(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster.png",sep=""),width=12,height=8)
+
+# Distribution des classes
+distri.eff <- table(cl1.4fac)
+distri.eff
+round(distri.eff/sum(distri.eff)*100,1)
+
+#  arbre
+# dt <- seqtree(mvad.seq ~ male + Grammar + funemp +
+#                    +       gcse5eq + fmpr + livboth, weighted = FALSE, data = mvad,
+#                  +       diss = mvad.om, R = 5000)
+# seqtreedisplay(dt, filename = "fg_mvadseqtree.png",
+#                   +       type = "d", border = NA, showtree = FALSE)
+#
+
+
+pb<-action_unique_coursetime[as.Date(action_unique_coursetime$open_week)>as.Date(action_unique_coursetime$sub_week),]
+pb<-action_unique[as.Date(action_unique$open_week)>as.Date(action_unique$sub_week),]
+table(pb$sub_week,pb$open_week)
+table(pb$type_item_id)
+#pb avec lecture_17 Cours 1-2 Syntaxe Java pour les tableaux => a mettre en semaine 1 ?
+#
+
+
