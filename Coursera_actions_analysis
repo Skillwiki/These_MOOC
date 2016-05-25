@@ -1,0 +1,195 @@
+###### FUNCTIONAL ANALYSIS 1&2 #####
+###### ON ENLEVE TOUT CE QUI EST RELATIF AUX ASSIGNMENTS ###
+
+
+
+###########################################################################
+######## GRAPHIC REPRESENTATION for LECTURE & QUIZ & ASSIGNMENT ###########
+###########################################################################
+library(ggplot2)
+library(scales)
+# http://bioinfo-fr.net/guide-de-demarrage-pour-ggplot2-un-package-graphique-pour-r#sthash.6H828cJ5.dpuf
+
+###TEMPOREL####
+#Consumption
+freq_vid<-as.data.frame(table(lecture_submission_metadata3$sub_week))
+freq_vid$type<-"vidéos"
+freq_quiz<-as.data.frame(table(quiz_submission_metadata3$sub_week))
+freq_quiz$type<-"quiz"
+freq1<-rbind(freq_vid[,2:3],freq_quiz[,2:3])
+freq1$time<-c(sort(unique(lecture_submission_metadata3$sub_week)),sort(unique(quiz_submission_metadata3$sub_week)))
+colnames(freq1)<-c("freq","Action","time")
+freq1$Action<-factor(freq1$Action , levels = c( "vidéos" , "quiz")) #mettre les levels dans l'ordre qu'on veut
+freq1<-freq1[freq1$time<=as.Date(close_inscription_date),]
+p<-ggplot(data=freq1, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(15,16),name="") + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red","blue"),name="") + #couleur
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# de logs") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(b_date, max(freq1$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq1$freq),-2),5000)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/consumption.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/consumption2.png"), width=10, height=6, dpi=500)
+
+
+#Number of active registrant
+test<-aggregate(lecture_submission_metadata3,by=list(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$sub_week), FUN=length)
+freq_vid<-as.data.frame(table(test$Group.2))
+freq_vid$type<-"vidéos"
+test<-aggregate(quiz_submission_metadata3,by=list(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$sub_week), FUN=length)
+freq_quiz<-as.data.frame(table(test$Group.2))
+freq_quiz$type<-"quiz"
+freq2<-rbind(freq_vid[,2:3],freq_quiz[,2:3])
+freq2$time<-c(sort(unique(lecture_submission_metadata3$sub_week)),sort(unique(quiz_submission_metadata3$sub_week)))
+colnames(freq2)<-c("freq","Action","time")
+freq2$Action<-factor(freq2$Action , levels = c( "vidéos" , "quiz")) #mettre les levels dans l'ordre qu'on veut
+freq2<-freq2[freq2$time<=as.Date(close_inscription_date),]
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq2, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(15,16),name="") + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red","blue"),name="") + #couleur
+  #                      ,labels=c("inscriptions","dernières\nconnexions")) #crée 2 légendes
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# d'inscrits actifs") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(b_date, max(freq2$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq2$freq),-2),500)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/active registrant.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/active registrant2.png"), width=10, height=6, dpi=500)
+
+# RATIO #
+freq3<-freq1
+freq3$freq<-round(freq1$freq/freq2$freq,2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq3, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(15,16),name="") + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red","blue"),name="") + #couleur
+  #                      ,labels=c("inscriptions","dernières\nconnexions")) #crée 2 légendes
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# moyen de logs par inscrit actif") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(b_date, max(freq3$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq3$freq),-1),5)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted", size=1.5) #ajout des dates ouverture, fermeture
+
+ggsave(paste0(out,"activ temp/ratio.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ temp/ratio2.png"), width=10, height=6, dpi=500)
+
+
+
+####MODULAIRE####
+#consumption
+# test<-rbind(lecture_submission_metadata3[,c("session_user_id","display_order2","title_section","action_type")],quiz_submission_metadata3[,c("session_user_id","display_order2","title_section","action_type")],assignment_submission_metadata3[,c("session_user_id","display_order2","title_section","action_type")])
+freq_vid<-as.data.frame(table(lecture_submission_metadata3$display_order2))
+freq_vid$type<-"vidéos"
+freq_quiz<-as.data.frame(table(quiz_submission_metadata3$display_order2))
+freq_quiz$type<-"quiz"
+freq1<-rbind(freq_vid,freq_quiz)
+# freq1$Var1<-as.numeric(as.character(freq1$Var1))
+# freq1<-freq1[freq1$Var1<9,]
+# sections$display_order2<-as.numeric(as.character(sections$display_order2))
+freq1<-merge(freq1,sections[,c("display_order2","title2")],by.x="Var1",by.y="display_order2",all.x=T)
+# freq1$Var1<-as.factor(sections$title2[sections$display_order2 %in% freq1$Var1])
+colnames(freq1)<-c("section","freq","Action","Titre")
+freq1$Action<-factor(freq1$Action , levels = c( "vidéos" , "quiz")) #mettre les levels dans l'ordre qu'on veut
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq1, aes(x=Titre, y=freq,fill=Action))
+p + geom_histogram(stat='identity', position='dodge') +
+  theme_bw(15) +# fond blanc + taille police
+  scale_fill_manual(values=c("dark red", "blue"),name="") +#set color
+  theme(axis.title.x = element_blank(),axis.text.x = element_text(angle = 45, hjust=1)) +# manage x-axis
+  ylab("# de logs") +
+  scale_y_continuous(breaks = seq(0,round2(max(freq1$freq),-2),5000))
+
+ggsave(paste0(out,"activ mod/consumption_mod.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ mod/consumption_mod2.png"), width=10, height=6, dpi=500)
+
+#Number of active registrant
+test<-aggregate(lecture_submission_metadata3,by=list(lecture_submission_metadata3$session_user_id,lecture_submission_metadata3$display_order2), FUN=length)
+freq_vid<-as.data.frame(table(test$Group.2))
+freq_vid$type<-"vidéos"
+test<-aggregate(quiz_submission_metadata3,by=list(quiz_submission_metadata3$session_user_id,quiz_submission_metadata3$display_order2), FUN=length)
+freq_quiz<-as.data.frame(table(test$Group.2))
+freq_quiz$type<-"quiz"
+freq2<-rbind(freq_vid,freq_quiz)
+freq2<-merge(freq2,sections[,c("display_order2","title2")],by.x="Var1",by.y="display_order2",all.x=T)
+colnames(freq2)<-c("section","freq","Action","Titre")
+# freq2$Var1<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+freq2$Action<-factor(freq2$Action , levels = c( "vidéos" , "quiz")) #mettre les levels dans l'ordre qu'on veut
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq2, aes(x=Titre, y=freq,fill=Action))
+p + geom_histogram(stat='identity', position='dodge') + #histogram 
+  theme_bw(17) + # fond blanc + taille police
+  scale_fill_manual(values=c("dark red","blue"),name="") + #set color
+  theme(axis.title.x = element_blank(),axis.text.x = element_text(angle = 45, hjust=1)) +# manage x-axis
+  ylab("# d'inscrits actifs") +
+  scale_y_continuous(breaks = seq(0,round2(max(freq2$freq),-1),500))
+
+ggsave(paste0(out,"activ mod/active_registrant_mod.png"), width=8, height=8, dpi=500)
+ggsave(paste0(out,"activ mod/active_registrant_mod2.png"), width=10, height=6, dpi=500)
+
+
+# RATIO #
+freq3<-freq1
+freq3$freq<-round(freq1$freq/freq2$freq,2)
+# names<-as.factor(sections$title2[sections$display_order2 %in% freq_vid$Var1])
+p<-ggplot(data=freq3, aes(x=Titre, y=freq,fill=Action))  
+p + geom_histogram(stat='identity', position='dodge') + #histogram 
+  theme_bw(17) + # fond blanc + taille police
+  scale_fill_manual(values=c("dark red","blue"),name="") + #set color
+  theme(axis.title.x = element_blank(),axis.text.x = element_text(angle = 45, hjust=1)) +# manage x-axis
+  ylab("# moyen de logs par inscrit actif") +
+  scale_y_continuous(breaks = seq(0,round2(max(freq3$freq),0),2))
+
+ggsave(paste0(out,"activ mod/ratio_mod.png"), width=8, height=8, dpi=600)
+ggsave(paste0(out,"activ mod/ratio_mod2.png"), width=10, height=6, dpi=500)
+
+
+
+#################################################################
+## NO SHOW : inscrit mais ne fait aucune action par la suite ####
+#################################################################
+active_user<-c(unique(lecture_submission_metadata3$session_user_id),unique(quiz_submission_metadata3$session_user_id))
+active_user<-unique(active_user)
+students$noshow[!(students$session_user_id %in% active_user)]<-1
+students$noshow[students$session_user_id %in% active_user]<-0
+table(students$noshow)
+
+#registrant + last connexions
+freq_registrant<-as.data.frame(table(students$inscription_week))
+freq_registrant$type<-"inscription"
+colnames(freq_registrant)<-c("time","freq","Action")
+freq_noshow<-as.data.frame(table(students$last_access_time_week))
+freq_noshow$type<-"noshow"
+colnames(freq_noshow)<-c("time","freq","Action")
+freq_tot<-rbind(freq_registrant,freq_noshow)
+freq_tot$Action<-factor(freq_tot$Action , levels = c("inscription","noshow")) #mettre les levels dans l'ordre qu'on veut
+freq_tot$time<-as.Date(freq_tot$time)
+p<-ggplot(data=freq_tot, aes(x=time, y=freq,fill=Action,shape=Action,group=Action))
+p + geom_line(aes(colour = Action),size=1) + #type de graph
+  geom_point( fill="black",size=3)+ #ajout point
+  scale_shape_manual(values=c(12,24)) + #shape point
+  theme_bw(17) + #fond blanc + taille police
+  scale_colour_manual(values=c("dark red", "dark blue"),name="Action") + #couleur
+  theme(axis.title.x = element_blank()) + #suppr titre axe x
+  ylab("# d'individus") +
+  scale_x_date(time, expand = waiver(),breaks = "2 weeks",labels = date_format("%d/%m"),limits = c(as.Date(open_inscription_date), max(freq_tot$time)))+#
+  scale_y_continuous(breaks = seq(0,round2(max(freq_tot$freq),-1),50)) + #échelle y
+  geom_vline(xintercept=c(as.numeric(b_date),as.numeric(e_date)), linetype="dotted") #ajout des dates ouverture, fermeture
+
+
+ggsave(paste0(out,"activ temp/registrant_noshow.png"), width=12, height=8, dpi=500)
+
+save.image(paste0(mooc,"_avt_forum.RData"))
+load(paste0(mooc,"_avt_forum.RData"))
