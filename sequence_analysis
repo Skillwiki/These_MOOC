@@ -1,0 +1,239 @@
+################################################################################
+################################################################################
+################################################################################
+###### COURSERA 5 PATTERN OF ACTIONS BY INDIVIDUAL: exploration of sequences ###
+################################################################################
+################################################################################
+################################################################################
+
+
+
+#####################################################################################
+################ TraMineR: http://traminer.unige.ch/preview-main.shtml ##############
+# http://quanti.hypotheses.org/686/ #
+#####################################################################################
+
+library(TraMineR)
+
+# Follow several steps :
+# 0. Choice of vision
+# 1. Creation of the sequences
+# 2. Visualisation of sequences
+# 3. Description of sequences
+# 4. Clustering
+
+
+##########################
+# 0. CHOIX DE L'ANALYSE  #
+##########################
+#CHOISIR 1 vision parmi les 5 suivantes : 1. par heure, 2. par jour, 3. par semaine, 4. action unique au sein d'1 même semaine, 5. modulaire
+
+# PAR HEURE #
+action_bis<-action[,c("session_user_id","precise_hour","action")]
+w <- reshape(action_bis, 
+             timevar = "precise_hour",
+             idvar = c("session_user_id"),
+             direction = "wide")
+w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+
+for(i in 1:ncol(w)){
+  w[,i]<-addNAstr(w[,i])
+  #  print(round(100*i/ncol(w)),2)
+}
+
+
+# PAR JOUR #
+action_bis<-action[,c("session_user_id","sub_day","action")]
+w <- reshape(action_bis, 
+             timevar = "sub_day",
+             idvar = c("session_user_id"),
+             direction = "wide")
+w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+
+for(i in 1:ncol(w)){
+  w[,i]<-addNAstr(w[,i])
+  #  print(round(100*i/ncol(w_day)),2)
+}
+
+
+# SEQUENTIEL PUR BY WEEK #
+semaine<-week_course[1,1]
+num_week<-which(week_course==semaine)
+action_bis<-action[as.character(action$sub_week)==semaine,c("session_user_id","action_order","action")]
+w <- reshape(action_bis, 
+             timevar = "action_order",
+             idvar = c("session_user_id"),
+             direction = "wide")
+w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+
+
+for(i in 1:ncol(w)){
+  w[,i]<-addNAstr(w[,i])
+  # print(round(100*i/ncol(w)),2)
+}
+
+
+# SUPPRESSION DES MEMES ACTIONS AU SEIN D'1 MEME JOURNEE #
+semaine<-week_course[1,1]
+num_week<-which(week_course[1,]==semaine)
+# 5 états => action_unique$action
+# 8 états => action_unique$action_bis
+act<-"action"
+#action_bis<-action_unique[as.character(action_unique$sub_week)==semaine,c("session_user_id","action_order",act)]
+action_bis<-action_unique2[as.character(action_unique2$sub_week)==semaine,c("session_user_id","action_order",act)]
+w <- reshape(action_bis, 
+             timevar = "action_order",
+             idvar = c("session_user_id"),
+             direction = "wide")
+w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+
+for(i in 1:ncol(w)){
+  w[,i]<-addNAstr(w[,i])
+  # print(round(100*i/ncol(w_day)),2)
+}
+
+
+### VISION MODULAIRE ###
+semaine<-week_course[1,1]
+num_week<-which(week_course[1,]==semaine)
+# 5 états => action_unique$action
+# 8 états => action_unique$action_bis
+act<-"action"
+
+#act_order<-"action_order" #vision calendaire
+act_order<-"action_order_modul" #vision modulaire
+
+#action_unique2$sub_week #vision calendaire
+#action_unique2$open_week #vision modulaire
+                                                        #WARNING#
+action_bis<-action_unique2[as.character(action_unique2$open_week)==semaine,c("session_user_id",act_order,act)]
+#commande suivante résoud le warning d'au-dessus mais non testé
+action_bis<-action_unique2[as.character(ifelse(act_order=="action_order",action_unique2$sub_week,action_unique2$open_week))==semaine,c("session_user_id",act_order,act)]
+w <- reshape(action_bis, 
+             timevar = act_order,
+             idvar = c("session_user_id"),
+             direction = "wide")
+w<-w[,!colnames(w)%in%colnames(w)[grep("NA",colnames(w))]]
+
+
+for(i in 1:ncol(w)){
+  w[,i]<-addNAstr(w[,i])
+  # print(round(100*i/ncol(w_day)),2)
+}
+
+
+
+###########################
+# I. Creation des data ####
+###########################
+#attention ici au nb de colonne dépend si on étudie par j, semaine, séquentiellement
+
+# 5 états => action_unique$action
+seqstatl(w[,2:ncol(w)])   #1ere semaine mais fonctionne avec toutes les colonnes
+w.alphabet<-c("assignment","download","Inactive","quiz","view")
+w.labels<-c("assignment","download","Inactive","quiz","view")
+w.scodes<-c("A","D","I","Q","V")
+w.seq <- seqdef(w, 2:ncol(w), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 5, cpal=c("darkgreen","chocolate1","aliceblue","darkorchid","firebrick1"))
+# assignment = vert ; download = orange ; Inactive = bleu clair ; quiz = violet ; view = rouge
+
+# 8 états => action_unique$action_bis
+seqstatl(w[,2:ncol(w)])   #1ere semaine mais fonctionne avec toutes les colonnes
+w.alphabet<-c("assignment","download","Inactive","quiz","redownload", "requiz", "review", "view")
+w.labels<-c("assignment","download","Inactive","quiz","redownload", "requiz", "review", "view")
+w.scodes<-c("A","D","I","Q","RD","RQ","RV","V")
+w.seq <- seqdef(w, 2:ncol(w), alphabet = w.alphabet, states = w.scodes,labels = w.labels, xtstep = 8, cpal=c("black","chocolate1","aliceblue","darkorchid1","gold","cyan","deeppink","firebrick1"))
+# assignment = noir ; download = orange ; Inactive = bleu clair ; quiz = violet ; redownload = bleu ; jaune = ; review = rose ; view = rouge
+
+
+
+###########################
+#### II. Visualisation ####
+###########################
+
+par(mfrow = c(1, 1))
+
+#Plot the legend for the state colors.
+# assignment = vert ; download = orange ; Inactive = bleu clair ; quiz = violet ; view = rouge
+
+#Plot the first 10 sequences in the mvad.seq sequence object.
+seqiplot(w.seq, withlegend = FALSE, border = NA)
+
+#Plot all the sequences in the data set, sorted by states from start.
+seqIplot(w.seq, sortv = "from.start", title=paste("Semaine",num_week),withlegend="right")
+
+#Plot the most frequent 10 sequences.
+seqfplot(w.seq, withlegend = FALSE, border = NA)
+
+#Plot the legend for the state colors.
+seqlegend(w.seq) #vert: assignment; violet: download ; orange: Inactive ; jaune: quiz ; bleu: view
+
+
+
+###########################
+###### III. Describe ######
+###########################
+# Compute and plot the state distributions by time points. 
+# Borders surrounding the bars are removed for nicer output. 
+seqdplot(w.seq, withlegend = FALSE, border = NA, title=paste("Semaine",num_week))
+
+#Compute and plot the transversal entropy index (sequence of entropies of the transversal state distributions).
+seqHtplot(w.seq)
+
+#Plot the sequence of modal states of the transversal state distributions.
+seqmsplot(w.seq, withlegend = FALSE, border = NA, title=paste("Semaine",num_week))
+
+#Plot the mean time spent in each state of the alphabet.
+seqmtplot(w.seq, withlegend = F, title=paste("Semaine",num_week))
+
+# proba de transitions
+seqtrate(w.seq,time.varying=T)
+
+
+
+###########################
+### IV. CLUSTERING ########
+###########################
+
+# 1.Compute the optimal matching distances using substitution costs based on transition rates
+# observed in the data and a 1 indel cost. The resulting distance matrix is stored in the dist.om1 object.
+dist.om1 <- seqdist(w.seq, method = "OM", indel = 1, sm = "TRATE",with.missing=TRUE)
+
+
+# 2.Make a typology of the trajectories: load the cluster library, build a Ward hierarchical clustering 
+# of the sequences from the optimal matching distances and retrieve for each individual sequence 
+# the cluster membership of the 4 class solution. We do not show here the dendrogram produced 
+# by plot(clusterward1), which, indeed, is not a TraMineR feature.
+library(cluster)
+
+clusterward1 <- agnes(dist.om1, diss = TRUE, method = "ward")
+par(mfrow=c(2,1))
+plot(clusterward1, which.plot = 2)
+plot(sort(clusterward1$height, decreasing=TRUE)[1:20], type='s', xlab="nb de classes", ylab="inertie")
+#s'il y a un grand saut, alors il est intéressant de regarder ce nb de classes
+nb_classe=4
+cl1.4 <- cutree(clusterward1, k = nb_classe)
+cl1.4fac <- factor(cl1.4, labels = paste("Type", 1:nb_classe))
+
+# 3.Plot all the sequences within each cluster.
+par(mfrow = c(2,round2(nb_classe/2,0)))
+# par(mar=c(1,1,1,1))
+seqIplot(w.seq, group = cl1.4fac, sortv = "from.start", title=paste("Semaine",num_week))
+
+# 4.Plot the state distribution within each cluster.
+seqdplot(w.seq, group = cl1.4fac, border = NA, title=paste("Semaine",num_week))
+
+
+# 5.Plot the representative sequences of each cluster.
+seqrplot(w.seq, dist.matrix = dist.om1, group = cl1.4fac,border = NA, title="Representative sequences of each cluster")
+# savePlot(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster",sep=""),type="png")
+# png(paste("out/sequence/","Week ",num_week,": representative sequecences of each cluster.png",sep=""),width=12,height=8)
+
+# 6. arbre
+# dt <- seqtree(mvad.seq ~ male + Grammar + funemp +
+#                    +       gcse5eq + fmpr + livboth, weighted = FALSE, data = mvad,
+#                  +       diss = mvad.om, R = 5000)
+# seqtreedisplay(dt, filename = "fg_mvadseqtree.png",
+#                   +       type = "d", border = NA, showtree = FALSE)
+
+
+#########################################################################
