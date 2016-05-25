@@ -1,0 +1,79 @@
+path= "C:/MOOC_Data/FUN"
+setwd(path)
+
+fun.data= read.csv("FUN.course.data.csv", h=T, sep=";")
+summary(fun.data)
+fun.data$End.1=as.Date(fun.data$End, "%d/%m/%Y")
+fun.data$Begin.1=as.Date(fun.data$Begin, "%d/%m/%Y")
+fun.data$Begin.regist.1=as.Date(fun.data$Begin.regist, "%d/%m/%Y")
+fun.data$End.regist.1=as.Date(fun.data$End.regist, "%d/%m/%Y")
+list.fun$enrollment.time2=list.fun$enrollment.time
+list.fun$enrollment.time2 <- as.Date(list.fun$enrollment.time, "%d/%m/%Y %H:%M")
+
+hist(fun.data$Begin.1, breaks=24, col="grey", freq=T)    # Evolution temporelle
+
+
+start.date= as.POSIXct(strptime("2013-09-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2016-04-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+N=13    # Nombre d'intervalles
+esp=(end.date-start.date)/N
+head( list.fun2, 30)
+
+fun.data$Begin.period=cut(fun.data$Begin.1, as.Date(seq(start.date,end.date,esp)))
+a=with(fun.data, table(Begin.period))
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+ a=table(cut(summary(fun.data$Institution),c(0,1,2,3,5,10,15)))   # Investissements des ?tablissements
+
+
+lines(density(as.numeric(fun.data$Begin.1)))
+
+
+fun.data$regist.period=as.numeric(julian(fun.data$Begin.1)-julian(fun.data$Begin.regist.1))  #Longueur de la p?riode de recrutement pr?-lancement
+
+fun.data$course.length=as.numeric(julian(fun.data$End.1)-julian(fun.data$Begin.1))
+boxplot(fun.data$Institution)
+
+fun.data$course.length[which(fun.data$course.length>200)]=NA     # Probl?me sur MOOC Addict, en fait ne fait que 6 semaines
+hist(fun.data$course.length, breaks =20, col="grey")             # Dur?e MOOC
+plot(fun.data$Begin.1,fun.data$course.length,)    # Evolution de la dur?e des cours au fil du temps
+
+hist(summary(fun.data$Code), breaks=21, col="grey")
+
+barplot(table(cut(fun.data$Nb.student/1000,breaks=seq(0,40,by=1))), xlab=seq(1,40, by=2) )
+
+table(cut(fun.data$Nb.student/1000,breaks=c(0,1,2,3,5,10,20,30,40)))
+
+hist(fun.data$Nb.student, labels=F, col="grey", xlab="Number of registrants", ylab="Number of courses", breaks=20) # Nombre d'?tudiants
+
+fun.data$Effort.mean=(fun.data$Effort.min+fun.data$Effort.max)/2    #Moyenne de l'effort demand?
+
+a=table(cut(fun.data$Effort.mean, c(0,1,2,3,4,5,10,20)))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+with(fun.data, aggregate(Effort.mean, by=list(Category=Institution), FUN=mean, na.rm=T))      #Certaines institutions se sp?cialisent elles dans les longs MOOC ? Trop d'effet MOOC car mono cours
+
+head(fun.data)
+
+hist(fun.data$Effort.mean, breaks=16, col="grey", xlab="Weekly workload announced on the course landpage", ylab="Number of courses")
+
+with(fun.data, plot(Effort.mean,Nb.student))
+with(fun.data, cor.test(Effort.mean,Nb.student))  #Pas de lien entre nombre d'inscrits et charge de travail affich?e.
+
+# Cours qui ont plusieurs sessions
+
+mult.course=unique(fun.data[which(fun.data$Session>1),]$Cours)  # Nom des codes de cours
+
+
+fun.data[which(fun.data$Cours%in%mult.course),]
+
+test=merge(fun.data[which(fun.data$Session==1),], fun.data[which(fun.data$Session==2),], by="Cours")
+with(test, plot(Effort.mean.x, Effort.mean.y))
+
+with(test, plot(Nb.student.x, Nb.student.y)) # Corr?lation nombre d'inscris premi?re deuxi?me fois
+with(test, cor.test(Nb.student.x, Nb.student.y)) # Corr?lation nombre d'inscris premi?re deuxi?me fois       Forte corr?lation !!!!!!!!!!!!
+
+a=with(test, table(cut(Nb.student.y/Nb.student.x, c(0,0.5,1,1.5,2,2.5))))      # Essor entre deuxi?me et premi?re inscription
+
+merge(test, fun.data[which(fun.data$Session==3),], by="Cours")    # CHangement des charges de travail affich?es d'une ?dition sur l'autre
