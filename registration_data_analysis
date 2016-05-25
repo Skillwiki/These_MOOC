@@ -1,0 +1,2699 @@
+# Listes inscriptions                                       
+path="C:/MOOC_Data/FUN/tmp"
+setwd(path)
+list.files(path)
+
+list.fun2=read.csv("list.fun2.csv", nrows=1048571, h=T,sep=",")
+
+list.moocr=read.csv("list.moocr.csv", nrows=1048571, h=T,sep=",")
+l
+list.fun=read.csv("list_enrollments_full.csv", nrows=1048571, h=T,sep=";")
+
+library(lubridate)
+list.fun[list.fun==""]=NA
+
+fun.data=read.csv("FUN.course.data.csv", h=T,sep=";")
+summary(fun.data)
+summary(as.factor(list.fun2$certif.bin))
+names(fun.data)
+
+# Statistiques
+
+pikes=with(list.fun2, table(enrollment.time2.x))
+sum(pikes[which(pikes>6*mean(pikes))])
+
+sum(pikes)
+head(pikes)
+
+A=cbind(pikes,cut(pikes, breaks=c(0,500,1000,2000,5000,10000, 20000)))
+colnames(A)=c("N", "Cat")
+
+B=as.data.frame(A)
+Y=with(B, aggregate(N, by=list(Cat), FUN=sum))$x
+X=as.numeric(table(B$Cat))
+plot(Y~X)
+
+
+table(cut(pikes, breaks=c(0,500,1000,2000,5000,10000, 20000)))
+
+pike.days=attributes(pikes[which(pikes>7*mean(pikes))])$dimnames$enrollment.time2.x
+
+list.fun2$pike=rep(0,nrow(list.fun2))
+list.fun2[which(list.fun2$enrollment.time2.x %in% pike.days),]$pike=1
+plot(with(list.fun2, table(multi.reg, pike)))
+with(list.fun2, table(cohort.senior, pike))
+with(list.fun2, table(first.class.bin, pike))
+
+
+names(list.fun2.certif)
+
+A=with(list.fun2, chisq.test(Child.tag1, education))
+
+
+
+length(list.moocr[which(is.na(list.moocr$gender)==F),]$gender)  
+length(list.moocr[which(is.na(list.moocr$gender)==T),]$gender)
+length(list.moocr[which(is.na(list.moocr$gender)==F),]$year.of.birth)  
+length(list.moocr[which(is.na(list.moocr$gender)==T),]$year.of.birth)  
+length(list.moocr[which(is.na(list.moocr$gender)==F),]$education)  
+length(list.moocr[which(is.na(list.moocr$gender)==T),]$education) 
+length(list.moocr[which(is.na(list.moocr$gender)==F),]$country)  
+length(list.moocr[which(is.na(list.moocr$gender)==T),]$country)  
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], table(Period2Begin))
+
+
+
+summary(list.fun)
+
+
+head(fun.data$Code)
+
+for (i in 1:ncol(list.fun)) {list.fun[,i]  <- factor(list.fun[,i])}
+summary(list.fun)
+summary(list.fun[,3])  
+names(list.fun)
+
+length(unique(list.fun$user))  # Nombre d'utilisateurs
+
+library(Hmisc)
+names(list.fun)
+head(unique(list.fun$user))
+
+# Une petite classification des inscriptions multiples
+
+list.fun2=list.fun2.certif
+
+length(which(list.fun2$only.reg==1))
+length(which(list.fun2$only.reg==0))
+length(which(list.fun2$only.reg==1))/(nrow(list.fun2.certif))*100
+
+length((which((list.fun2$only.reg==1)&(list.fun2$cert.delivered==1)))) # Nombre d'inscriptions uniques potentiellement productives
+
+
+length((which((list.fun2$only.reg==1)&(list.fun2$cert.delivered==1)&(list.fun2$certif.bin==1))))
+
+length((which((list.fun2$only.reg==0)&(list.fun2$cert.delivered==1)))) # Nombre d'inscriptions uniques potentiellement productives
+length((which((list.fun2$only.reg==0)&(list.fun2$cert.delivered==1)&(list.fun2$certif.bin==1))))
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$cert.delivered==1))) # Chez les certifiés # Inscriptions multiples potentielles des certifiés
+length((which((list.fun2$nb.certif>0)&(list.fun2$cert.delivered==1)&(list.fun2$certif.bin==1)))) # Chez les certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$multi.reg==1)&(list.fun2$cert.delivered==1)))) # 89736  Chez les certifiés # Inscriptions multiples productives des certifiés
+
+
+
+length((which((list.fun2$nb.certif==0)&(list.fun2$only.reg==0)))) # Chez les certifiés # Inscriptions multiples productives des non certifiés
+length((which((list.fun2$nb.certif==0)&(list.fun2$cert.delivered==1)&(list.fun2$only.reg==0)))) # Chez les certifiés # Inscriptions multiples productives des certifiés
+length((which((list.fun2$nb.certif==0)&(list.fun2$multi.reg.2==1)&(list.fun2$only.reg==0)))) #  385025 # Chez les certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$nb.certif==0)&(list.fun2$only.reg==0)&(list.fun2$cert.delivered==1)))) #  # Chez les certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$only.reg==0)&(list.fun2$cert.delivered==1)))) ## Chez les certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif==0)&(list.fun2$multi.reg.2==1)&(list.fun2$cert.delivered==1)&(list.fun2$only.reg==0)))) #260910 ok Chez les certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif==0)&(list.fun2$first.day==1)&(list.fun2$multi.reg.2==1)&(list.fun2$cert.delivered==1)))) # 163114 ok Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$nb.certif==0)&(list.fun2$first.day==1)&(list.fun2$multi.reg.2==1)))) # 226083 # 395040 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$first.day==1)&(list.fun2$multi.reg.2==1)&(list.fun2$cert.delivered==1)))) # 25071 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$first.day==1)&(list.fun2$multi.reg.2==1)))) # Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$multi.reg.2==1)&(list.fun2$cert.delivered==1)))) # Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$multi.reg.2==1)))) # Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$first.day==1)&(list.fun2$multi.reg.2==1)))) # 28345 # 41782 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$certif.bin==1)&(list.fun2$nb.certif>0)&(list.fun2$first.day==1)&(list.fun2$multi.reg.2==1)))) #  10356 # 19411 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+
+length((which((list.fun2$nb.certif>0)&((list.fun2$multi.reg.2==1))))) # 143552 # 118762 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$nb.certif>0)&((list.fun2$nb.register>1))))) # 247292 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$nb.certif==1)&((list.fun2$nb.register==1))))) # 10186 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+length((which((list.fun2$nb.certif>0)&(list.fun2$nb.register>1)&(list.fun2$certif.bin==1)))) #  55996 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+length((which((list.fun2$certif.bin==1)&(list.fun2$nb.certif>0)&((list.fun2$multi.reg.2==1))))) # 23840 / 27940 Chez les non certifiés # Inscriptions multiples productives des certifiés
+
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(multi.reg.2~beg.date.diff.cut, family="binomial"))
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(multi.reg.2~period.age, family="binomial"))
+
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~multi.reg.2, family="binomial"))
+
+
+write.table(A, "clipboard", sep="\t", row.names=FALSE)
+
+nrow(list.fun2[which(is.na(list.fun2$cert.delivered)==1),])
+length(unique(list.fun2[which(list.fun2$cert.delivered==1),]$user))
+
+list.fun2=list.fun2.int
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~Period2Begin, family="binomial"))
+
+list.fun2$only.reg=1-sign(list.fun2$nb.register-1)
+
+with(list.fun2, table(course, cert.delivered))
+
+write.csv(list.fun2, "list.fun2.csv", row.names=F)
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~prev.course.diff.cut, family="binomial"))
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~next.course.diff.cut, family="binomial"))
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~Period2Begin*course, family="binomial"))
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(certif.bin, by=list(prev.course.diff.cut), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(certif.bin, by=list(Period2Begin, course), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], table(Period2Begin, course))
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], table(Period2Begin, course))
+
+table(A)
+
+b=with(A, aggregate(x,by=list(Group.1), FUN=mean))
+b=with(A, aggregate(x,by=list(Group.1), FUN=max))
+b=with(A, aggregate(x,by=list(Group.1), FUN=min))
+
+b=with(A, boxplot(x~Group.1))
+str(b)
+
+Mat=matrix(NA, length(levels(list.fun2[which((list.fun2$cert.delivered==1)),]$course)),length(levels(list.fun2$Period2Begin)))
+for (i in 1:nrow(Mat)) {
+  for (j in 1:col(Mat)) {
+    course=unique(A$Group.2)[i]
+    period=levels(list.fun2[which((list.fun2$cert.delivered==1)),]$Period2Begin)[j]
+                  lines=which((A$Group.2==course)&(A$Group.1==period))
+    if (length(lines)==0) next
+  Mat[i,j]=A[lines,3]
+}
+}
+
+library(gdata)
+aggregate.table(certif.bin, by=list(Period2Begin, course), mean, na.rm=T)
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~multi.reg, family="binomial"))
+
+summary(mod)
+anova(mod, test="F")
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(beg.date.diff, by=list(period), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(Date2Begin, by=list(period), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(Date2Begin, by=list(period), sd, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(prev.course.diff, by=list(period), sd, na.rm=T))
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(multi.reg, by=list(beg.date.diff.cut), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(multi.reg, by=list(period), mean, na.rm=T))
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(multi.reg.2, by=list(period), mean, na.rm=T))
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(only.reg, by=list(period), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(first.class.bin, by=list(period), mean, na.rm=T))
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(multi.reg, by=list(cohort), mean, na.rm=T))
+A=with(list.fun2[which((list.fun2$cert.delivered==1)),], aggregate(certif.bin, by=list(multi.reg.2), mean, na.rm=T))
+
+
+
+A=with(list.fun2[which((list.fun2$cert.delivered==1)&(list.fun2$nb.certif>=1)),], mean(list.fun2$nb.regist, na.rm=T)) #10.19583
+
+A=with(list.fun2[which((list.fun2$nb.certif>=1)),], mean(list.fun2$nb.regist, na.rm=T)) #10.19583
+
+a=length(which((list.fun2$nb.certif>=1)&(list.fun2$certif.bin==1)))
+b=length(which((list.fun2$nb.certif>=1)&(list.fun2$certif.bin==0)&(list.fun2$cert.delivered==1)))
+
+c=length(unique(list.fun2[which((list.fun2$nb.certif>=1)&(list.fun2$certif.bin==1)),]$user)) # 6
+(a+b)/c
+
+
+b=length(which((list.fun2$cert.delivered==1)&(list.fun2$nb.certif==0)&(list.fun2$certif.bin==0)))
+
+c=length(unique(list.fun2[which((list.fun2$cert.delivered==1)&(list.fun2$nb.certif==0)&(list.fun2$certif.bin==0)),]$user)) 
+
+b/c
+
+names(list.fun2)
+
+length(which((list.fun2$certif.bin==1)&(list.fun2$nb.certif>4)&(list.fun2$nb.topics.cert==1)))
+
+length(unique(list.fun2[which((list.fun2$nb.certif>1)),]$user)) # Nombre de personnes qui ont plus d'un certificat
+
+
+       ############################## Construction des variables intéressantes #######################################
+
+
+
+#list.fun$enrollment.time[which(list.fun$user==unique(list.fun$user)[2])]
+
+list.fun$enrollment.time2=list.fun$enrollment.time
+list.fun$enrollment.time2 <- as.Date(list.fun$enrollment.time, "%d/%m/%Y %H:%M")
+#which(is.Date(as.Date(list.fun$enrollment.time2))==F)   # Fa?on de savoir ? quelle ligne on a un r?sultat qui ne correspond pas ? une date   # Ne marche pas vraiment
+summary(as.POSIXct(list.fun$enrollment.time2))
+
+summary(list.fun$course, maxsum=230)
+
+# On remet la liste dans l'ordre, avec les individus et les dates d'inscription dans l'ordre (avec cet ordre de priorit?)
+list.fun2=list.fun[order(as.numeric(as.character(list.fun$user)), list.fun$enrollment.time2),]  # On recr?e un autre jeu de donn?es pour pas d?conner quand m?me.
+rows.spoc =c(14, 17, 20, 23, 27, 28, 32, 33, 34, 37, 40, 56, 62,63, 64, 84,86,87, 109,116,118,120, 121, 122, 123,124,138, 172, 175,176,177,198,208,209)
+list.fun2=list.fun2[which(! list.fun2$course %in% levels(list.fun2$course)[rows.spoc]),]  # On retire toutes les inscriptions qui correspondent à des SPOC
+list.fun2$course=factor(list.fun2$course)
+list.fun2$certif.bin=rep(0, nrow(list.fun2))        # On crée une colonne pour les certificats avec une logique 0/1 plutôt qu'une logique Vrai/Faux
+list.fun2$certif.bin[which(list.fun2$certificate=="True")]=1
+list.fun2$age=2015-as.numeric(as.character(list.fun2$year.of.birth))
+list.fun2$age[which(list.fun2$age>85)]=NA        # On retire les mecs qui se foutent de notre gueule sur leur âge
+list.fun2$age[which(list.fun2$age<15)]=NA 
+list.fun2$period.age= cut(list.fun2$age, seq(15, 85, by=5))
+
+head(list.fun2, 20)
+summary(list.fun2)
+#list.fun3=list.fun2[-which(list.fun2$user=="user"),] #Enlever la fin qui est un peu bizarre
+
+list.fun2=list.fun2[order(as.numeric(as.character(list.fun2$user)), list.fun2$enrollment.time2.x),]
+
+# Premiére et dernière classe
+list.fun2$first.class=as.numeric(as.character(list.fun2$user))-Lag(as.numeric(as.character(list.fun2$user)),1)     #Petit code qui permet de voir quand une inscription correspond ? une premi?re inscription sur FUN
+#head(cbind(list.fun2$first.class, as.character(list.fun2$enrollment.time), as.character(list.fun2$user)), 50)    # Permet d'illustrer l'id?e en question
+list.fun2$first.class[1]=1
+list.fun2$first.class.bin=list.fun2$first.class
+list.fun2[which(list.fun2$first.class!=0),]$first.class.bin=1
+
+list.fun2[nrow(list.fun2),]$user
+list.fun2[nrow(list.fun2),]$first.class.bin
+head(list.fun2$first.class.bin, 10)
+head(list.fun2, 10)
+tail(list.fun2, 20)
+
+summary(list.fun2)
+
+library(quantmod)
+
+
+
+list.fun2$enroll.diff=abs(as.Date(Lag(as.vector(list.fun2$enrollment.time2.x)))-as.Date(list.fun2$enrollment.time2.x))
+list.fun2[which(list.fun2$first.class!=0),]$enroll.diff=NA
+
+
+write.table(A, "clipboard", sep="\t", row.names=FALSE)
+
+
+head(list.fun2[vect2, c("user", "enrollment.time2.y")], 20)
+A
+
+plot(list.fun2$enrollment.time2.x)
+
+
+list.fun2$int=int2
+
+list.fun2$multi.reg=rep(0, nrow(list.fun2))
+list.fun2$multi.reg[which(list.fun2$enroll.diff.cor==0)]=1
+list.fun2$multi.reg[which(list.fun2$first.class!=0)]=NA
+
+head(list.fun2[which((list.fun2$first.class!=0)&(list.fun2$int==0)),], 20)
+length(which((list.fun2$first.class!=0)&(list.fun2$int==0)))
+list.fun2[which((list.fun2$first.class!=0)&(list.fun2$int==0)),]$multi.reg=1    # On remplit les derniers trous (première inscription, on était pas sûrs)
+list.fun2[which((list.fun2$first.class!=0)&(list.fun2$int!=0)),]$multi.reg=0    # On remplit les derniers trous (première inscription, on était pas sûrs)
+
+list.fun2$last.class.bin=list.fun2$last.class
+list.fun2[which(list.fun2$last.class!=0),]$last.class.bin=1
+
+
+head(list.fun2, 15)                                             
+
+# Correction
+
+
+summary(list.fun2$enroll.diff)
+
+vect1=1:(nrow(list.fun2.int)-1)
+vect2=2:(nrow(list.fun2.int))
+
+list.fun2$enroll.diff.cor=c(NA,abs(difftime(list.fun2$enrollment.time2.x[vect1], list.fun2$enrollment.time2.x[vect2], units="days")))
+list.fun2[which(list.fun2$first.class!=0),]$enroll.diff.cor=NA
+
+A=table(cut(as.numeric(list.fun2$enroll.diff.cor), breaks=c(-1,0,30,365,700)))  # Visualiser les délais entre deux inscriptions consécutives
+A=table(cut(as.numeric(list.fun2[which(list.fun2$certif.bin==1),]$enroll.diff), breaks=c(-1,0,30,365,700)))  # Visualiser les délais entre deux inscriptions consécutives
+
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+A=table(cut(as.numeric(list.fun2[which(list.fun2$cert.delivered==1),]$enroll.diff.cor), breaks=c(-1,0,30,700)))  # 
+
+list.fun2$enroll.diff.cor=as.numeric(as.character(list.fun2$enroll.diff.cor))
+A=table(cut(list.fun2$enroll.diff, breaks=c(-1,0,60,365, 730)))     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Bis repetita placet
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+list.fun2$multi.reg.2=rep(0, nrow(list.fun2))
+list.fun2$multi.reg.2[which(list.fun2$enroll.diff.cor==0)]=1
+#list.fun2$multi.reg.2[which(list.fun2$first.class.bin==1)]=NA
+
+lines.0=which(list.fun2$enroll.diff.cor==0)
+list.fun2$multi.reg.2[lines.0-1]=1
+
+#list.fun2$multi.reg.2[which(list.fun2$nb.register==1)]=NA
+
+head(list.fun2[,c("user","first.class.bin","enrollment.time2.x","enroll.diff.cor", "multi.reg.2", "multi.reg")],30) # Vérifier qu'il n'y a pas d'erreur
+
+
+summary(list.fun2$multi.reg.2)
+
+with(list.fun2, table(multi.reg, multi.reg.2))
+
+summary(list.fun2$multi.reg.2)
+
+list.fun2[7:9,]
+
+list.fun2$enroll.diff.cor[8]
+
+
+
+
+
+list.fun2=merge(list.fun2, list.moocr[c("user", "nb.register", "nb.certif")], by="user") # Permet de rajouter une colonne avec le nombre de cours où inscrits
+list.fun2$only.reg=rep(0, nrow(list.fun2))
+list.fun2[which(list.fun2$nb.register==1),]$only.reg=1   # Pour tagger les mecs qui ne se sont inscrits qu'à un seul cours
+
+summary(as.factor(list.fun2$only.reg))
+
+list.fun2.int=list.fun2[order(as.numeric(as.character(list.fun2$user)), list.fun2$Begin2),] # Regarder à quel point les inscriptions sont disjointes
+
+head(list.fun2.int, 50)[,c("user", "Begin2")]
+
+library(quantmod)
+list.fun2.int$beg.date.diff=c(NA,Lag(as.ts(list.fun2.int$Begin2))-as.ts(list.fun2$Begin2))
+
+list.fun2.int$beg.date.diff.cor=c(NA,Lag(as.ts(list.fun2.int$Begin2))-as.ts(list.fun2$Begin2))
+
+list.fun2.int[which(list.fun2.int$first.class.bin==1),]$beg.date.diff=NA
+hist(list.fun2.int$beg.date.diff)
+
+first.course
+
+list.fun2.int$first.course2beg=sign(as.numeric(as.character(list.fun2.int$user))-Lag(as.numeric(as.character(list.fun2.int$user)),1))
+list.fun2.int$last.course2beg=rev(Lag(rev(list.fun2.int$first.course2beg),1))
+
+
+la=Lag(as.ts(rev(list.fun2.int$Begin2))[1:10])
+reg=as.ts(rev(list.fun2.int$Begin2))[1:10]
+cbind(la,reg, la-reg)
+rev(la-reg)
+
+head(list.fun2.int$Begin2)
+
+vect1=1:(nrow(list.fun2.int)-1)
+vect2=2:(nrow(list.fun2.int))
+
+summary(list.fun2$Begin2)
+
+
+list.fun2.int$prev.course.diff=c(NA,difftime(list.fun2.int$Begin2[vect1], list.fun2.int$Begin2[vect2], units="days"))
+list.fun2.int$next.course.diff=c(difftime(list.fun2.int$Begin2[vect2], list.fun2.int$Begin2[vect1], units="days"), NA)
+
+length(which(list.fun2.int$first.course2beg==1))
+
+list.fun2.int[which(list.fun2.int$first.course2beg==1),]$prev.course.diff=NA 
+list.fun2.int$prev.course.diff=abs(list.fun2.int$prev.course.diff)
+list.fun2.int[which(list.fun2.int$last.course2beg==1),]$next.course.diff=NA  
+
+hist((list.fun2.int$prev.course.diff))
+hist((list.fun2.int$next.course.diff))
+
+head(list.fun2.int)
+
+list.fun2.int$next.course.diff.cut=cut(list.fun2.int$next.course.diff, breaks=c(-1,0,7,15,30,60,700))
+list.fun2.int$prev.course.diff.cut=cut(list.fun2.int$prev.course.diff, breaks=c(-1,0,7,15,30,60,700))
+
+plot(table(list.fun2.int$prev.course.diff.cut))
+plot(table(list.fun2.int$next.course.diff.cut))
+
+A=table(list.fun2.int$next.course.diff.cut)
+A=table(list.fun2.int$prev.course.diff.cut)
+write.table(B, "clipboard", sep="\t", row.names=T)
+
+A=with(list.fun2, table(course, certif.bin))
+B=table(cut(A[,2][which(A[,2]>0)], breaks=c(0,250,500,1000,2000,6000)))
+mod=with(list.fun2, glm(course, certif.bin))
+
+
+
+
+list.fun2.int$beg.date.diff.2=rev(abs(as.Date(Lag(rev(as.vector(list.fun2$Begin2)))-as.Date(rev(list.fun2$Begin2)))))
+                                  
+   summary(list.fun2.int$beg.date.diff.2)                               
+
+list.fun2.int[which(list.fun2.int$first.class!=0),]$beg.date.diff=NA # Bah oui, si c'est ta première classe à priori on peut pas savoir
+
+# Mais bon, il faut quand même qu'on prenne en compte le fait que voilà, le premier cours il peut y avoir un petit recouvrement
+list.fun2.int[which((list.fun2.int$nb.register>1)&((list.fun2.int$first.class!=0))),]$beg.date.diff=-(list.fun2.int[(which((list.fun2.int$nb.register>1)&((list.fun2.int$first.class!=0)))+1),]$beg.date.diff)
+
+summary(list.fun2.int$beg.date.diff)
+
+list.fun2=list.fun2.int
+list.fun2$beg.date.diff=as.numeric(list.fun2$beg.date.diff)
+
+#list.fun2$beg.date.diff.abs=abs(list.fun2$beg.date.diff)
+list.fun2$beg.date.diff.cut=cut(list.fun2$beg.date.diff, breaks=c(-700, -60,-30,-15,-7,0,7,15,30,60,700)) # Yeah, on voit bien les recouvrements apparaître
+
+list.fun2$beg.date.diff.cut=factor(list.fun2$beg.date.diff.cut)
+A=table(list.fun2$beg.date.diff.cut)
+
+mod=with(list.fun2, glm(certif.bin~relevel(beg.date.diff.cut, ref="(-7,0]"), family="binomial"))
+summary(mod)
+A=exp(coef(mod))
+anova(mod)
+
+write.table(t(A), "clipboard", sep="\t", row.names=T) 
+
+
+mod=with(list.fun2[which(list.fun2$nb.register>1),], glm(certif.bin~eclect, family="binomial"))
+
+list.fun2$eclect=list.fun2$nb.topics/list.fun2$nb.register*100
+
+A=with(list.fun2, table(nb.register.cut,nb.topics ))
+
+
+list.fun2$nb.register.cut=cut(list.fun2$nb.register, breaks=c(0,1,2,3,5,10,30,200))
+list.fun2$nb.topics.cut=cut(list.fun2$nb.topics, breaks=c(0,1,2,3,5,7,10,13))
+list.fun2$eclect.cut=cut(list.fun2$eclect, breaks=c(0.10,0.25,0.5,0.75,0.95,1)*100)
+
+#Petit tour du côté des OR
+
+mod=with(list.fun2[which(list.fun2$cert.delivered>=1),], glm(certif.bin~relevel(nb.register.cut, ref="(0,1]")+
+           multi.reg+relevel(Period2Begin, ref="(-7,0]") +relevel(next.course.diff.cut, ref="(0,7]")        , family="binomial"))
+
+mod.bis=with(list.fun2[which(list.fun2$cert.delivered>=1),], glm(certif.bin~relevel(next.course.diff.cut, ref="(-1,0]")+relevel(nb.register.cut, ref="(0,1]")+
+                     multi.reg+relevel(Period2Begin, ref="(-7,0]") , family="binomial"))
+
+mod2=with(list.fun2[which(list.fun2$cert.delivered>=1),], glm(certif.bin~relevel(nb.register.cut, ref="(0,1]")+
+                                                               multi.reg+relevel(Period2Begin, ref="(-7,0]")      , family="binomial"))
+
+pR2(mod.bis)
+
+with(list.fun2, plot(nb.register, eclect))
+
+
+C=coef(summary(mod.bis))[,4]
+A=exp(coef(mod.bis))
+
+write.table(C, "clipboard", sep="\t", row.names=T) 
+
+
+A=exp(coef(mod.bis))
+library(pscl)
+pR2(mod)
+
+B=anova(mod.bis, test="Chisq")
+
+# 
+
+mod=with(list.fun2[which(list.fun2$cert.delivered==1),], glm(certif.bin~eclect.cut, family="binomial"))
+
+
+
+#
+
+
+with(list.fun2[which(list.fun2$nb.register>1),]$eclect)
+
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(certif.bin*100, by=list(period.age), FUN=mean, na.rm=T))
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(multi.reg*100, by=list(period.age), FUN=mean, na.rm=T))
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(nb.register, by=list(period.age), FUN=mean, na.rm=T))
+
+
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(certif.bin*100, by=list(nb.register.cut), FUN=mean, na.rm=T))
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(certif.bin*100, by=list(multi.reg), FUN=mean, na.rm=T))
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(certif.bin*100, by=list(multi.reg, first.day), FUN=mean, na.rm=T))
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(certif.bin*100, by=list(Period2Begin), FUN=mean, na.rm=T))
+
+
+A=with(list.fun2[which(list.fun2$cert.delivered==1),], aggregate(certif.bin*100, by=list(first.day), FUN=mean, na.rm=T))
+
+write.table(A, "clipboard", sep="\t", row.names=T) 
+
+rm(list.fun2.ord)
+
+summary(as.factor(list.fun2$multi.reg))
+
+list.fun2$multi.reg[which(list.fun2$last.class!=0),]=1
+
+
+list.fun2[which(list.fun2$first.class!=0),]$enrollment.time2
+head(list.fun2[which(list.fun2$first.class!=0),]$multi.reg)
+
+head(list.fun2, 15)
+
+int2=abs(c(rev(diff(rev(list.fun2$enrollment.time2), lag=1)), NA))
+tail(int2)
+
+
+A=with(list.fun2, table(multi.reg, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+summary(as.factor(list.fun2$multi.reg))
+
+head(cbind(int2,list.fun2$multi.reg,list.fun2$first.class,as.Date(list.fun2$enrollment.time2),list.fun2$user), 20) 
+
+
+a=with(list.fun2, aggregate(certif.bin, by=list(Category=as.factor(multi.reg)), FUN=mean, na.rm=T))      # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiinscription pas s?rieuse
+b=with(list.fun2, aggregate(certif.bin/2, by=list(Category=as.factor(multi.reg)), FUN=sd, na.rm=T))      # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Multiinscription pas s?rieuse
+mod=with(list.fun2, glm(certif.bin~as.factor(multi.reg), family="binomial"))   # Statistiquement significatif
+summary(mod)
+anova(mod)  
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+write.table(levels(list.fun2$course), "clipboard", sep="\t", row.names=T)
+
+tab=with(list.fun2, table(course, multi.reg))
+tab.int=tab[,2]/( tab[,1]+tab[,2])
+
+
+
+a=with(list.fun2, table(eclect.cut, nb.register.cut))    # Plein de multiinscription au d?but  
+
+
+
+a=with(list.fun2, aggregate(multi.reg, by=list(Category=period), FUN=mean, na.rm=T))    # Plein de multiinscription au d?but  
+b=with(list.fun2, aggregate(multi.reg/2, by=list(Category=period), FUN=sd, na.rm=T))    # Plein de multiinscription au d?but  
+
+a=with(list.fun2, aggregate(multi.reg, by=list(Category=period.age), FUN=mean, na.rm=T))    
+b=with(list.fun2, aggregate(multi.reg/2, by=list(Category=period.age), FUN=sd, na.rm=T))    # Plein de multiinscription chez les jeunes 
+plot(a)
+
+
+mod=with(list.fun2, glm(multi.reg~as.factor(period)+gender+education+period.age, family="binomial"))
+summary(mod)
+anova(mod)
+
+write.csv(list.fun2, "list.fun2.csv", row.names=F)
+        
+
+
+
+list.no.int=which(list.fun2$first.class!=0)-1 #On prend les positions des premi?res inscriptions, et on d?cale de 1
+length(list.no)
+head(list.no)
+tail(list.no,10)
+head(Lag(list.no.int,1) )
+list.no=list.no.int-Lag(list.no.int,1)  #list.no= Combien de MOOC tel ou tel ? pris
+length(list.fun2$first.class)
+length(list.moocr$first.class)
+list.no[1]=list.no.int[1]
+list.no=c(list.no,1)
+length(list.no)
+head(list.no)
+tail(list.no, 10)
+tail(list.fun2, 30)
+
+head(with(list.fun2, table(course, certificate)), 150)   #  statistiques du nombre de certificat par cours
+length(which((with(list.fun2, table(course, certificate)))[,3]!=0)) # Nombre de cours terminés et avec certificats
+length(which((with(list.fun2, table(course, certificate)))[,3]==0)) # Nombre de cours ou pas terminés ou sans certificats
+
+course.cert=levels(list.fun2$course)[which((with(list.fun2, table(course, certificate)))[,2]!=0)] # Noms des cours avec certificats
+
+list.fun2.certif$cert.delivered=rep(0, nrow(list.fun2.certif))
+  list.fun2.certif[which(list.fun2.certif$course %in%  course.cert),]$cert.delivered=1    # On rajoute une colonne avec une conditionnelle, on crée pas une DB, débile
+summary(list.fun2.certif)
+list.fun2.certif$course=factor(list.fun2.certif$course)
+
+
+# Premier jour ou pas
+
+list.fun2$first.day=rep(0, nrow(list.fun2))
+
+list.fun2$first.day[which(list.fun2$first.class.bin==1)]=1
+
+list.fun2=merge(list.fun2, list.moocr[c("user", "enrollment.time2")], by="user")
+
+list.fun2$first.day[which((list.fun2$enrollment.time2.x==list.fun2$enrollment.time2.y))]=1
+
+summary(list.fun2$first.day)
+
+
+write.csv(list.fun2, "list.fun2.csv", row.names=F)
+
+# On cr?e la notion de cohorte
+start.date= as.POSIXct(strptime("2013-09-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2016-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+N=12    # Nombre d'intervalles
+esp=(end.date-start.date)/N
+#head( list.fun2, 30)
+list.fun2$period=cut(list.fun2$enrollment.time2  ,as.Date(seq(start.date,end.date,esp)))  # Entrer dans la base de donn?es la "p?riode d'inscription" correspondante
+
+names(list.fun2)
+head(list.fun2, 30)
+list.moocr=list.fun2[which(list.fun2$first.class.bin==1),] # Liste des MOOCeurs qui ont participé ? un cours (on ne prend que le premier cours)
+summary(list.moocr)
+
+A=with(list.moocr, table(as.numeric(as.character(user)), period)) # Tables MOOCeurs / cohorte  
+list.fun2$cohort=rep(NA, nrow(list.fun2))                  # Curieux, l'utilisateur N et parfois inscrit apr?s l'utilisateur N+1
+i=1
+N=12
+for (i in 1:(N)) {
+cohort.i=as.numeric(rownames(A)[which(A[,i]==1)])
+list.fun2[which(list.fun2$user %in% cohort.i),]$cohort=i  } # On s'en fout de l'erreur, c'est pour trois points
+summary(list.fun2$cohort)
+list.fun2$period.num=as.factor(as.numeric(list.fun2$period)) # Periode d'inscription correspondante
+list.fun2$cohort.senior=rep(0, nrow(list.fun2))   # On crée la variable cohorte senior
+list.fun2[which((as.numeric(as.character(list.fun2$period.num))-as.numeric(as.character(list.fun2$cohort)))>0),]$cohort.senior=1
+summary(list.fun2$cohort.senior)
+
+mod=with(list.fun2.certif, glm(certif.bin~ as.factor(cohort.senior), family="binomial"))
+
+names(list.fun2.certif)
+
+write.csv(list.fun2, "list.fun2.csv", row.names=F)
+
+
+
+int=with(list.fun2, tapply(Par.tag, user, FUN = function(x) length(unique(x))))
+
+
+anova(mod)
+summary(mod)
+
+head(as.numeric(as.character(list.fun2$period.num)))
+
+tab=summary(as.factor(list.moocr$cohort))
+tab=table(as.factor(list.moocr$cohort), list.moocr$period)
+write.table(colnames(tab), "clipboard", sep="\t", row.names=T)
+write.table(tab, "clipboard", sep="\t", row.names=T)
+
+list.moocr.last=list.fun2[which(list.fun2$last.class.bin==1),] # Liste des MOOCeurs qui ont participé à un cours (on ne prend que le premier cours)
+names(list.moocr.last)
+list.moocr$last.class.bin=list.moocr.last$last.class.bin
+list.moocr$last.class.date=list.moocr.last$enrollment.time2
+
+list.moocr$reg.period=as.numeric(list.moocr$last.class.date-list.moocr$enrollment.time2) # Ecarts entre la date de la premi?re inscription et la date de la derni?re inscription (en jours)
+list.moocr$nb.registr=list.no #Nombre de cours
+
+A=with(list.fun2, table(user, certif.bin))
+B=as.data.frame(rowSums(A[,1:2]))
+
+
+names(B)="nb.register"
+B$user=rownames(B)
+summary(C)
+
+C=as.data.frame((A[,2]))
+names(C)="nb.certif"
+C$user=rownames(C)
+
+
+head(A)
+head(list.fun2, 20)
+head(list.no)
+list.no=list.no[-1]
+
+
+list.moocr=merge(list.moocr, B[,c(1,2)], by="user")
+list.moocr=merge(list.moocr, C[,c(1,2)], by="user")
+
+summary(list.moocr)
+
+
+
+write.csv(list.moocr, "list.moocr.csv", row.names=F)
+
+
+
+###################### Statistiques descriptives simples ########################################
+
+a=summary(list.moocr$period.age)
+a=summary(list.moocr$education)
+a=summary(list.moocr$country)
+a=summary(list.moocr$gender)
+a=summary(cut(list.moocr$nb.register, c(0,1,2,3,5,10,15,20,30, 50, 100, 200)))    # Nombre d'inscrits par catégorie
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Sur les taux de complétion
+
+course.comp.rate=with(list.fun2.certif, table(course, certificate))   #  Statistiques du nombre de certificat par cours     #    [which(list.fun2.certif$SPOC!=1   ),]
+stats.c.rate=course.comp.rate[,4]/(course.comp.rate[,3]+course.comp.rate[,4])*100  #  Statistiques du nombre de certificat par cours, en %
+stats.c.rate=as.data.frame(stats.c.rate)
+
+stats.c.rate$course=rownames(stats.c.rate)
+head(stats.c.rate)
+
+# Taux de complétion et session
+
+fun.data=read.csv("FUN.course.data.csv", h=T,sep=";")
+
+int=merge(stats.c.rate, fun.data, by.x="course", by.y="code.cours")
+
+summary(int)
+mod=with(int[which(int$Session<=2),], lm(stats.c.rate~Session))
+summary(mod)
+
+int1=int[which(int$Session==1),]
+int2=int[which(int$Session==2),]
+
+int3=merge(int1,int2, by="Cours")
+int4=int3[which((int3$stats.c.rate.x>0)&(int3$stats.c.rate.y>0)),]
+ratio.rates=with(int4, stats.c.rate.y/stats.c.rate.x)
+summary(ratio.rates)
+
+A=cbind(levels(int4$Titre.x)[int4$Titre.x],int4$stats.c.rate.x,ratio.rates)
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+boxplot(as.numeric(A[,3])) # MOCHE
+
+A=table(cut(as.numeric(A[,3]), breaks=c(0.5,0.75,1,1.25,1.5,2,4,9)))
+
+
+
+write.table(stats.c.rate, "clipboard", sep="\t", row.names=T)
+
+table(list.fun2.certif[,c(1,22)])
+
+head(course.tags)
+
+par.tag.comp.rate=merge(stats.c.rate, course.tags , by.x="course", by.y="Course.id")
+par
+.tag.comp.rate=par.tag.comp.rate[which((par.tag.comp.rate$stats.c.rate>0)&(par.tag.comp.rate$SPOC!=1)),]
+
+with(par.tag.comp.rate, boxplot(stats.c.rate~Par.tag))
+
+A=with(par.tag.comp.rate, aggregate(stats.c.rate, by=list(Category=Child.tag1), FUN=min, na.rm=T))
+B=with(par.tag.comp.rate, aggregate(stats.c.rate, by=list(Category=Child.tag1), FUN=mean, na.rm=T))
+C=with(par.tag.comp.rate, aggregate(stats.c.rate, by=list(Category=Child.tag1), FUN=sd, na.rm=T))
+D=with(par.tag.comp.rate, aggregate(stats.c.rate, by=list(Category=Child.tag1), FUN=max, na.rm=T))
+E=as.data.frame(with(par.tag.comp.rate, table(Child.tag1)))
+a=cbind(A, B[,2], C[,2], D[,2], E[which(E$Freq!=0),] )
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+stats.reg=table(list.fun2$course)
+stats.reg=as.data.frame(stats.reg)
+names(stats.reg)=c("Course.id", "reg")
+par.tag.reg=merge(stats.reg, course.tags , by="Course.id")
+par.tag.reg=par.tag.reg[which((par.tag.reg$Course.id %in% levels(list.fun2.certif$course))&(par.tag.reg$SPOC!=1)) ,]
+
+with(par.tag.reg, boxplot(reg~Par.tag, las = 2))
+
+A=with(par.tag.reg, aggregate(reg, by=list(Category=Child.tag1), FUN=min, na.rm=T))
+B=with(par.tag.reg, aggregate(reg, by=list(Category=Child.tag1), FUN=mean, na.rm=T))
+C=with(par.tag.reg, aggregate(reg, by=list(Category=Child.tag1), FUN=sd, na.rm=T))
+D=with(par.tag.reg, aggregate(reg, by=list(Category=Child.tag1), FUN=max, na.rm=T))
+E=as.data.frame(with(par.tag.reg, table(Child.tag1)))
+b=cbind(A, B[,2], C[,2], D[,2], E[which(E$Freq!=0),]$Freq )
+
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+
+c.rate.vs.reg=merge(par.tag.comp.rate,  par.tag.reg , by.x="course", by.y="Course.id")
+
+with(c.rate.vs.reg, plot(reg,stats.c.rate))     # Jordan Like
+with(c.rate.vs.reg, cor.test(reg,stats.c.rate))  # !!!!!!!!!!!!!!!!! Le taux de complétion est pas du tout corr?l? au nombre d'inscrits
+
+with(c.rate.vs.reg, plot(reg,stats.c.rate*reg/100))     # Jordan Like
+with(c.rate.vs.reg, cor.test(reg,stats.c.rate*reg/100))
+with(c.rate.vs.reg[which(c.rate.vs.reg$reg<5000),], cor.test(reg,stats.c.rate*reg/100))   # Sur les petits cours ?a marche mal
+
+with(c.rate.vs.reg, stats.c.rate*reg)
+
+names(c.rate.vs.reg)
+
+head(as.data.frame(stats.c.rate) )
+
+stats.reg=(course.comp.rate[,2]+course.comp.rate[,3])  #  Statistiques du nombre de certificat par cours
+stats.cert=(course.comp.rate[,3])  #  Statistiques du nombre de certificat par cours
+
+write.table(stats.reg,  "clipboard", sep="\t", row.names=T)     # Recopier pour aller dans excel
+write.table(stats.cert,  "clipboard", sep="\t", row.names=T)     # Recopier pour aller dans excel
+
+a=table(cut(stats.reg/1000,breaks=c(0,1,2,3,5,10,20,30,40)))
+a=table(cut(stats.cert,breaks=c(0,50,100,200,300,500,1000,2000,5000,10000)))
+
+
+barplot(table(cut(stats.c.rate, c(0,5,10,15,20,25,30))))  # Attention, tout le monde n'a pas n?cessairement t?l?charg? le certificat, est-ce que ?a compte ?
+write.table(table(cut(stats.c.rate, c(0,5,10,15,20,25,30))),  "clipboard", sep="\t", row.names=T)     # Recopier pour aller dans excel
+
+head(with(list.fun2.certif, table(user, education)))
+
+
+# On essaie de mettre dans la m?me ?quation ce qui explique le taux d'abandon en fonction des autres facteurs
+
+tab=with(list.fun2.certif, table(user, certif.bin))  # On prend bien garde ? ne calculer un taux de complétion que pour les cours o? le certificat existe
+tab1=as.data.frame(tab[,1])
+tab2=as.data.frame(tab[,2]) # certifi?s
+tab3=tab2/(tab2+tab1)
+summary(tab3)
+tab3=as.data.frame(tab3)
+colnames(tab3)="ratio"        
+tab3$user=rownames(tab2)
+
+list.moocr2=merge(list.moocr, tab3, by="user")
+
+mod=with(list.moocr2, lm(ratio~gender+period.age+first.class.bin+education+as.factor(cohort)))
+anova(mod)
+write.table(anova(mod), "clipboard", sep="\t", row.names=T)
+
+summary(mod)
+
+a=with(list.moocr2, aggregate(100*ratio, by=list(Category=period.age), FUN=mean, na.rm=T))
+b=with(list.moocr2, aggregate(100*ratio/2, by=list(Category=period.age), FUN=sd, na.rm=T))
+a=with(list.moocr2, aggregate(100*ratio, by=list(Category=as.factor(cohort)), FUN=mean, na.rm=T))
+b=with(list.moocr2, aggregate(100*ratio/2, by=list(Category=as.factor(cohort)), FUN=sd, na.rm=T))
+a=with(list.moocr2, aggregate(100*ratio, by=list(Category=education), FUN=mean, na.rm=T))
+b=with(list.moocr2, aggregate(100*ratio/2, by=list(Category=education), FUN=sd, na.rm=T))
+
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+
+head(list.moocr2)
+
+
+
+# Evolution temporelle des inscriptions sur FUN
+
+plot(table(cut(list.fun2$enrollment.time2  ,as.Date(seq(start.date,end.date,esp)))), type="l",  col="grey")  # Evolution du nombre d'inscriptions sur FUN
+with(list.fun2[which(list.fun2$first.class>0),], plot(table(cut(enrollment.time2  ,as.Date(seq(start.date,end.date,esp)))), type="l",  col="grey"))  # Evolution du nombre d'inscriptions de nouveaux arrivants sur FUN
+with(list.fun2[which(list.fun2$first.class==0),], plot(table(cut(enrollment.time2  ,as.Date(seq(start.date,end.date,esp)))), type="l",  col="grey"))  # Evolution du nombre d'inscriptions d'anciens sur FUN
+head(list.fun2)
+
+
+# Pour voir uniquement les enrollments de gens qui ne sont pas nouveaux
+
+ # Ratio nouvelle inscription sur ancienne inscription
+length(which(list.fun2$first.class!=0))/length(which(list.fun2$first.class==0)) 
+length(which(list.fun2$first.class!=0))/(length(which(list.fun2$first.class!=0))+length(which(list.fun2$first.class==0))) # Proportion des inscriptions nouvelles sur l'ensemble du jeu de donn?e
+
+
+
+
+################################################################################################################################
+################################### Les effets "cohorte" ######################################################################
+################################################################################################################################
+
+
+
+a=with(list.moocr, aggregate(nb.register,    by=list(Category=cohort), FUN=mean, na.rm=T))  # Nombre moyen de cours o? inscrits par cohorte, belle chute au fil des cohortes    !!!!!!!!!!!!!
+b=with(list.moocr, aggregate(nb.register/2,    by=list(Category=cohort), FUN=sd, na.rm=T))  # sd de cours o? inscrits par cohorte, belle chute au fil des cohortes    !!!!!!!!!!!!!
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+plot(fall, type="l")
+
+
+list.moocr.certif=list.fun2[which(list.fun2$first.class.bin==1),] # Liste des MOOCeurs qui ont particip? ? un cours (on ne prend que le premier cours)
+summary(list.moocr)
+
+mod=with(list.moocr, lm(age~as.factor(cohort)))
+anova(mod)
+summary(mod)
+
+a=with(list.moocr, aggregate(age,    by=list(Category=cohort), FUN=mean, na.rm=T)) # Chute de l'?ge au fil des cohortes !!!!!!!!!!!!!!!!! 
+b=with(list.moocr, aggregate(age/2,    by=list(Category=cohort), FUN=sd, na.rm=T)) # Chute de l'?ge au fil des cohortes !!!!!!!!!!!!!!!!! 
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+
+# Evolution selon le type de cohortes
+A=with(list.moocr, table(cohort, education))   # Hausse des bac+3 sur la fin
+A=with(list.moocr, table(cohort, gender)) 
+
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,1)[i]*100) }
+B
+plot(B[,12], type="l")
+plot(B[,2], type="l")
+barplot(B[1,])
+
+plot(fall.age)
+
+
+
+
+mod=with(list.moocr, lm(nb.register~education+gender+period.age+cohort))        # Rien d'extraordinaire. Gros effet pays. Les cohortes du d?but s'inscrivent ? plus de cours
+mod=with(list.moocr, lm(reg.period~education+gender+period.age+country))
+
+a=with(list.moocr, aggregate(nb.register,    by=list(Category=period.age), FUN=mean, na.rm=T)) # Chute de l'?ge au fil des cohortes !!!!!!!!!!!!!!!!! 
+b=with(list.moocr, aggregate(nb.register/2,    by=list(Category=period.age), FUN=sd, na.rm=T)) # Chute de l'?ge au fil des cohortes !!!!!!!!!!!!!!!!! 
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+
+
+anova(mod)
+summary(mod)
+
+head(list.moocr$reg.period)
+summary(as.numeric(list.moocr$reg.period))
+hist(as.numeric(list.moocr$reg.period))
+
+head(list.moocr)
+
+tab=with(list.fun2[which(list.fun2$certificate=="True"),], table(cohort, period))  # Part des cohortes dans les certificats    !!!!!!!!!!!!!!!!!
+tab
+
+tab=with(list.fun2, table(cohort, period))   # Part des cohortes dans les inscriptions      !!!!!!!!!!!!!!!!!!!
+
+A=diag(tab)
+diag(tab)=0
+a=rbind(A,colSums(tab))
+
+tab
+A=tab                                                         
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,1)[i]*100) }
+rownames(B)=rownames(A)
+B   # Pourcentage des inscriptions de la cohorte faite ? cette date
+
+A=tab                                                            
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,2)[i]*100) }
+rownames(B)=rownames(A)
+B
+
+
+write.table(tab, "clipboard", sep="\t", row.names=FALSE)
+
+summary(list.fun2$cohort)
+summary(as.factor(list.fun2$cohort)) # taille de telle ou telle cohorte
+plot(as.factor(list.fun2$cohort), type="l")                                !!!!!!!!!!!!!!!!!!
+
+
+
+  plot(summary(as.factor(list.fun2$cohort)), type="l")
+
+
+
+# Ratio nouvelle inscription sur ancienne inscription par p?riode
+New.ratio=NULL
+for (K in 1:N) {
+ratio=with(list.fun2[which((list.fun2$period==levels(list.fun2$period)[K])),], length(which(first.class!=0))/(length(which(first.class==0))+length(which(first.class!=0)))) # Proportion de nouvelles
+New.ratio=c(New.ratio, ratio)
+} 
+New.ratio
+plot(New.ratio, type="l")       #  !!!!!!!!!!!           Un peu le m?me message que le nombre d'inscription moyen par cohorte
+
+
+list.fun2$cohort=as.factor(list.fun2$cohort)
+ # Ratio nouvelle inscription sur ancienne inscription par cohorte
+list.fun2$cohort=as.factor(list.fun2$cohort)
+
+New.ratio=NULL
+for (K in 1:(N-1)) {
+ratio=with(list.fun2[which((list.fun2$cohort==levels(list.fun2$cohort)[K])),], length(which(first.class!=0))/(length(which(first.class==0))+length(which(first.class!=0)))) # Proportion de nouvelles
+New.ratio=c(New.ratio, ratio)
+} 
+1-New.ratio
+plot((1-New.ratio), type="l")       #  !!!!!!!!!!!        Proportion de gens qui vont ne faire qu'une inscription dans la cohorte N augmente au fil des cohortes
+
+write.table(New.ratio, "clipboard", sep="\t", row.names=T)
+
+
+with(list.fun2[which(list.fun2$first.class!=0),], plot(table(cut(enrollment.time2  ,as.Date(seq(start.date,end.date,esp)))), type="l",  col="grey"))  # Evolution du nombre d'inscriptions sur FUN
+
+a=with(list.fun2[which(list.fun2$first.class!=0),], aggregate(first.class.bin, by=list(Category=period), FUN=sum, na.rm=T))   # 
+b=table(cut(list.fun2$enrollment.time2  ,as.Date(seq(start.date,end.date,esp))))[1:(N-1)]
+new.enrol.vs.time=a$x/b
+old.enrol.vs.time=1-new.enrol.vs.time
+plot(new.enrol.vs.time, type="l", ylim=c(0,1))    # Evolution temporelle des anciennes inscriptions
+
+list.fun2=merge(list.fun2, course.tags, by.x="course", by.y="Course.id")
+a=with(list.fun2[which(list.fun2$SPOC!=1),], aggregate(first.class.bin,    by=list(Category=course), FUN=mean, na.rm=T))  # Les cours ? Newbs et ? anciens
+
+b=table(cut(100*a[,2], c(0, 20, 40, 60, 80, 100)))
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+ with(list.fun2[which(list.fun2$first.class!=0),], aggregate(first.class.bin, by=list(Category=period), FUN=sum, na.rm=T)) 
+
+head(course.tags)
+
+a=with(list.fun2[which(list.fun2$SPOC!=1),], aggregate(age,    by=list(Category=course), FUN=mean, na.rm=T))   
+b=table(cut(a[,2], c(25, 30, 35, 37, 40, 45)))
+
+
+
+            # Cours ? jeunes
+
+A=with(list.fun2, table(course, education))                                                             # Cours ? dipl?m?s 
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,1)[i]*100) }
+rownames(B)=rownames(A)
+B
+
+
+
+
+summary(list.fun2$period.age)
+
+# Tout ?a c'est mauvais car c'est compl?tement pourri par les inscriptions multiples
+
+A=with(list.fun2, table(period, gender))   # 
+A=with(list.fun2, table(period, education))   # Inscriptions et education
+A=with(list.fun2, table(period, period.age))
+A=with(list.fun2, table(education, period.age))
+A=with(list.fun2, table(period.age, education))
+
+
+A=with(list.fun2[which(list.fun2$certificate=="True"),], table(period, gender))   # 
+A=with(list.fun2[which(list.fun2$certificate=="True"),], table(period, education))   # Inscriptions et education
+
+
+# A=with(list.fun2[which(list.fun2$certificate=="True"),], table(period, period.age))   # Pas bon ?a, il faut faire ?a sur les MOOCeurs, pas sur les inscriptions
+
+
+a=with(list.fun2[which(list.fun2$certificate=="True"),], aggregate(first.class.bin,    by=list(Category=course), FUN=mean, na.rm=T))  # Les cours ? Newbs et ? anciens
+
+
+a=with(list.fun2[which(list.fun2$certificate=="True"),], aggregate(age,    by=list(Category=Par.tag), FUN=mean, na.rm=T))  # Certaines th?matiques attirente-elles des gens plus vieux ?
+a=with(list.fun2, aggregate(age,    by=list(Category=Par.tag), FUN=mean, na.rm=T))  # Certaines th?matiques attirent-elles des gens plus vieux ?
+
+mod=with(list.fun2[which(list.fun2$certificate=="True"),], lm(age~Par.tag))
+anova(mod)
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+
+
+# Augmentation du nombre de jeunes avec le temps
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,1)[i]*100) }
+B
+plot(B[,12], type="l")
+plot(B[,2], type="l")
+barplot(B[1,])
+
+margin.table(A,1)
+prop.table(A)*100
+
+
+
+margin.table(A/ as.vector(margin.table(A,1))[col(A)]*100,1) 
+
+as.matrix(A)*as.matrix(t(margin.table(A,1)))
+ 
+sum(margin.table(A,1))
+ 
+with(list.fun2, table(period, country))   # Pas une source de donn?e fiable
+with(list.fun2, table(period, certificate)) 
+
+ margin.table(A,1) 
+
+with(list.fun2, table(gender, education))
+
+
+
+# Cherchons ? croiser les cat?gories de MOOCeurs correpondantes
+
+mooceurs=as.data.frame(matrix(NA, nrow=length(unique(list.fun$user)), 1))
+mooceurs$V1=as.data.frame(unique(list.fun$user))
+
+head(with(list.fun2, table(user, education)))
+head(with(list.fun2, table(user, period.age)))
+head(with(list.fun2, table(user, certificate)))
+
+head(as.numeric(as.character(list.fun2.certif$user)), 50)
+head(as.numeric(as.character(rownames(certif.behav))), 50)
+head(as.numeric(as.character(rownames(test))), 50)
+
+
+test=as.data.frame(with(list.fun2.certif, table(as.numeric(as.character(user)), certificate))[,3:4])   # Ok, c'?tait le traditionnel probl?me facteur / valeur num?rique
+summary(test)
+
+#certif.behav=as.data.frame(with(list.fun2.certif, table(user, certificate))[,3:4]) 
+#nrow(test[which((test$True==0)&(test$False==0)),])   # On a un probl?me d'apprenants qui sont ? la fois 0 True et 0 False
+#nrow(certif.behav[which((certif.behav$True==0)&(certif.behav$False==0)),])   # On a un probl?me d'apprenants qui sont ? la fois 0 True et 0 False
+#head(certif.behav[which((certif.behav$True==0)&(certif.behav$False==0)),])   # On a un probl?me d'apprenants qui sont ? la fois 0 True et 0 False
+
+certif.behav=test
+
+table.certif=table(cut(certif.behav$True, c(-1,0,1,2,5,10,20,35)),cut(certif.behav$False, c(-1,0,1,2,5,10,50,200))) 
+table.certif[1,1]=0
+table.certif
+plot(table.certif) 
+prop.table(table.certif)
+library(tableplot)
+library(plot3D)
+tableplot(table.certif)
+prop.certif=prop.table(table.certif)*100
+write.csv(prop.certif, "certif.inscr2.csv")
+
+hist3D(table.certif)
+
+x = seq(0, 1, length.out = nrow(table.certif)) 
+y = seq(0, 1, length.out = ncol(table.certif))
+
+hist3D(x, y, table.certif, col = "#0072B2",  bty = "g", phi = 20, border = "black", shade = 0.2, ltheta = 90, space = 0.3, ticktype = "detailed")
+
+cohort.cert=with(list.fun2,  table(cohort, certificate))
+plot(cohort.cert[,3]/(cohort.cert[,3]+cohort.cert[,2])*100)  # Magnifique comparaison des taux de complétion par cohorte
+
+cohort.tab=with(list.fun2.certif[which(list.fun2.certif$certificate=="True"),], table(period, cohort))
+cohort.tab
+write.csv(cohort.tab, "cohort.tab.csv")
+
+# Propension ? avoir un certificat
+# Tout ?a est mauvais
+
+countries.HDI=read.csv("countries.HDI.csv", h=T, sep=";")
+head(countries.HDI)
+
+
+list.fun3[which(list.fun3$HDI.y==""),]$HDI.y=NA
+list.fun3$HDI.y=factor(list.fun3)
+
+list.fun2$HDI=rep(NA, nrow(list.fun2))
+
+list.fun3=merge(list.fun2, countries.HDI[c("Country.en", "HDI")], by.x="country", by.y="Country.en")
+#mod=with(list.fun3[which(list.fun3$cert.delivered>=1),], lm(certif.bin~education+gender+period.age+only.reg+cohort.senior+HDI.y+multi.reg+first.class.bin))    # Mod?le qui prend en compte les diff?rents param?tres et regarde si l'age, le fait d'en ?tre ? son premier cours, etc augmente les chances
+mod=with(list.fun3[which(list.fun3$cert.delivered>=1),], lm(certif.bin~education+gender+period.age+HDI.y))    # Mod?le qui prend en compte les diff?rents param?tres et regarde si l'age, le fait d'en ?tre ? son premier cours, etc augmente les chances
+
+#nrow(list.fun3[which(list.fun3$cert.delivered>=1),])
+[1] 731853
+
+A=exp(coef(mod))
+summary(mod)
+B=anova(mod)
+
+write.table(B, "clipboard", sep="\t", row.names=T)
+
+
+# Mais il faut faire attention ? ne se centrer que sur les cours qui ont d?livr? des certificats
+list.fun4=merge(list.fun2.certif, countries.HDI[c("Country.en", "HDI")], by.x="country", by.y="Country.en")
+
+summary(list.fun4$HDI)
+list.fun4[which(list.fun4$HDI==""),]$HDI=NA
+mod=with(list.fun4, glm(certif.bin~education+ period.age+gender+HDI+multi.reg+first.class.bin, family="binomial"))    #  Mod?le qui prend en compte les diff?rents param?tres et regarde si l'age, le fait d'en ?tre ? son premier cours, etc augmente les chances
+
+mod=with(list.moocr, glm(nb.certif~nb.register, family="poisson"))
+summary(mod)
+
+A=with(list.moocr,aggregate(nb.register, by=list(Category=as.factor(nb.certif)), FUN=mean, na.rm=T) )
+A=with(list.moocr,aggregate(nb.register, by=list(Category=as.factor(nb.certif)), FUN=sd, na.rm=T) )
+
+A=with(list.moocr,aggregate(nb.register, by=list(Category=cut(nb.certif, breaks=c(-1,0,1,2,3,4,5,7,10,20,30))), FUN=mean, na.rm=T) )
+A=with(list.moocr,aggregate(nb.register, by=list(Category=cut(nb.certif, breaks=c(-1,0,1,2,3,4,5,7,10,20,30))), FUN=sd, na.rm=T) )
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+A=with(list.moocr, table(cut(nb.certif, breaks=c(-1,0,1,2,3,4,5,7,10,20,31))))
+A
+
+
+
+A=exp(coef(mod))    # Les OR
+exp(confint(mod))  # On calcule les intervalles de confiance
+
+summary(mod)
+A=anova(mod)
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+A=with(list.fun2.certif, aggregate(certif.bin, by=list(Category=as.factor(first.class.bin)), FUN=mean))
+A=with(list.fun2.certif, aggregate(certif.bin/2, by=list(Category=as.factor(first.class.bin)), FUN=sd))
+A=with(list.fun2.certif, aggregate(certif.bin, by=list(Category=as.factor(multi.reg)), FUN=mean))
+A=with(list.fun2.certif, aggregate(certif.bin/2, by=list(Category=as.factor(multi.reg)), FUN=sd))
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+names(list.fun2)
+
+age.cert=summary(mod)$coefficients[-1,1]
+plot(age.cert, type="l", xlab="", xaxt="n")   # Courbe probabilit? obtention certificat en fonction de l'?ge, magnifique
+anova(mod)
+
+head(list.fun2)
+
+gender.cert=summary(mod)$coefficients[-1,1]
+plot(gender.cert)   # Courbe probabilit? obtention certificat en fonction de l'?ge, magnifique
+
+
+axis(side=1, at=seq(1:13), labels=seq(25,85, by=5))
+as.data.frame(attributes(age.cert))
+
+for (i in 1: nrow(mooceurs))
+
+mooceurs$mooc.cat=cut(list.no, c(0,1,2,3,5,10,20,200))  #mooc.cat, variable qui nous montre ? quelle cat?gorie de MOOCeur (sur le plan quantitatif, correspond l'inscription)
+
+list.no[tail(order(list.no), 500)]  # identifier les plus gros consommateurs de cours
+
+# A partir de quelle date sont apparus les plus gros MOOCeurs
+
+start.date= as.POSIXct(strptime("2013-09-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2016-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+esp=(end.date-start.date)/12
+
+
+period.regist=cut(list.fun2$enrollment.time2  ,as.Date(seq(start.date,end.date,esp)))  # Evolution du nombre d'inscriptions sur FUN
+
+
+
+with(list.fun2, table(mooc.cat,education))
+names(list.fun2) 
+
+# Faire la matrice carr?e
+
+# Attribuer ? chaque cours un num?ro 
+
+# Faire une matrice individus / nombre de cours suivis   (prendre en compte le fait que chaque cours peut avoir plusieurs it?rations)
+
+
+# Faire une ACP sur la base des types de cours suivis
+
+
+# R?inscription d'une session sur l'autre
+ fun.data=read.csv("FUN.course.data.csv", h=T,sep=";")
+head(fun.data)
+names(stats.c.rate)
+
+effort.comp=merge(stats.c.rate, fun.data, by.x="course", by.y="code.cours")
+mod=with(effort.comp, lm(stats.c.rate~Effort.max))
+list.course.multiple.ses=effort.comp[which(effort.comp$Session==2),]$Titre
+
+mod=with(effort.comp[which(effort.comp$Titre %in% list.course.multiple.ses),], lm(Nb.student~Session))  # On se limite bien s?r aux cours qui n'ont que deux ?ditions
+
+with(effort.comp[which(effort.comp$Titre %in% list.course.multiple.ses),], aggregate(Nb.student, by=list(Category=Session), FUN=mean))
+with(effort.comp[which(effort.comp$Titre %in% list.course.multiple.ses),], aggregate(Nb.student/2, by=list(Category=Session), FUN=sd))
+
+
+anova(mod)
+summary(mod)
+
+head(effort.comp)
+
+list.course.multiple.ses.code=effort.comp[which(effort.comp$Titre %in% list.course.multiple.ses),]$course
+
+list.fun3=merge(list.fun2, fun.data, by.x="course", by.y="code.cours")
+list.fun3=list.fun3[which(list.fun3$course %in% list.course.multiple.ses.code),] # On se limite aux cours qui ont plusieurs r?p?titions
+list.fun3$Titre=factor(list.fun3$Titre)
+
+i=1
+
+Ratio.undead=NULL
+for (i in 1 : length(levels(list.fun3$Titre))) {
+titre=levels(list.fun3[which(list.fun3$course %in% list.course.multiple.ses.code),]$Titre)[i]
+list1=(list.fun3[which((list.fun3$Titre==titre)&(list.fun3$Session==1)),]$user)
+list2=(list.fun3[which((list.fun3$Titre==titre)&(list.fun3$Session==2)),]$user)
+N.undead=length(which(is.na(match(list1, list2))==F))
+N.undead=length(which(is.na(match(list1, list2))==F))
+Nb.stud.ses.2= list.fun3[which((list.fun3$Titre==titre)&(list.fun3$Session==2)),]$Nb.student[1]
+ratio=N.undead/Nb.stud.ses.2*100
+Ratio.undead=c(Ratio.undead, ratio) }
+
+A=cbind(levels(list.fun3$Titre),Ratio.undead)  # !!!!!!!!!!!!!!!!!!!!!!!   Vecteur titre du MOOC pourcentage de revenants
+write.table(A, "clipboard", sep="\t", row.names=T)
+A=as.data.frame(A)
+A$Titre=A$V1
+B=fun.data[which(fun.data$Session==2),c("Titre", "Nb.student")]
+C=merge(A, B, by="Titre")
+C$Ratio.undead=as.numeric(as.character(C$Ratio.undead))
+with(C, cor.test(Ratio.undead, Nb.student))      # Aucune corr?lation entre le taux de revenants et la taille du MOOC
+
+
+# Undead et taux de complétion
+
+list.fun3$undead=rep(0, nrow(list.fun3))
+i=2
+for (i in 1 : length(levels(list.fun3$Titre))) {
+titre=levels(list.fun3[which(list.fun3$course %in% list.course.multiple.ses.code),]$Titre)[i]
+list1=(list.fun3[which((list.fun3$Titre==titre)&(list.fun3$Session==1)),]$user)
+if (length(list1)==0)      next
+list2=(list.fun3[which((list.fun3$Titre==titre)&(list.fun3$Session==2)),]$user)
+if (length(list2)==0)      next
+N.undead=length(which(is.na(match(list1, list2))==F))
+list.undead=list2[which(is.na(match(list2, list1))==F)]
+list.fun3[which((list.fun3$Titre==titre)&(list.fun3$Session==2)&(list.fun3$user %in% list.undead)),]$undead=1}
+summary(list.fun3[which(list.fun3$Session==2),]$undead)                         # Ok, on est bien dans les proportions attendues
+mod= with(list.fun3[which(list.fun3$Session==2),], glm(certif.bin~as.factor(undead), family="binomial"))
+anova(mod)
+summary(mod)
+
+a=with(list.fun3[which(list.fun3$Session==2),], aggregate( certif.bin*100, by=list(Category=as.factor(undead)), FUN=mean))
+b=with(list.fun3[which(list.fun3$Session==2),], aggregate( certif.bin*100/2, by=list(Category=as.factor(undead)), FUN=sd))
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+
+
+
+
+summary(list.fun3$Titre)
+
+
+
+
+# Faire une analyse de s?quence au sein de la plate-forme selon les types de cours suivis pour dessiner des trajectoires type
+
+#Il faut faire pour chaque MOOCeur une analyse des cours suivis
+
+mooceurs=as.data.frame(unique(list.fun2$user))   #Cr?ons une base de donn?es qui prend en entr?e seulement les MOOCeurs, et pas les inscriptions
+mooceurs.cert=as.data.frame(unique(list.fun2[which(list.fun2$certif.bin==1),]$user))
+
+course.users=as.data.frame(matrix(data=0, nrow(mooceurs), length(levels(list.fun2$course))))   # Une matrice avec en lignes les individus, en colonne les cours
+course.users.cert=as.data.frame(matrix(data=0, nrow(mooceurs.cert), length(levels(list.fun2$course))))   # Une matrice avec en lignes les individus, en colonne les cours
+
+course.users$username=mooceurs
+course.users.cert$username=mooceurs.cert
+#rownames(course.users)=mooceurs
+
+summary(course.users.cert)
+
+
+for (i in 1:length(levels(list.fun2$course))) { 
+course.no=levels(list.fun2$course)[i] 
+list.registr.2.course.cert=list.fun2.certif[which((list.fun2.certif$course==course.no)&(list.fun2.certif$certif.bin==1)),]$user    # On regarde qui sont tous les inscrits ? ce cours et qui ont eu obtenu un certificat
+lines.match.cert=match(list.registr.2.course.cert, as.numeric(as.character(mooceurs.cert[,1])))  # On essaie de retrouver la ligne des dits inscrits dans la grande matrice cours x individus
+lines.match.cert=lines.match.cert[which(is.na(lines.match.cert)==F)]
+course.users.cert[lines.match.cert,i]=1 }
+summary(course.users.cert)
+names(course.users.cert)=levels(list.fun2$course)
+rownames(course.users.cert)= mooceurs.cert[,1]
+
+
+
+for (i in 1:length(levels(list.fun2$course))) {                   # On prend les cours un par un
+course.no=levels(list.fun2$course)[i]                             # On choisit le cours
+list.registr.2.course=list.fun2[which(list.fun2$course==course.no),]$user    # On regarde qui sont tous les inscrits ? ce cours
+lines.match=match(list.registr.2.course, as.numeric(as.character(mooceurs[,1])))  # On essaie de retrouver la ligne des dits inscrits dans la grande matrice cours x individus
+lines.match=lines.match[which(is.na(lines.match)==F)]
+course.users[lines.match,i]=1 
+}
+names(course.users)=levels(list.fun2$course)
+rownames(course.users)= mooceurs[,1]
+head(course.users)
+
+# Analyse des th?matiques des cours
+course.tags=read.table("FUN.Course.tags.csv", h=T, sep=";")
+names(course.tags)
+
+course.users.ch.tag=as.data.frame(matrix(data=0, nrow(list.moocr), length(levels(course.tags$Child.tag1))))   # Une matrice avec en lignes les individus, en colonne les tags des cours 
+head(course.users.ch.tag)
+course.id=names(course.users)[1]
+
+course.tags[which(course.tags$Course.id==course.id),]$Child.tag1
+
+i=1
+for (i in 1:length(levels(course.tags$Child.tag1)) ) {
+int=course.tags[which(course.tags$Child.tag1==levels(course.tags$Child.tag1)[i]),]$Course.id    # On prend les sujets les uns apr?s les autres, on identifie les cours qui sont associ?s au sujet "i"
+column.id=which(names(course.users)%in%int) # On regarde les colonnes de course.users correspondantes
+if (length(column.id)==1) { course.users.ch.tag[,i]=course.users[,column.id] } else if (length(column.id)==0) { course.users.ch.tag[,i]=rep(0, nrow(course.users)) } else if (length(column.id)>1) {course.users.ch.tag[,i]=rowSums(course.users[,column.id]) } 
+}
+names(course.users.ch.tag)=levels(course.tags$Child.tag1)
+rownames(course.users.ch.tag)= mooceurs[,1]
+
+summary(course.users.ch.tag)
+
+
+Art.Design=c("Design.Creativity","Visual.Arts")
+Business.Management=c("Business.Development","Entrepreneurship","Management", "Management.Marketing","Marketing")
+Computer.Science=c("Artificial.Intelligence","Data.Science.Big.Data","Theoretical.Computer.Science","Mobile.Development","Web.Development", "Robotics")
+Education.Teaching=c("Course.Development","Higher.Education","K12","Online.Education","Teacher.Development")
+Engineering=c("Chemistry.Civil.Environmental.Engineering","Electrical.Engineering","Mechanical.Engineering")
+Health.Medicine=c("Disease.Disorders","Health.Care.Research","Public & Global Health", "Public.Global.Health", "Epidemiology")
+Lang.Culture=c("Language.Culture")
+Language=c("Grammar.Writing")
+Humanities=c("Digital.Media.Video.Games","Film.Theatre","Literature","Music","Nutrition & Wellness","Nutrition.Wellness","Philosophy")
+Mathematics=c("Algebra.Geometry","Calculus.Mathematical.Analysis","Finance","Foundations.of.Mathematics","Statistics.Probability")
+Science=c("Astronomy.astrophysics","Biology","Environmental.Science", "Environmental Science","Physics","Psychology", "Earth.Science")
+Social.Sciences=c("Anthropology","Economics","History","Political.Science","Political Science","Religion","Sociology", "Demography")
+Law=c("Law")
+Professional.Development=c("Professional.Development", "Test.Prep")
+#Par.tags=c(Art.Design.Business.Management,Computer.Science,Education.Teaching,Health.Medicine,Language, Humanities,Mathematics,Science,Social.Sciences, Professional.Development)
+#Par.tags1=c(rep("Art.Design.Business.Management", length(Art.Design.Business.Management)),rep("Computer.Science" ,length(Computer.Science)),
+#rep("Education.Teaching", length(Education.Teaching)),rep("Health.Medicine", length(Health.Medicine)),rep("Language", length(Health.Medicine)),
+#rep("Humanities", length(Humanities)),rep("Mathematics", length(Mathematics)),rep("Science", length(Science)),rep("Social.Sciences", length(Social.Sciences)),rep("Professional.Development", length(Professional.Development)))
+
+i=61
+course.tags$Par.tag=rep(NA, nrow(course.tags))
+for (i in 1: nrow(course.tags)) {
+int2= course.tags$Child.tag1[i]
+if( int2 %in%Art.Design) {course.tags$Par.tag[i]="Art.Design"}  else if( int2 %in%Business.Management) {course.tags$Par.tag[i]="Business.Management"}
+ else if( int2 %in%Computer.Science) {course.tags$Par.tag[i]="Computer.Science"}
+ else if( int2 %in%Education.Teaching) {course.tags$Par.tag[i]="Education.Teaching"} else if( int2 %in%Engineering) {course.tags$Par.tag[i]="Engineering"} 
+ else if( int2 %in%Health.Medicine) {course.tags$Par.tag[i]="Health.Medicine"} else if( int2 %in%Language) {course.tags$Par.tag[i]="Language"}
+ else if( int2 %in%Lang.Culture) {course.tags$Par.tag[i]="Language.Culture"}
+  else if( int2 %in%Humanities) {course.tags$Par.tag[i]="Humanities"} else if( int2 %in%Mathematics) {course.tags$Par.tag[i]="Mathematics"}
+   else if( int2 %in%Science) {course.tags$Par.tag[i]="Science"} else if( int2 %in%Social.Sciences) {course.tags$Par.tag[i]="Social.Sciences"}
+    else if( int2 %in%Professional.Development) {course.tags$Par.tag[i]="Professional.Development"} else if( int2 %in%Law) {course.tags$Par.tag[i]="Law"}
+}
+course.tags$Par.tag=as.factor(course.tags$Par.tag)
+
+# On veut savoir les sujets qui r?coltent le plus d'inscriptions par exemple
+list.fun.topics=merge(list.fun2, course.tags[which(course.tags$SPOC!=1),], by.x="course", by.y="Course.id"  )  # Il faut corriger par le nombre de cours lanc?s dans la discipline, c'est pour ?a que j'ai rajout? une colonne SPOC que j'?limine
+summary(list.fun.topics)
+head(list.fun.topics)
+
+a=summary(list.fun.topics$Par.tag)[1:length(summary(course.tags[which(course.tags$SPOC!=1),]$Par.tag) )]/summary(course.tags[which(course.tags$SPOC!=1),]$Par.tag)        # Nombre moyen d'inscrits par discipline
+
+a=with(list.fun.topics, aggregate(certif.bin, by=list(Category=Par.tag), FUN=sum))
+
+write.table(t(a), "clipboard", sep="\t", row.names=T)
+
+rm(list.fun.topics)
+
+list.fun2=list.fun.topics
+
+course.users.par.tag.cert$user=row.names(course.users.par.tag.cert)
+list.fun2.int=merge(list.fun2, course.users.par.tag.cert[,c("user", "nb.topics")], by="user", all.x=T)
+list.fun2=list.fun2.int
+names(list.fun2)[which(names(list.fun2)=="nb.topics")]="nb.topics.cert"
+course.users.par.tag$user=row.names(course.users.par.tag)
+list.fun2.int=merge(list.fun2, course.users.par.tag[,c("user", "nb.topics")], by="user", all.x=T)
+list.fun2=list.fun2.int
+
+
+
+# Nature des disciplines favorisées en fonction du background sociopro
+
+
+
+list.fun5=merge(list.fun2, course.tags, by.x="course", by.y='Course.id') 
+with(list.fun5, table(education, Child.tag1)) 
+
+chi=with(list.fun5, chisq.test(education, Child.tag1)) 
+A=chi$residuals
+write.table(t(A), "clipboard", sep="\t", row.names=T)
+
+A=chi$observed
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+                              
+                              
+                              
+######### Taux de complétion en fonction de la mati?re (cette fois on ne s'int?resse qu'aux cous qui d?livrent des certificats, pas folle la gu?rpe)
+list.fun.topics=merge(list.fun2.certif, course.tags[which(course.tags$SPOC!=1),], by.x="course", by.y="Course.id"  )  # Il faut corriger par le nombre de cours lanc?s dans la discipline, c'est pour ?a que j'ai rajout? une colonne SPOC que j'?limine
+
+a=with(list.fun.topics, aggregate(certif.bin, by=list(Category=Par.tag), FUN=sum, na.rm=T))[,2]/summary(course.tags[which(course.tags$SPOC!=1),]$Par.tag)[1:12]  #Nombre moyen de certificat d?livr? par discipline  marche pas
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+with(list.fun.topics, aggregate(certif.bin, by=list(Category=Child.tag1), FUN=sum, na.rm=T))[,2]/summary(course.tags[which(course.tags$SPOC!=1),]$Child.tag1)    #Nombre moyen de certificat d?livr? par sous-discipline
+with(list.fun.topics, aggregate(certif.bin, by=list(Category=Par.tag), FUN=sum, na.rm=T))[,2]/summary(course.tags[which(course.tags$SPOC!=1),]$Par.tag)[1:12]  #Nombre moyen de certificat d?livr? par discipline
+
+a=
+
+tag.comp.rate=with(list.fun.topics, table(Par.tag, certificate))   #  Statistiques du nombre de certificat par cours
+
+tag.comp.rate=with(list.fun2.certif[which(list.fun2.certif$SPOC!=1),], table(Par.tag, certificate))   #  Statistiques du nombre de certificat par cours
+stats.c.rate=tag.comp.rate[,3]/(tag.comp.rate[,2]+tag.comp.rate[,3])*100
+stats.c.rate
+a=stats.c.rate
+
+
+
+# Est-ce statistiquement significatif  ?
+course.tags ?
+
+
+write.table(tag.comp.rate, "clipboard", sep="\t", row.names=T)
+write.table(stats.c.rate, "clipboard", sep="\t", row.names=T)
+
+
+course.rate=with(list.fun2.certif, table(course, certificate))   #  Statistiques du nombre de certificat par cours
+stats.c.rate=course.rate[,3]/(course.rate[,2]+course.rate[,3])*100
+stats.c.rate
+a=stats.c.rate
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+B=as.data.frame(stats.c.rate)
+B$course=rownames(B)
+
+B$course
+course.comp.rate=with(list.fun2.certif, table(course, certificate))   #  Statistiques du nombre de certificat par cours     #    [which(list.fun2.certif$SPOC!=1   ),]
+stats.c.rate=course.comp.rate[,3]/(course.comp.rate[,2]+course.comp.rate[,3])*100  #  Statistiques du nombre de certificat par cours, en %
+stats.c.rate=as.data.frame(stats.c.rate)
+stats.c.rate$course=rownames(stats.c.rate)
+
+
+int=(merge(stats.c.rate, course.tags, by.y="Course.id", by.x="course"))
+mod=with(int, lm(stats.c.rate~Par.tag))                      # Lien statistiquement significatif, mais c'est parce que peu de cours par cat?gorie
+summary(mod)
+anova(mod)
+
+nreg=(course.comp.rate[,2]+course.comp.rate[,3])    # Stats d'inscrits sur ceux qui sont termin?s uniquement
+nreg[which(nreg==0)]=NA
+nreg=as.data.frame(nreg)
+nreg$course=rownames(nreg)
+
+int=(merge(nreg, course.tags, by.y="Course.id", by.x="course"))
+int2=int[which(is.na(int$nreg)==F),]
+with(int2, aggregate(int2$nreg, by=list(Category="Par.tag"), FUN=mean))     # !!!!!!!!!!!!!!!!!!!!
+str(int2)
+
+with(int2, aggregate(nreg, by=list(Category="Par.tag"), FUN=mean))
+
+int3=cbind(levels(int2$Par.tag)[int2$Par.tag], int2$nreg)
+int3=as.data.frame(int3)
+names(int3)=c("Par.tag", "nreg")
+int3$nreg=as.numeric(int3$nreg)
+with(int3, aggregate(nreg, by=list(Category="Par.tag"), FUN=mean))
+
+# Je l?che l'affaire  
+
+
+mod=with(int2, lm(nreg~Par.tag))                      
+summary(mod)
+anova(mod)
+
+
+
+
+# Taux de certification par discipline
+
+course.tags2=merge(course.tags, B, by.x="Course.id", by.y="course") # Et on recharge list.fuN2.certif
+a=with(course.tags2[which((course.tags2$stats.c.rate>0)&(course.tags2$SPOC!=1)),], aggregate(stats.c.rate, by=list(Category=Par.tag), mean, na.rm=T))
+b=with(course.tags2[which((course.tags2$stats.c.rate>0)&(course.tags2$SPOC!=1)),], aggregate(stats.c.rate/2, by=list(Category=Par.tag), sd, na.rm=T))     # Bien s?r on fait attention ? ne prendre que les cours finis
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+a=summary(course.tags2[which(course.tags2$SPOC!=1),]$Par.tag)   ##### En ne prenant que les MOOC
+b=summary(course.tags2[which(course.tags2$SPOC==1),]$Par.tag)   ##### En ne prenant que les SPOC et les cours bizarres, ? revoir
+
+course.rate=with(list.fun2.certif[which(list.fun2.certif$SPOC!=1),], table(course, certificate))   #  Statistiques du nombre de certificat par cours
+
+head(merge(list.fun2.certif, 
+
+
+
+
+
+
+head(list.fun2)
+
+
+
+
+
+###############################################################################
+
+course.users.par.tag=as.data.frame(matrix(data=0, nrow(list.moocr), length(levels(course.tags$Par.tag))))   # Une matrice avec en lignes les individus, en colonne les tags des cours 
+head(course.users.par.tag)
+
+i=1
+for (i in 1:length(levels(course.tags$Par.tag)) ) {
+int=course.tags[which(course.tags$Par.tag==levels(course.tags$Par.tag)[i]),]$Course.id    # On prend les sujets les uns apr?s les autres, on identifie les cours qui sont associ?s au sujet "i"
+column.id=which(names(course.users)%in%int) # On regarde les colonnes de course.users correspondantes
+if (length(column.id)==1) { course.users.par.tag[,i]=course.users[,column.id] } else if (length(column.id)==0) { course.users.par.tag[,i]=rep(0, nrow(course.users)) } else if (length(column.id)>1) {course.users.par.tag[,i]=rowSums(course.users[,column.id]) } 
+}
+names(course.users.par.tag)=levels(course.tags$Par.tag)
+rownames(course.users.par.tag)= mooceurs[,1]
+head(course.users.par.tag)
+
+summary(course.users.par.tag)
+
+
+res.pca = PCA(course.users.par.tag[which(course.users.par.tag$total>1),1:N.disc], scale.unit=TRUE, ncp=5, graph=)
+
+k=kmeans(res.pca$ind$coord, centers=6, iter.max = 1000)
+
+summary(as.factor(k$cluster))
+head(k)
+str(k)
+
+course.users.par.tag$cluster=as.factor(k$cluster)
+
+# Cat?gories d'inscrits, visualiser les classes
+
+A=cbind(aggregate(course.users.par.tag[which(course.users.par.tag$total>1),1:(N.disc+2)], by=list(Category=k$cluster), FUN=mean, na.rm=T),summary(as.factor(k$cluster))) 
+A[,2:(N.disc+1)]=A[,2:(N.disc+1)]/A[,(N.disc+2)]*100
+A
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+
+
+# On peut regarder est-ce qu'il y a uniquement des sp?cialistes
+
+names(list.fun2)
+
+N.disc=13
+
+course.users.par.tag$total=rowSums(course.users.par.tag[,1:N.disc])   # Nombre de cours o? inscrit au total
+course.users.par.tag$nb.topics=rowSums((sign(course.users.par.tag[,1:N.disc]))) # Nombre de disciplines diff?rentes auquel il s'est int?ress?
+course.users.par.tag$topics.ratio=course.users.par.tag$nb.topics/course.users.par.tag$total
+
+head(course.users.par.tag)
+
+summary(course.users.par.tag[which(course.users.par.tag$total>1),]$topics.ratio)
+with(course.users.par.tag[which(course.users.par.tag$total>1),], plot(total,topics.ratio))
+
+course.users.par.tag$topics.ratio.cat=cut(course.users.par.tag$topics.ratio, breaks=c(0,0.25,0.5,0.75,0.99,1))
+table(course.users.par.tag[which(course.users.par.tag$total>1),]$topics.ratio.cat)
+
+course.users.par.tag$total.cat=cut(course.users.par.tag$total, breaks=c(1,2,5,10,20,200))
+
+A=with(course.users.par.tag[which(course.users.par.tag$total>1),], table(topics.ratio.cat,total.cat))
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+
+
+
+summary(course.users.par.tag$nb.topics)
+
+course.users.par.tag.cert=as.data.frame(matrix(data=0, nrow(mooceurs.cert), length(levels(course.tags$Par.tag))))   # Une matrice avec en lignes les individus, en colonne les tags des cours 
+head(course.users.par.tag.cert)
+
+i=1
+for (i in 1:length(levels(course.tags$Par.tag)) ) {
+int=course.tags[which(course.tags$Par.tag==levels(course.tags$Par.tag)[i]),]$Course.id    # On prend les sujets les uns apr?s les autres, on identifie les cours qui sont associ?s au sujet "i"
+column.id=which(names(course.users.cert)%in%int) # On regarde les colonnes de course.users correspondantes
+if (length(column.id)==1) { course.users.par.tag.cert[,i]=course.users.cert[,column.id] } else if (length(column.id)==0) { course.users.par.tag.cert[,i]=rep(0, nrow(course.users.cert)) } else if (length(column.id)>1) {course.users.par.tag.cert[,i]=rowSums(course.users.cert[,column.id]) } 
+}
+names(course.users.par.tag.cert)=levels(course.tags$Par.tag)
+rownames(course.users.par.tag.cert)= mooceurs.cert[,1]
+head(course.users.par.tag.cert)
+summary(course.users.par.tag.cert)
+
+a=summary(as.factor(course.users.par.tag$nb.topics)) # Proportion des gens qui ont un certificat dans une seule discipline, deux disciplines, etc
+
+int=(with(course.users.par.tag, table(nb.topics, total)))
+int=int[-1,-1]
+
+a=(with(course.users.par.tag, aggregate(nb.topics, by=list(Category=total), FUN=mean)))
+b=(with(course.users.par.tag, aggregate(nb.topics, by=list(Category=total), FUN=sd)))
+
+
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+write.csv(course.users.par.tag.cert, "course.users.par.tag.cert.csv", row.names=F)
+write.csv(course.users.par.tag.cert, "course.users.par.tag.csv", row.names=F)
+
+
+# On peut regarder est-ce qu'il y a uniquement des sp?cialistes
+
+course.users.par.tag.cert$total=rowSums(course.users.par.tag.cert[,1:N.disc])
+course.users.par.tag.cert$nb.topics=rowSums((sign(course.users.par.tag.cert[,1:N.disc]))) # Nombre de disciplines diff?rentes auquel il s'est int?ress?
+
+a=summary(as.factor(course.users.par.tag.cert$nb.topics)) # Proportion des gens qui ont un certificat dans une seule discipline, deux disciplines, etc
+b=summary(as.factor(course.users.par.tag$nb.topics)) # Proportion des gens qui ont un certificat dans une seule discipline, deux disciplines, etc
+course.users.par.tag.cert$topics.ratio=course.users.par.tag.cert$nb.topics/course.users.par.tag.cert$total
+
+
+
+summary(course.users.par.tag.cert[which(course.users.par.tag.cert$total>1),]$topics.ratio)
+with(course.users.par.tag.cert[which(course.users.par.tag.cert$total>1),], plot(total,topics.ratio))
+
+course.users.par.tag.cert$topics.ratio.cat=cut(course.users.par.tag.cert$topics.ratio, breaks=c(0,0.25,0.5,0.75,0.99,1))
+table(course.users.par.tag.cert[which(course.users.par.tag.cert$total>1),]$topics.ratio.cat)
+
+course.users.par.tag.cert$total.cat=cut(course.users.par.tag.cert$total, breaks=c(1,2,5,10,20,40))
+
+A=with(course.users.par.tag.cert[which(course.users.par.tag.cert$total>1),], table(topics.ratio.cat,total.cat))
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+
+course.users.par.tag.cert.fr=course.users.par.tag.cert[which(course.users.par.tag.cert$total>1),]
+names(course.users.par.tag.cert.fr)=c("Art et Design", "Commerce, gestion, entr.", "Informatique", "Education", "Ing?nierie", "Sant? et m?decine", "Humanit?s",
+ "Langue ?trang?re", "Culture et civilisation", "Droit", "Math?matiques", "D?veloppement professionnel", "Sciences exp?rimentales", "Sciences sociales")
+
+write.table(b, "clipboard", sep="\t", row.names=T)
+library(FactoMineR)
+res.pca = PCA(course.users.par.tag.cert.fr[,1:N.disc], scale.unit=TRUE, ncp=5, graph=T)
+res.pca$var
+
+library("psych")
+
+library(cluster)
+library(HSAUR)
+library(fpc)
+
+k=kmeans(res.pca$ind$coord, centers=6, iter.max = 1000)
+
+#k=kmeans(course.users.par.tag.cert[,1:11], centers=6, iter.max = 1000)
+
+summary(as.factor(k$cluster))
+head(k)
+str(k)
+
+course.users.par.tag.cert.fr$cluster=as.factor(k$cluster)
+
+# Avoir les tailles des diff?rentes cat?gories d'apprenants
+
+A=cbind(aggregate(course.users.par.tag.cert.fr[,1:(N.disc+2)], by=list(Category=k$cluster), FUN=mean, na.rm=T),summary(as.factor(k$cluster)))   # Certifi?s uniquement !!!!!!!!!!!!!!!!!!!!!!
+A[,2:(N.disc+1)]=A[,2:(N.disc+1)]/A[,(N.disc+2)]*100
+A
+
+write.table(A, "clipboard", sep="\t", row.names=T)  
+
+sum(course.users.par.tag.cert$total)
+
+
+head(list.fun2, 30)
+
+course.users.par.tag[which((course.users.par.tag$total>1)&(course.users.par.tag$nb.topics>1)),]
+
+# Parmi les gens qui s'inscrivent ? plusieurs cours, la plupart vont s'int?resser ? plusieurs disciplines
+
+length(which((course.users.par.tag$total>1)&(course.users.par.tag$nb.topics>1)))
+length(which((course.users.par.tag$total>1)&(course.users.par.tag$nb.topics==1)))
+summary(course.users.par.tag[which(course.users.par.tag$total>1),]$nb.topics) # Ceux qui se sont inscrits ? plus d'un cours s'int?ressent en moyenne ? trois disciplines.
+a=summary(as.factor(course.users.par.tag[which(course.users.par.tag$total>1),]$nb.topics))  # !!!!!!!!!!
+
+
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Quelles sont les associations les plus fr?quentes
+
+head(course.users.par.tag)
+
+course.users.par.tag.fr=course.users.par.tag[which(course.users.par.tag$total>1),]
+names(course.users.par.tag.fr)=c("Art et Design", "Commerce, gestion, entr.", "Informatique", "Education", "Ing?nierie", "Sant? et m?decine", "Humanit?s",
+ "Langue ?trang?re", "Culture et civilisation", "Droit", "Math?matiques", "D?veloppement professionnel", "Sciences exp?rimentales", "Sciences sociales")
+
+
+library(FactoMineR)
+
+res.pca = PCA(course.users.par.tag.fr[,1:N.disc], scale.unit=TRUE, ncp=6, graph=T)
+
+str(res.pca)
+head(res.pca$ind$coord)
+
+res.pca$var
+
+library(cluster)
+library(HSAUR)
+library(fpc)
+
+k=kmeans(res.pca$ind$coord, centers=6, iter.max = 1000)
+summary(as.factor(k$cluster))
+head(k)
+str(k)
+
+course.users.par.tag$cluster=as.factor(k$cluster)
+
+#plotcluster(course.users.par.tag[,1:11], k$cluster)
+
+A=aggregate(course.users.par.tag.fr[,1:(N.disc+2)], by=list(Category=k$cluster), FUN=mean, na.rm=T)  # !!!!!!!!!!!!!!!!!!!!!!
+cbind(A,summary(as.factor(k$cluster)))
+
+A[,2:12]/A[,13]*100
+
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,1)[i]*100) }
+B
+plot(B[,12], type="l")
+plot(B[,2], type="l")
+barplot(B[1,])
+
+# Mati?res qui colocalisent
+
+names(course.users.par.tag)
+M=cor(course.users.par.tag[,1:N.disc])
+M[lower.tri(M, diag=T)]  =0
+
+print(corr.test(course.users.par.tag[,1:N.disc]), short=FALSE)
+
+# Correlations croiss?es
+
+write.table(M, "clipboard", sep="\t", row.names=T)
+
+
+
+summary(course.users.par.tag[which(course.users.par.tag$cluster==2),])
+
+
+
+
+
+
+# Petit code pour voir combien il faut faire de groupes dans ta cat?gorisation
+comp <- data.frame(res.pca$x[,1:4])
+# Plot
+plot(comp, pch=16, col=rgb(0,0,0,0.5))
+
+
+res.pca
+res.pca$eig
+res.pca$var$contrib
+res.pca$var$coord
+res.pca$var$call
+summary(res.pca)
+
+res.hcpc = HCPC(res.pca)
+
+mydata= course.users.par.tag[,1:11]
+
+
+wss <- (nrow(mydata)-1)*sum(apply(mydata,2,var))
+for (i in 2:15) wss[i] <- sum(kmeans(mydata,
+                                     centers=i)$withinss)
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within groups sum of squares")
+
+which(course.users.par.tag$total) 
+course.users.par.tag[,1:11]
+
+
+
+
+
+# on teste sur quelques exemples que la matrice a ?t? bien remplie
+
+# En prenant quelques utilisateurs au hasard
+head(list.fun2)
+ex=3
+list.fun2$course[which(list.fun2$user==ex)]
+
+# En regardant les populations totales de cours
+
+names(course.users)
+i=70
+names(course.users)[i]
+sum(course.users[,i]) # Cela semble coh?rent avec les r?sultats habituels
+
+# write.csv(course.users, "Course.vs.users.csv", row.names=F)       # Tr?s lourd, tu le traumatises le pauvre petit
+   
+head(course.users) 
+summary(course.users)   
+
+
+# On va ?galement devoir cr?er une matrice qui correspond ? tous les attributs
+
+
+# D'abord, on fait une matrice cours attributs
+
+attr.course=c("Course_id", "Parent.subject", "Child.subject", "Duration", "Workload", "Institution")
+course.attr.mat=as.data.frame(matrix(data=0, levels(list.fun2$course),length(attr.course) )))
+
+#Peut-?tre va-t-on devoir discr?tiser tout ?a. 
+
+levels(course.attr.mat[,i])
+users.course.attr=as.data.frame(matrix(data=0, levels(list.fun2$course),length(attr.course) )))
+
+summary(lines.match)
+
+# Je v?rifie quand m?me que le match que je trouve est un tant soit peu coh?rent
+
+as.numeric(as.character(mooceurs[,1]))[378377]
+summary(as.numeric(as.character(list.fun$user))) 
+summary(as.numeric(as.character(list.fun2$user))) 
+head(list.registr.2.course)
+tail(list.fun2$user, 50)
+
+head(as.numeric(as.character(mooceurs[,1])))
+
+moocer.no=37
+list.fun2[which(list.fun2$user==moocer.no),]$course
+
+list.registr.2.course[1390]
+list.registr.2.course[1391]
+
+
+81024
+
+1390
+
+
+
+summary(as.numeric(course.users$username))
+names(course.users)=levels(list.fun2$course)
+head(course.users)
+mooceurs$mooc.cat=cut(list.no, c(0,1,2,3,5,10,20,200))
+length(cut(list.no, c(0,1,2,3,5,10,20,200)))
+
+head(mooceurs)
+
+
+
+
+
+
+# On veut maintenant savoir quel est le num?ro du MOOC correspondant
+
+test=NULL
+head(list.no, 50)
+N=0
+for(i in list.no) {
+N=N+1
+test=c(test,seq(1,i, by=1))}      # petit code qui g?n?re le num?ro de MOOC correspondant
+cbind(list.fun2$first.class[1:length(test)],list.fun2$user[1:length(test)], test)
+
+length(test)
+length(list.no)
+which(is.na(list.no)==T)
+summary(list.no)
+
+nrow(list.fun2)
+summary(list.fun2)
+length(unique(list.fun2$user))
+
+head(test, 50)
+
+sort(list.fun$enrollment.time, decreasing = FALSE)
+
+
+Lag(as.numeric(as.character(list.fun$user)),1)[1:5]
+
+list.fun$user[1:50]
+as.numeric(as.character(list.fun$user))[1:50]
+
+
+
+list.fun$topic=rep(NA, nrow(list.fun))
+list.fun$subtopic=rep(NA, nrow(list.fun))
+                      
+
+list.fun[which(list.fun$course%in%),]$topic
+
+summary(list.fun$course)
+summary(list.fun$education)
+
+
+
+###############################################################################################################
+######################### Analyse fa?on r?seaux sociaux #######################################################
+###############################################################################################################
+
+# Il faut qu'on fasse une matrice cours * cours pour faire une sorte d'analyse de r?seau social mais appliqu?e aux cours. Cela n'a aucun sens de le faire sur les participants (ou tr?s peu)
+
+# Construction de la matrice d'adjascence
+
+course.adj=matrix(0,length(levels(list.fun2$course)),length(levels(list.fun2$course))) 
+for (j in 1:length(levels(list.fun2$course))){
+user.index=which(course.users[,j]==1)  # On prend tous les inscrits du cours j
+k=user.index[1]
+for (k in user.index) {
+course.index=which(course.users[k,]==1)
+course.adj[j,course.index]=course.adj[j,course.index]+1 
+}
+}
+
+course.adj=as.data.frame(course.adj)
+names(course.adj)=names(course.users)[1:229]
+rownames(course.adj)=names(course.users)[1:229]
+
+write.csv(course.adj, "FUN.MOOC.Adj.mat.csv", row.names=T)
+course.adj=read.csv("FUN.MOOC.Adj.mat.csv", h=T, sep=",")
+summary(course.adj)
+dim(course.adj)
+colnames(course.adj)
+rownames(course.adj)
+
+rows.spoc =c(14, 17, 20, 23, 27, 28, 32, 33, 34, 37, 40, 56, 62,63, 64, 84,86,87, 109,116,118,120, 121, 122, 123,124,138, 140, 172, 175,176,177,198,208,209)
+
+course.adj2=course.adj[-rows.spoc,-rows.spoc]
+diag(course.adj2)=0
+course.adj2[lower.tri(course.adj2)]=0
+
+write.csv(course.adj2, "FUN.MOOC.ok.Adj.mat.csv", row.names=T)
+course.adj2=read.csv("FUN.MOOC.ok.Adj.mat.csv", h=T, sep=",")[,c(2:195)]
+
+rownames(course.adj2)
+
+library(network)
+library(XML)
+library(RCurl)
+library(sna)
+library(igraph)
+library(Hmisc)
+course.adj3=network(course.adj2)
+
+course.adj2=as.matrix (course.adj2)
+summary(course.adj2)
+dim(course.adj2)
+is.matrix (course.adj2)
+
+
+t=as.matrix.network(course.adj3,matrix.type="adjacency")
+
+net=graph.adjacency(adjmatrix=course.adj2, mode="undirected",weighted=TRUE,diag=FALSE)
+net.components <- clusters(net)
+table(net.components$csize)
+
+net.lcc <- induced.subgraph(net,net.components$membership== which.max(net.components$csize))
+graph.density(net.lcc)
+transitivity(net.lcc)
+
+net.degrees <- degree(net.lcc)
+summary(net.degrees)
+net.between <- betweenness(net.lcc)
+summary(net.between)
+
+plot(density(net.between), lwd=2, main="distribution de la centralit\u{E9}", xlab="Centralit\u{E9}", ylab="Densit\u{E8}", col="darkred",las=2)
+
+par(mfrow=c(1,1))
+par(mar=rep(1,4))
+V(net.lcc)$size <- 2*sqrt(net.degrees)
+bet.col <- cut(log(net.between+1),10,labels=FALSE)
+V(net.lcc)$color <- heat.colors(10)[11-bet.col]
+plot(net.lcc, main="Degr\u{E8} et centralit\u{E8}",vertex.frame.color=heat.colors(10)[bet.col], vertex.label=NA,edge.color="grey")
+
+net.clusters <- spinglass.community(net.lcc)
+net.clusters
+
+V(net.lcc)$community <- net.clusters$membership
+
+#Graph community structure calculated with the spinglass algorithm
+#Number of communities: 12
+#Modularity: 0.4978827 # (..) des membrships
+# Membership vector:
+table(net.clusters$membership)
+
+plot(net.lcc, main="Communities",vertex.frame.color=
+rainbow(max(net.clusters$members))[net.clusters$membership],
+vertex.color=
+rainbow(max(net.clusters$members))[net.clusters$membership],
+vertex.label=NA, edge.color="grey")
+
+boxplot(net.degrees~net.clusters$membership, col=rainbow(max(net.clusters$members)), xlab="Cluster",ylab="Degr\u{E9}",las=2, title("Bo\u{EE}te \u{E0} moustaches des degr\u{E9}s par cluster",line=0.5))
+
+
+course.users[k,12]
+
+for (j in 1:length(levels(list.fun2$course))){
+for (k in (j+1):length(levels(list.fun2$course))){
+course.adj[j,k]=length(which((course.users[,j]==1)&(course.users[,k]==1)))
+}}
+
+head(course.adj)
+
+
+
+
+plot(density(net.between), lwd=2, main="distribution de la centralit\u{E9}",
+xlab="Centralit\u{E9}", ylab="Densit\u{E8}", col="darkred",las=2)
+
+par(mfrow=c(1,1))
+par(mar=rep(1,4))
+V(net.lcc)$size <- 2*sqrt(net.degrees)
+
+plot(net.lcc, main="Degr\u{E8} et centralit\u{E8}", vertex.label=NA,
+edge.color="grey")
+
+
+
+
+
+
+library(network)
+library(sna)
+library(XML)
+library(RCurl)
+library(sna)
+library(igraph)
+library(Hmisc)
+m<-matrix(rbinom(30,1,0.5),6)
+m<-matrix(rbinom(25,1,0.5),5)
+diag(m)<-0
+
+m
+g <- network(m)
+t=as.matrix.network(g,matrix.type="adjacency")
+as.matrix.network(g,matrix.type="incidence")
+as.matrix.network(g,matrix.type="edgelist")
+plot(g)
+
+for (i in 1 : length(unique(ind.1[,2]))) {
+var.1=ind.1[which(ind.1[,2]==i),]
+ind.2=expand.grid(var.1[,1],var.1[,1])
+for (j in 1: nrow(ind.2)) {
+forum[ind.2[j,1],ind.2[j,2]]=forum[ind.2[j,1],ind.2[j,2]]+1}
+}
+
+expand.grid(height = seq(60, 80, 5), weight = seq(100, 300, 50), sex = c("Male","Female"))
+
+
+library(sharpshootR)
+
+component.adj.matrix(course.users)
+
+graph.adjacency(t)
+
+A=c(1,1,0,0) 
+B=c(1,0,1,0) 
+C=c(1,0,1,0) 
+D=c(0,1,0,1) 
+E=c(0,0,1,1) 
+bm=matrix(c(A,B,C,D,E),nrow=5,byrow=TRUE) 
+dimnames(bm)=list(c("A","B","C","D","E"),c("Group1","Group2","Group3","Group4"))
+bm
+
+
+
+# Analyse de survie
+
+coxph(Surv(videos.deciles, statut.surv.vid) ~ gender+period.age+ )
+
+
+names(list.fun2.certif)
+
+list.fun2.certif$period.ch=as.factor(as.numeric(list.fun2.certif$period)) # On cr?e une nouvelle variable qui permet de mettre un num?ro par p?riode (comme sur les cohortes)
+#summary(list.fun2.certif$period)
+#summary(list.fun2.certif$period.ch)      # On v?rifie que les classes sont bien ordonn?es
+#summary(as.numeric(list.fun2.certif$period.ch))
+#summary(as.numeric(list.fun2.certif$period))
+
+list.fun2.certif$fidelity=as.numeric(list.fun2.certif$period.ch)-list.fun2.certif$cohort  # Une variable qui prend pour chaque inscription l'anciennet? du type qui vient de s'inscrire. 
+#On pourrait ?tre plus pr?cis en faisant date ? date, mais en premi?re approche c'est correct 
+summary(list.fun2.certif$fidelity)
+
+with(list.fun2.certif, lm(fidelity~gender+education+cohort)) # On regarde comment la fid?lit? est li?e ? des variables comme la cohorte, etc
+
+
+
+
+
+which(
+
+
+summary(list.moocr.certif)
+A=with(list.moocr.certif, table(education, period.age))   # Croisement education / age sur les mooceurs, et non plus sur les inscriptions
+head(A)
+
+B=NULL
+for (i in 1:nrow(A)) {B=rbind(B, A[i,]/margin.table(A,1)[i]*100) }
+rownames(B)=rownames(A)
+B
+
+
+#############  Effet date d'inscription sur la probabilit? de terminer le cours. 
+
+head(list.fun2)
+
+head(order(as.numeric(list.fun2$course), list.fun2$enrollment.time2))
+
+list.fun.ord=list.fun2[order(as.numeric(list.fun2$course), list.fun2$enrollment.time2),] 
+head(list.fun.ord, 20)
+
+
+# On cr?e un code qui par rapport ? un MOOC donn?, donne la p?riode d'inscription ? ce MOOC. On divise en un nombre de p?riode d'inscriptions donn?es. Par exemple, 20. 
+
+summary(fun.data)
+
+list.fun.ord=merge(list.fun.ord, fun.data[c("code.cours", "Begin")], by.x="course", by.y="code.cours")
+head(list.fun.ord)
+list.fun.ord$Begin2=as.Date(list.fun.ord$Begin, "%d/%m/%Y")
+list.fun.ord$Date2Begin= as.numeric( list.fun.ord$Begin2-as.Date(list.fun.ord$enrollment.time2.x))
+list.fun.ord[which(list.fun.ord$Date2Begin<(-100)),]$Date2Begin=NA # Quand ils s'inscrivent très tard, c'est suspect
+
+summary(as.numeric(list.fun.ord$Date2Begin))
+
+list.fun.ord$Period2Begin=cut(as.numeric(list.fun.ord$Date2Begin), breaks=c(-120,-60,-30,-14,-7,0,7,14,30,60,120,240))
+
+list.fun2=list.fun.ord
+
+A=table(cut(as.numeric(list.fun.ord$Date2Begin), breaks=c(-120,-60,-30,-14,-7,0,7,14,30,60,120,240) ))
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+A=with(list.fun.ord, table(course,Period2Begin)) 
+
+# On a bien fait attention ? ne prendre que les MOOC qui ont d?livr? un certificat avec list.fun2.certif
+mod=with(list.fun.ord, glm(certif.bin~as.factor(Period2Begin), family="binomial")) # On v?rifie si c'est statistiquement significatif
+anova(mod)
+summary(mod)
+A=exp(coef(mod))
+
+a=with(list.fun.ord, aggregate(certif.bin*100, by=list(Category=Period2Begin), FUN=mean, na.rm=T))
+b=with(list.fun.ord, aggregate(certif.bin*100/2, by=list(Category=Period2Begin), FUN=sd, na.rm=T))
+plot(a)
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+list.fun.ord$order.insc=rep(NA, nrow(list.fun.ord))
+
+
+head(list.fun.ord$Begin2)
+
+for (i in 1:length(levels(list.fun.ord$course))) {
+int=list.fun.ord[which(list.fun.ord$course==levels(list.fun.ord$course)[i]),]   # Je s?lectionne les cours les uns apr?s les autres
+mini=min(int$enrollment.time2)
+maxi=max(int$enrollment.time2)
+esp=(maxi-mini)/20
+list.fun.ord[which(list.fun.ord$course==levels(list.fun.ord$course)[i]),]$order.insc=cut(int$enrollment.time2, seq(mini, maxi, esp)) }
+table(list.fun.ord$course, as.factor((list.fun.ord$order.insc)))
+
+
+a=with(list.fun.ord, aggregate(certif.bin*100, by=list(Category=order.insc), FUN=mean, na.rm=T))
+b=with(list.fun.ord, aggregate(certif.bin*100/2, by=list(Category=order.insc), FUN=sd, na.rm=T))
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+mod=with(list.fun.ord, glm(certif.bin~as.factor(order.insc), family="binomial")) # On v?rifie si c'est statistiquement significatif
+anova(mod)
+summary(mod)
+
+
+mod=with(list.fun.ord, lm(order.insc~period.age)) # On v?rifie si c'est statistiquement significatif
+anova(mod)
+summary(mod)
+
+a=with(list.fun.ord, aggregate(order.insc, by=list(Category=period.age), FUN=mean, na.rm=T))    # Mais pourquoi les jeunes s'inscrivent plus sur la fin ?
+plot(a)
+
+
+course.lnch=with(list.fun2, aggregate(enrollment.time2, by=list(Category=course), FUN=min, na.rm=T))
+names(course.lnch)=c("course", "regist.date") 
+tab=table(list.fun2$course)
+tab=as.data.frame(tab)
+names(tab)=c("course", "size") 
+
+tab.2=merge(course.lnch,tab, by="course") 
+
+tab.2$period=cut(tab.2$regist.date  ,as.Date(seq(start.date,end.date,esp)))
+
+a=with(tab.2, aggregate(size,   by=list(Category=period), FUN=mean, na.rm=T))     # !!!!!!!!!!!!!!!!!!!!! Chute du nombre d'inscriptions au fil des it?rations
+a2=with(tab.2, aggregate(size/2,   by=list(Category=period), FUN=sd, na.rm=T))     # !!!!!!!!!!!!!!!!!!!!! Chute du nombre d'inscriptions au fil des it?rations
+
+mod=with(tab.2, lm(size~period))                         # C'est bien statistiquement signicatif
+anova(mod)
+summary(mod)
+
+tab.3=merge(tab.2, tab.fin, by="period")
+head(tab.3)
+
+mod=with(tab.3, lm(size.x~N.lnch.course+period))                         # C'est bien statistiquement signicatif. Ce n'est pas li? au nombre de cours lanc?s sur une p?riode
+anova(mod)
+summary(mod)
+
+
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(a2, "clipboard", sep="\t", row.names=T)
+
+b=as.data.frame(with(tab.2, table(period)))
+
+tab.fin=cbind(a,b[which(b$Freq>0),])
+names(tab.fin)=c("lnch.date", "size", "period", "N.lnch.course") 
+tab.fin
+with(tab.fin, plot(N.lnch.course, size))
+with(tab.fin, plot(period, size))
+
+
+course.comp.rate=with(list.fun2.certif, table(course, certificate))   #  Statistiques du nombre de certificat par cours
+stats.c.rate=course.comp.rate[,3]/(course.comp.rate[,2]+course.comp.rate[,3])*100  #  Statistiques du nombre de certificat par cours, en %
+stats.c.rate=as.data.frame(stats.c.rate)
+stats.c.rate$course=rownames(stats.c.rate)
+
+tab.4=merge(tab.3, stats.c.rate, by="course")
+
+mod=with(tab.4, lm(stats.c.rate~period+N.lnch.course+size.x))                                # Pas vraiment de tendance  taux de certification / p?riode
+anova(mod)
+summary(mod)  
+
+A=with(tab.4, aggregate(stats.c.rate, by=list(Category=period), FUN=mean, na.rm=T))
+plot(A)
+
+#PQSPCS   On s'int?resse aux inscriptions multiples en un temps record
+
+
+matrice des cours. 
+
+course.course=as.data.frame(matrix, 0, length(levels(list.fun2$course)), length(levels(list.fun2$course)))
+
+abs(apply(combn(1:4,2), 2, diff))
+
+course.users.date=as.data.frame(matrix(data=NA, nrow(mooceurs), length(levels(list.fun2$course))))   # Transformer pour mettre les dates
+
+for (i in 1:length(levels(list.fun2$course))) {                   # On prend les cours un par un
+course.no=levels(list.fun2$course)[i]                             # On choisit le cours
+list.registr.2.course=list.fun2[which(list.fun2$course==course.no),]$user    # On regarde qui sont tous les inscrits ? ce cours
+list.dates=list.fun2[which(list.fun2$course==course.no),]$enrollment.time2
+list.int=cbind(list.registr.2.course,as.factor(list.dates)) 
+ list.int[,2]=levels(as.factor(list.dates))[list.int[,2]]
+lines.match=match(list.registr.2.course, as.numeric(as.character(mooceurs[,1])))  # On essaie de retrouver la ligne des dits inscrits dans la grande matrice cours x individus
+lines.match[which(is.na(lines.match)==T)]=1    # Les NA le g?nent , et quand on le supprime ?a cr?e un d?calage avec list.int
+course.users.date[lines.match,i]=list.int[,2] 
+}
+
+course.users.date=course.users.date[-1,] # Bon, c'est pas propre, mais il y a beaucoup d'inscrits, donc on s'en fout
+course.users.date2=course.users.date
+course.users.date2[course.users.date2==0]=NA
+head(course.users.date2)
+
+course.users.date2=t(apply(course.users.date,1,sort))
+
+course.users.date2=t(apply(course.users.date[1:10,],1,sort))
+
+
+
+
+head(course.users.date)
+
+library(quantmod)
+i=1
+
+course.users.date=as.data.frame(matrix(data=NA, nrow(mooceurs), length(levels(list.fun2$course))))   # Transformer pour mettre les dates
+
+for (i in 1: nrow(course.users.date)) {
+user1=mooceurs[i,]
+vect=as.Date(list.fun2$enrollment.time2[which(list.fun2$user==user1)])
+if(length(vect)==1) next
+dates.diff=as.Date(as.vector(vect) ) -as.Date(Lag(as.vector(vect),1))
+dates.diff=dates.diff[-1]
+course.users.date[i,1:length(dates.diff)]=dates.diff }
+
+course.users.date[1,]
+
+course.users.date=course.users.date[-1,]
+
+
+# Petit test pour voir si ils ont anonymis?s tout au point de rendre la chose inutilisable
+
+test=read.csv("testR.csv", h=T,sep=";")
+test2=read.csv("testR2.csv", h=T,sep=";")
+summary(test2)
+
+length(unique(test$User.ID))
+int=intersect(test$User.ID, list.fun2$user)
+int=intersect(test[,3], test2$id)
+
+head(test[,2])
+head(test2[,1])
+
+length(int)
+
+with(list.fun2, aggregate(age, by=list(Category=course), FUN=mean, na.rm=T))
+with(list.fun2.certif, aggregate(certif.bin, by=list(Category=education), FUN=mean, na.rm=T))
+
+chi=with(list.fun2[which(list.fun2.certif$education!="education"),], chisq.test(education, course))
+chi=with(list.fun2[which(list.fun2$gender!="o"),], chisq.test(gender, course))
+
+chi$residuals
+chi$expected
+
+A=with(list.fun2, table(course, education))
+A=with(list.fun2, table(course, gender))
+
+# J'ai perdu le boulot sur l'HDI
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+# JUNK
+
+summary(surveys.gform$Country)
+summary(surveys.fun$Country)
+names.col=c("Course", "Country")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+summary(surveys, Country)
+summary(surveys$Country)
+surveys$HDI=rep(NA, nrow(surveys))
+names.col=c("Course", "Diploma")
+head(countries.HDI)
+countries.HDI=read.csv("countries.HDI.csv", h=T, sep=",")
+head(countries.HDI)
+countries.HDI=read.csv("countries.HDI.csv", h=T, sep=",")
+head(countries.HDI)
+countries.HDI=read.csv("countries.HDI.csv", h=T, sep=";")
+head(countries.HDI)
+surveys$HDI=rep(NA, nrow(surveys))
+for (i in 1:nrow(surveys)) {
+A=surveys$Country[i]
+line1= which(countries.HDI$Country==A)
+B= countries.HDI[line1,]$HDI
+
+
+surveys=merge(surveys, countries.HDI, by="Country") 
+surveys
+A=with(surveys, table(HDI.y, Course))
+surveys$HDI.y=as.factor(surveys$HDI.y)
+surveys$HDI.y
+str(surveys)
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys=merge(surveys, countries.HDI, by="Country") 
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys
+summary(surveys)
+names.col=c("Course", "Country")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys=merge(surveys, countries.HDI, by="Country") 
+surveys$HDI.y=as.factor(surveys$HDI.y)
+summary(surveys)
+surveys$HDI=as.factor(surveys$HDI)
+A=with(surveys, table(HDI, Course))
+
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+chi=with(surveys, chisq.test(HDI, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+names.col=c("Course", "Incit.motiv")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+levels(surveys$Diploma)
+levels(surveys$Incit.motiv)
+levels(surveys.fun$Incit.motiv)
+levels(surveys.gform$Incit.motiv)
+surveys[which(surveys$Incit.motiv=="Je me suis inscrit ? ma propre initiative, personne ne m'y a incit?"),]="Je me suis inscrit ? ma propre initiative, personne ne m?y a incit?"
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+lev1=levels(surveys.gform$Incit.motiv)[1]
+lev1
+levels(surveys.gform$Incit.motiv)
+levels(surveys$Incit.motiv)
+lev2=levels(surveys.gform$Incit.motiv)[2]
+lev3=levels(surveys.gform$Incit.motiv)[3]
+lev4=levels(surveys.gform$Incit.motiv)[4]
+lev5=levels(surveys.gform$Incit.motiv)[5]
+lev6=levels(surveys.gform$Incit.motiv)[6]
+lev7=levels(surveys.gform$Incit.motiv)[7]
+surveys[which(surveys$Incit.motiv==lev2,]=lev5
+surveys[which(surveys$Incit.motiv==lev2),]=lev5
+surveys[which(surveys$Incit.motiv==lev3),]=lev7
+surveys[which(surveys$Incit.motiv==lev4),]=lev6
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+levels(surveys$Incit.motiv)
+lev2=levels(surveys.gform$Incit.motiv)[2]
+lev3=levels(surveys.gform$Incit.motiv)[3]
+lev4=levels(surveys.gform$Incit.motiv)[4]
+lev5=levels(surveys.gform$Incit.motiv)[5]
+lev6=levels(surveys.gform$Incit.motiv)[6]
+lev7=levels(surveys.gform$Incit.motiv)[7]
+surveys[which(surveys$Incit.motiv==lev2),]$Incit.motiv=lev5
+surveys[which(surveys$Incit.motiv==lev3),]$Incit.motiv=lev7
+surveys[which(surveys$Incit.motiv==lev4),]$Incit.motiv=lev6
+surveys$Incit.motiv=factor(surveys$Incit.motiv)
+levels(surveys$Incit.motiv)
+surveys[surveys == ""] <- NA
+surveys$Incit.motiv=factor(surveys$Incit.motiv)
+levels(surveys$Incit.motiv)
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+A=with(surveys, table(Incit.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+summary(surveys.gform$Incit.motiv)
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+A=with(surveys, table(Incit.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+A=with(surveys.gform, table(Incit.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+A=with(surveys.fun, table(Incit.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+# Analyse des caract?ristiques des cours # Genre, ?ducation, etc
+
+chi=with(list.fun2[which(list.fun2$gender!="o"),], chisq.test(gender, course))
+chi
+chi$residuals
+A=with(list.fun2, table(course, gender))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+A=with(list.fun2, table(gender, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+course.data=read.csv(FUN.course.data.csv, h=T, sep=";")
+getwd()
+course.data=read.csv("FUN.course.data.csv", h=T, sep=";")
+head(course.data)
+A=with(list.fun2, table(course, education))
+A=with(list.fun2, table(gender, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+B2=as.data.frame(cbind(rownames(B),t(B)))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+B2=as.data.frame(cbind(rownames(B),t(B)))
+rownames(B)
+B2=as.data.frame(cbind(colnames(B),t(B)))
+head(B2)
+names(B2)[1]
+names(B2)[1]="code.cours"
+
+B3=merge(course.data, B2, by="code.cours")
+B3
+head(B3)
+head(B3["Titre", "f","m"])
+head(B3[c("Titre", "f","m")])
+write.table(C, "clipboard", sep="\t", row.names=T)
+C=(B3[c("Titre", "f","m")])
+write.table(C, "clipboard", sep="\t", row.names=T)
+A=with(list.fun2, table(course, education))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+B2=as.data.frame(cbind(colnames(B),t(B)))
+names(B2)[1]="code.cours"
+B3=merge(course.data, B2, by="code.cours")
+head(B3)
+A=with(list.fun2, table(education, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+B2=as.data.frame(cbind(colnames(B),t(B)))
+names(B2)[1]="code.cours"
+B3=merge(course.data, B2, by="code.cours")
+head(B3)
+C=(B3[c("Titre", "none","el","jhs","hs","a" ,"b", "m", "p")])
+
+
+write.table(C, "clipboard-16329", sep="\t", row.names=T)
+names(list.fun)
+A=with(list.fun2, table(country, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+names(list.fun)
+
+
+names(countries.HDI)[1]="country"
+
+list.hdi=merge(list.fun2[c("course", "country"),], countries.HDI, by="country")
+head(list.hdi)
+head(list.fun2[c("course", "country"),])
+head(list.fun2[c("course", "country"])
+head(list.fun2[c("course", "country")])
+head(list.fun2)
+list.hdi=merge(list.fun2[c("course", "country")], countries.HDI, by="country")
+head(list.hdi)
+A=with(list.hdi, table(HDI, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+B2=as.data.frame(cbind(colnames(B),t(B)))
+names(B2)[1]="code.cours"
+B3=merge(course.data, B2, by="code.cours")
+head(B3)
+C=(B3[c("Titre", "B", "M", "H", "TH")]) # D?veloppement des pays
+write.table(C, "clipboard-16329", sep="\t", row.names=T)
+summary(list.fun2$country)
+levels(list.fun2$country)
+write.table(levels(list.fun2$country), "clipboard-16329", sep="\t", row.names=T)
+countries.HDI=read.csv("countries.HDI.csv", h=T, sep=";")
+names(countries.HDI)
+names(countries.HDI)[5]="country"
+list.hdi=merge(list.fun2[c("course", "country")], countries.HDI, by="country")
+head(list.hdi)
+A=with(list.hdi, table(HDI, course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+B2=as.data.frame(cbind(colnames(B),t(B)))
+names(B2)[1]="code.cours"
+B3=merge(course.data, B2, by="code.cours")
+head(B3)
+C=(B3[c("Titre", "B", "M", "H", "TH")]) # D?veloppement des pays
+write.table(C, "clipboard-16329", sep="\t", row.names=T)
+C=(B3[c("Titre", "B", "M", "H", "TH")]) # D?veloppement des pays
+head(C)
+write.table(C, "clipboard-16329", sep="\t", row.names=T)
+A=with(list.fun2, table(HDI, education))
+list.hdi=merge(list.fun2[c("course", "education", "country")], countries.HDI, by="country")
+
+list.hdi[list.hdi == ""] <- NA
+list.hdi$HDI=factor(list.hdi$HDI)
+
+
+
+# Non il faut pas faire ?a
+list.moocr.hdi=merge(list.moocr, countries.HDI, by="country")
+list.moocr.hdi[list.moocr.hdi == ""] <- NA
+list.moocr.hdi$HDI=factor(list.moocr.hdi$HDI)
+list.moocr.hdi$education=factor(list.moocr.hdi$education)
+
+A=with(list.moocr.hdi, table(education, HDI))
+A
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(list.moocr.hdi, chisq.test(HDI, education))
+a=t(chi$residuals)
+a
+       
+       write.table(a, "clipboard", sep="\t", row.names=T)
