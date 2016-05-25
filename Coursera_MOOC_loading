@@ -1,0 +1,922 @@
+####################################################################################
+#################### COURSERA 0. MOOC SPECIFICITY ##################################
+####################################################################################
+
+### libraries to be installed #####
+# install.packages("reshape")
+# install.packages("RMySQL")
+# install.packages("plyr")
+# install.packages("foreign")
+# install.packages("nnet")
+# install.packages("ggplot2")
+# install.packages("reshape2")
+# install.packages("chron")
+# install.packages("TraMineR")
+# install.packages("xtable")
+
+#### Set working file ####
+#pc Mattias
+path<-"C:/Users/Mattias/Google Drive/STEF - Hubble perso/Appel à papier/Papier MC, MM, JB/data/R analysis/Coursera/"
+path<-"C:/Users/Mattias MANO/Google Drive/STEF - Hubble perso/Appel à papier/Papier MC, MM, JB/R analysis/Coursera/"
+#mac Mattias
+path<-"/Volumes/Macintosh HD/Users/Matt/Google Drive/STEF/Hubble perso/Appel à papier/Papier MC, MM, JB/data/R analysis/Coursera/"
+setwd(path)
+
+
+path="C:/Users/Matthieu/Google Drive/Coursera"
+setwd(path)
+
+### functions used in the code ####
+isEmpty <- function(x) {
+  return(identical(x, numeric(0)))
+}
+
+addNAstr <- function (x, ifany = FALSE, as.string = TRUE)
+{
+  if (!is.factor(x)) 
+    x <- factor(x)
+  if (ifany & !any(is.na(x))) 
+    return(x)
+  ll <- levels(x)
+  if (!any(is.na(ll))) 
+    ll <- c(ll, NA)
+  x <- factor(x, levels = ll, exclude = NULL)
+  if (is.character(as.string)) {
+    s <- as.string
+    as.string <- TRUE
+  } else
+    s <- "Inactive"
+  if(as.string) levels(x)[is.na(levels(x))] <- s
+  x
+}
+
+paste2 <- function(...,sep=", ") {
+  L <- list(...)
+  L <- lapply(L,function(x) {x[is.na(x)] <- ""; x})
+  gsub(paste0("(^",sep,"|",sep,"$)"),"",
+       gsub(paste0(sep,sep),sep,
+            do.call(paste,c(L,list(sep=sep)))))
+}
+
+paste3 <- function(...,sep=", ") {
+  L <- list(...)
+  L <- lapply(L,function(x) {x[is.na(x)] <- ""; x})
+  ret <-gsub(paste0("(^",sep,"|",sep,"$)"),"",
+             gsub(paste0(sep,sep),sep,
+                  do.call(paste,c(L,list(sep=sep)))))
+  is.na(ret) <- ret==""
+  ret
+}
+
+round2 = function(x, n) {
+  posneg = sign(x)
+  z = abs(x)*10^n
+  z = z + 0.5
+  z = trunc(z)
+  z = z/10^n
+  z*posneg
+}
+
+# donne le lundi précédant une date
+# as.Date(cut(as.Date(), "weeks"))
+
+
+
+
+
+
+########################################################################################################################################################################
+########################################################################################################################################################################
+########################################################################################################################################################################
+############################# MOOC SPECIFICITY : mise en place des spécificités d'un mooc ##########################################################################################################################
+########################################################################################################################################################################
+########################################################################################################################################################################
+########################################################################################################################################################################
+########################################################################################################################################################################
+
+library("RMySQL")
+
+# liste des mooc jusqu'à présent : algoprog_001, algoprog_002, businessandphilo_001, businessandphilo_002, functionalanalysis_001, functionalanalysis_002, artificialvision_001
+
+########################################################################################################################################################################
+############################# ALGORITHME PROG VERSION 1 ############################################################################################################################
+########################################################################################################################################################################
+
+#name_db<-c("algoprog_001_anonymized_forum","algoprog_001_anonymized_general","algoprog_001_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="algoprog_001_anonymized_general", host="138.231.83.121")
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="algoprog_001_anonymized_general", host="")
+
+# names_tables_algoprog_001<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="algoprog_001_anonymized_forum", host="138.231.83.121")
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/algoprog_001_demographic_responce.csv")
+
+
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+sections<-sections[order(sections$display_order),]
+sections$title2<-c("1.Tableaux","2.Structures\nlinéaires","3.Arbres","4.Tris","5.Prog.\nDynamique","6.Exploration","7.Connexions\ngraphes","8.Distances\ngraphes","Demonstration\nSection","Course\nPages","Technical\nhelp","Imported\nAnnouncements")
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+items_sections_order$display_order2<-items_sections_order$display_order
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order,lecture_metadata$open_day)
+section_1<-c(1,9) # regroup sections opened before opening
+section_3<-c(3,11) # regroup  sections opened in the same time
+items_sections_order$display_order_bis<-items_sections_order$display_order
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_1]<-1
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_3]<-3
+lecture_metadata$display_order_bis<-lecture_metadata$display_order
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_1]<-1
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_3]<-3
+
+
+########## creation of date for the weeks of MOOC ###
+
+#to be find -> table(users$inscription_day)
+# as.Date(cut(as.Date(min()), "weeks"))
+open_inscription_date<-"2013-02-18" 
+b_date<-as.Date("2013-10-28") #1st day, 1st week 
+b_week1<-b_date #1er
+b_week2<-as.Date("2013-11-04") #2eme 
+b_week3<-as.Date("2013-11-11")
+b_week4<-as.Date("2013-11-18")
+b_week5<-as.Date("2013-11-25")
+b_week6<-as.Date("2013-12-02")
+b_week7<-as.Date("2013-12-09")
+b_week8<-as.Date("2013-12-16")
+b_week9<-as.Date("2013-12-23")
+e_date<-as.Date("2013-12-29") #dernier j
+#to be find, last week -> max(students$inscription_day)
+close_inscription_date<-as.Date(cut(as.Date("2014-04-13"), "weeks"))
+#to be find, last week -> max(students$last_access_time_day)
+last_action_date<-as.Date(cut(as.Date("2014-04-12"), "weeks"))
+
+# matrix merging the dates
+week_course<-matrix(NA,2,9) #course in 9 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6),as.character(b_week7),as.character(b_week8),as.character(b_week9))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8","week 9")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6","Semaine 7","Semaine 8","Semaine 9")
+
+
+mooc<-"algoprog_001"
+
+save.image("algoprog_001_initial.RData")
+load("algoprog_001_initial.RData")
+
+
+########################################################################################################################################################################
+############################# ALGORITHME PROG VERSION 2 ############################################################################################################################
+########################################################################################################################################################################
+#name_db<-c("algoprog_002_anonymized_forum","algoprog_002_anonymized_general","algoprog_002_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="algoprog_002_anonymized_general", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="algoprog_002_anonymized_general", host="138.231.83.121")
+
+names_tables_algoprog_002<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="algoprog_002_anonymized_forum", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="algoprog_002_anonymized_forum", host="138.231.83.121")
+
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/algoprog_002_demographic_responce.csv")
+
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+sections<-sections[order(sections$display_order),]
+sections$title2<-c("0.Installation","1.Tableaux","2.Structures\nlinéaires","3.Arbres","4.Tris","5.Prog.\ndynamique","6.Exploration","7.Connexions\ngraphes","8.Distances\ngraphes","Demonstration\nsection","Course\npages","Technical\nhelp","Imported\nannouncements")
+
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+items_sections_order$display_order2<-items_sections_order$display_order
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order,lecture_metadata$open_day)
+# regroup first sections opened, cf sections$display_order
+section_1<-c(1,11,12) 
+items_sections_order$display_order_bis<-items_sections_order$display_order
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_1]<-1
+lecture_metadata$display_order_bis<-lecture_metadata$display_order
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_1]<-1
+
+########## creation of date for the weeks of MOOC ###
+#to be find -> table(users$inscription_day)
+open_inscription_date<-"2014-06-30"
+b_date<-as.Date("2014-10-27") #1st day, 1st week 
+b_week1<-b_date
+b_week2<-as.Date("2014-11-03") 
+#décallage dans ouverture, on passe du lundi au samedi
+b_week3<-as.Date("2014-11-08")
+b_week4<-as.Date("2014-11-15")
+b_week5<-as.Date("2014-11-22")
+b_week6<-as.Date("2014-11-29")
+b_week7<-as.Date("2014-12-06")
+b_week8<-as.Date("2014-12-13")
+b_week9<-as.Date("2014-12-20") #samedi
+e_date<-as.Date("2014-12-28") #dimanche d'après
+#to be find -> max(studentes$last_access_time_day)
+close_inscription_date<-as.Date(cut(as.Date("2015-02-22"), "weeks"))
+
+# matrix merging the dates
+week_course<-matrix(NA,2,9) #course in 9 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6),as.character(b_week7),as.character(b_week8),as.character(b_week9))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8","week 9")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6","Semaine 7","Semaine 8","Semaine 9")
+
+mooc<-"algoprog_002"
+
+save.image("algoprog_002_initial.RData")
+load("algoprog_002_initial.RData")
+
+
+########################################################################################################################################################################
+############################# BUSINESS AND PHILO VERSION 1 #############################################################################################################
+########################################################################################################################################################################
+
+#name_db<-c("businessandphilo_001_anonymized_forum","businessandphilo_001_anonymized_general","businessandphilo_001_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="businessandphilo_001_anonymized_general", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="businessandphilo_001_anonymized_general", host="138.231.83.121")
+
+
+# names_tables_businessandphilo_001<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="businessandphilo_001_anonymized_forum", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="businessandphilo_001_anonymized_forum", host="138.231.83.121")
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/businessandphilo_001_demographic_responce.csv")
+
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+sections<-sections[order(sections$display_order),]
+sections$title2<-sections$title #ok here
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+unique(items_sections_order$display_order)
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+items_sections_order$display_order2<-items_sections_order$display_order
+items_sections_order$display_order2[items_sections_order$display_order==10000]<-0
+items_sections_order$display_order2[items_sections_order$display_order==10100]<-1
+items_sections_order$display_order2[items_sections_order$display_order==10200]<-2
+items_sections_order$display_order2[items_sections_order$display_order==10300]<-3
+items_sections_order$display_order2[items_sections_order$display_order==10400]<-4
+items_sections_order$display_order2[items_sections_order$display_order==10500]<-5
+items_sections_order$display_order2[items_sections_order$display_order==10600]<-6
+items_sections_order$display_order2[items_sections_order$display_order==1000000]<-7
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order,lecture_metadata$open_day)
+# regroup first sections opened, cf sections$display_order
+section_1<-c(1)
+# display_order_bis: regroupe les sections ouvertes en même tmps
+items_sections_order$display_order_bis<-items_sections_order$display_order2
+items_sections_order$display_order_bis[items_sections_order$display_order2 %in% section_1]<-1
+lecture_metadata$display_order_bis<-lecture_metadata$display_order2
+lecture_metadata$display_order_bis[lecture_metadata$display_order2 %in% section_1]<-1
+
+
+########## creation of date for the weeks of MOOC ###
+#to be find -> table(users$inscription_day)
+open_inscription_date<-"2013-10-08"
+b_date<-as.Date("2014-04-14") #1st day, 1st week lundi
+b_week1<-b_date #1er
+b_week2<-as.Date("2014-04-21") #2eme 
+b_week3<-as.Date("2014-04-28")
+b_week4<-as.Date(" 2014-05-05")
+b_week5<-as.Date("2014-05-12")
+b_week6<-as.Date("2014-05-19")
+e_date<-as.Date("2014-05-25") #last day, last week course
+#to be find -> max(studentes$last_access_time_day)
+close_inscription_date<-as.Date("2014-07-10")
+
+# matrix merging the dates
+week_course<-matrix(NA,2,6) #course in 9 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6")
+
+mooc<-"businessandphilo_001"
+
+save.image("businessandphilo_001_initial.RData")
+load("businessandphilo_001_initial.RData")
+
+
+########################################################################################################################################################################
+############################# BUSINESS AND PHILO VERSION 2 ############################################################################################################################
+########################################################################################################################################################################
+#name_db<-c("businessandphilo_002_anonymized_forum","businessandphilo_002_anonymized_general","businessandphilo_002_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="businessandphilo_002_anonymized_general", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="businessandphilo_002_anonymized_general", host="138.231.83.121")
+
+# names_tables_businessandphilo_002<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="businessandphilo_002_anonymized_forum", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="businessandphilo_002_anonymized_forum", host="138.231.83.121")
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/businessandphilo_002_demographic_responce.csv")
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+sections<-sections[order(sections$display_order),]
+sections$title2<-sections$title #ok here
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+items_sections_order$display_order2<-items_sections_order$display_order
+items_sections_order$display_order2[items_sections_order$display_order==10000]<-0
+items_sections_order$display_order2[items_sections_order$display_order==10100]<-1
+items_sections_order$display_order2[items_sections_order$display_order==10200]<-2
+items_sections_order$display_order2[items_sections_order$display_order==10300]<-3
+items_sections_order$display_order2[items_sections_order$display_order==10400]<-4
+items_sections_order$display_order2[items_sections_order$display_order==10500]<-5
+items_sections_order$display_order2[items_sections_order$display_order==10600]<-6
+items_sections_order$display_order2[items_sections_order$display_order==1000000]<-7
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order,lecture_metadata$open_day)
+## regroup first sections opened, cf sections$display_order
+section_1<-c(1) 
+items_sections_order$display_order_bis<-items_sections_order$display_order
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_1]<-1
+lecture_metadata$display_order_bis<-lecture_metadata$display_order
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_1]<-1
+
+open_inscription_date<-"2014-07-24" #to be find  -> table(users$inscription_day)
+b_date<-as.Date("2014-11-04") #1st day, 1st week  
+b_week1<-b_date #1er mardi
+b_week2<-as.Date("2014-11-11") 
+b_week3<-as.Date("2014-11-18")
+b_week4<-as.Date(" 2014-11-25")
+b_week5<-as.Date("2014-12-02")
+b_week6<-as.Date("2014-12-09")
+e_date<-as.Date("2014-12-16") #last day, last week course, last week course => lundi
+#to be find -> max(studentes$last_access_time_day)
+close_inscription_date<-as.Date("2014-12-16") 
+
+# matrix merging the dates
+week_course<-matrix(NA,2,6) #course in 9 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6")
+
+mooc<-"businessandphilo_002"
+
+save.image("businessandphilo_002_initial.RData")
+load("businessandphilo_002_initial.RData")
+
+
+
+########################################################################################################################################################################
+############################# FUNCTIONAL ANALYSIS 1 ############################################################################################################################
+########################################################################################################################################################################
+#name_db<-c("functionalanalysis_001_anonymized_forum","functionalanalysis_001_anonymized_general","functionalanalysis_001_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="functionalanalysis_001_anonymized_general", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="functionalanalysis_001_anonymized_general", host="138.231.83.121")
+
+# names_tables_functionalanalysis_001<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="functionalanalysis_001_anonymized_forum", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="functionalanalysis_001_anonymized_forum", host="138.231.83.121")
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/functionalanalysis_001_demographic_responce.csv")
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+sections<-sections[order(sections$display_order),]
+sections<-unique(sections)
+sections$title2<-c("Course\nPages","1.Topology","2.Metric &\nNormed spaces","3.Banach spaces","4.Hilbert spaces","5.Lax-Milgram\nLemma","6.Lp spaces'\nProperties","7.Sobolev spaces","8.Application","Final\nExam","Imported\nAnnoucements")
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+items_sections_order$display_order2<-items_sections_order$display_order
+table(items_sections_order$display_order)
+items_sections_order$display_order2<-items_sections_order$display_order
+items_sections_order$display_order2[items_sections_order$display_order==10000]<-0
+items_sections_order$display_order2[items_sections_order$display_order==10100]<-1
+items_sections_order$display_order2[items_sections_order$display_order==10200]<-2
+items_sections_order$display_order2[items_sections_order$display_order==10300]<-3
+items_sections_order$display_order2[items_sections_order$display_order==10400]<-4
+items_sections_order$display_order2[items_sections_order$display_order==10500]<-5
+items_sections_order$display_order2[items_sections_order$display_order==10600]<-6
+items_sections_order$display_order2[items_sections_order$display_order==10700]<-7
+items_sections_order$display_order2[items_sections_order$display_order==10800]<-8
+items_sections_order$display_order2[items_sections_order$display_order==10900]<-9
+items_sections_order$display_order2[items_sections_order$display_order==1000000]<-10
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order,lecture_metadata$open_day)
+# IL NOUS FAUT LES DATES, mélange de 2 versions on a l'impression
+#2 semaines d'écart à chaque fois, ajout d'une vidéo de la semaine d'avant le lendemain ou le jour même de la section suivante
+# regroup first sections opened, cf sections$display_order
+section_1<-c(1)
+items_sections_order$display_order_bis<-items_sections_order$display_order
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_1]<-1
+lecture_metadata$display_order_bis<-lecture_metadata$display_order
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_1]<-1
+
+
+open_inscription_date<-"2013-10-08 " #to be find  -> table(users$inscription_day)
+b_date<-as.Date("2014-02-02") #1st day, 1st week  
+b_week1<-b_date #1er 
+b_week2<-as.Date("2014-02-10")
+b_week3<-as.Date("2014-02-17")
+b_week4<-as.Date("2014-02-24")
+b_week5<-as.Date("2014-03-03")
+b_week6<-as.Date("2014-03-10")
+b_week7<-as.Date("2014-03-17")
+b_week8<-as.Date("2014-04-01")
+e_date<-as.Date("2014-04-07") #last day, last week course
+#to be find -> max(studentes$last_access_time_day)
+close_inscription_date<-as.Date("2014-04-14")
+
+# matrix merging the dates
+week_course<-matrix(NA,2,8) #course in 8 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6),as.character(b_week7),as.character(b_week8))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6","Semaine 7","Semaine 8")
+
+mooc<-"functionalanalysis_001"
+
+save.image("functionalanalysis_001_initial.RData")
+load("functionalanalysis_001_initial.RData")
+
+
+
+########################################################################################################################################################################
+############################# FUNCTIONAL ANALYSIS 2 ############################################################################################################################
+########################################################################################################################################################################
+
+#name_db<-c("functionalanalysis_002_anonymized_forum","functionalanalysis_002_anonymized_general","functionalanalysis_002_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="functionalanalysis_002_anonymized_general", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="functionalanalysis_002_anonymized_general", host="138.231.83.121")
+
+# names_tables_functionalanalysis_002<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="functionalanalysis_002_anonymized_forum", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="functionalanalysis_002_anonymized_forum", host="138.231.83.121")
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/functionalanalysis_002_demographic_responce.csv")
+
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+#titre de sections plus lisible pour les graphiques
+sections<-sections[order(sections$display_order),]
+sections<-unique(sections)
+sections$title2<-c("Course\nPages","1.Topology","2.Metric &\nNormed spaces","3.Banach spaces","4.Hilbert spaces","5.Lax-Milgram\nLemma","6.Lp spaces'\nProperties","7.Sobolev spaces","8.Application","Final\nExam","Imported\nAnnoucements")
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+table(items_sections_order$display_order)
+items_sections_order$display_order2<-items_sections_order$display_order
+items_sections_order$display_order2[items_sections_order$display_order==10000]<-0
+items_sections_order$display_order2[items_sections_order$display_order==10100]<-1
+items_sections_order$display_order2[items_sections_order$display_order==10200]<-2
+items_sections_order$display_order2[items_sections_order$display_order==10300]<-3
+items_sections_order$display_order2[items_sections_order$display_order==10400]<-4
+items_sections_order$display_order2[items_sections_order$display_order==10500]<-5
+items_sections_order$display_order2[items_sections_order$display_order==10600]<-6
+items_sections_order$display_order2[items_sections_order$display_order==10700]<-7
+items_sections_order$display_order2[items_sections_order$display_order==10800]<-8
+items_sections_order$display_order2[items_sections_order$display_order==10900]<-9
+items_sections_order$display_order2[items_sections_order$display_order==1000000]<-10
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order[lecture_metadata$open_day>as.Date("2014-01-01")],lecture_metadata$open_day[lecture_metadata$open_day>as.Date("2014-01-01")])
+#2 semaines d'écart à chaque fois, ajout d'une vidéo de la semaine d'avant le lendemain ou le jour même de la section suivante
+# regroup first sections opened, cf sections$display_order
+section_1<-c(1)
+items_sections_order$display_order_bis<-items_sections_order$display_order
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_1]<-1
+lecture_metadata$display_order_bis<-lecture_metadata$display_order
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_1]<-1
+
+open_inscription_date<-"2014-06-20" #to be find  -> table(users$inscription_day)
+b_date<-as.Date("2014-09-12") #1st day, 1st week  vendredi
+b_week1<-b_date #1er 
+b_week2<-as.Date("2014-09-19")
+b_week3<-as.Date("2014-09-26")
+b_week4<-as.Date("2014-10-03")
+b_week5<-as.Date("2014-10-10")
+b_week6<-as.Date("2014-10-17")
+b_week7<-as.Date("2014-10-24")
+b_week8<-as.Date("2014-10-31")
+e_date<-as.Date("2014-11-06") #last day, last week course
+#to be find -> max(students$last_access_time_day)
+close_inscription_date<-as.Date("2014-12-14") 
+
+# matrix merging the dates
+week_course<-matrix(NA,2,8) #course in 9 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6),as.character(b_week7),as.character(b_week8))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6","Semaine 7","Semaine 8")
+
+mooc<-"functionalanalysis_002"
+
+save.image("functionalanalysis_002_initial.RData")
+load("functionalanalysis_002_initial.RData")
+
+
+########################################################################################################################################################################
+############################# ARTICIFICIAL VISION 1 ############################################################################################################################
+########################################################################################################################################################################
+#name_db<-c("artificialvision_001_anonymized_forum","artificialvision_001_anonymized_general","artificialvision_001_hash_mapping")
+
+#connexion with SQL database
+
+#anonymized_general
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="artificialvision_001_anonymized_general", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="artificialvision_001_anonymized_general", host="138.231.83.121")
+
+# names_tables_artificialvision_001<-dbListTables(mychannel)
+
+# DB importation
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+# Bub => re-run from the next table
+dbListTables(mychannel)
+for (i in dbListTables(mychannel)[23:length(dbListTables(mychannel))]){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+
+
+#FORUM
+mychannel <- dbConnect(MySQL(), user="", password="", dbname="artificialvision_001_anonymized_forum", host="")
+mychannel <- dbConnect(MySQL(), user="recherche", password="stefstef", dbname="artificialvision_001_anonymized_forum", host="138.231.83.121")
+
+for (i in dbListTables(mychannel)){
+  query<-paste0("SELECT * FROM ",i,";")
+  b<-dbGetQuery(mychannel, query)
+  assign(i,b)
+}
+dbDisconnect(mychannel)
+# error but does not matter
+
+
+# scocio-demographic questionnaire
+demographic_responce <- read.csv("in/artificialvision_001_demographic_responce.csv")
+
+
+
+# OBJECT CREATION #
+# Work on sections
+# Rewrite section title for graph purpose
+sections<-sections[order(sections$display_order),]
+sections$title2<-c("1.Introduction","2.Reparameterization","3.Max flow &\nMin cut","4.Min cut\nBased inference","5.Belief\nPropagation","6.Linear\nPrograming","7.Dual\nDecomposition","8.Parameter\nLearning","Imported\nAnnoucements")
+
+# item_section: link between item (lecture, quiz, assignment) with matching section
+items_sections$type_id<-paste(items_sections$item_type,items_sections$item_id,sep="_")
+items_sections_order<-merge(items_sections,sections[,c("id","display_order","title")],by.x="section_id",by.y="id",all.x=T)
+items_sections_order<-items_sections_order[order(items_sections_order$display_order,items_sections_order$order),]
+# si les display_order ne sont pas de la forme 1,2,3,... , on les etransforme dans display_order2
+# dans tous les cas, obligations de créer display_order2 même si copie exacte de display_order
+table(items_sections_order$display_order)
+items_sections_order$display_order2<-items_sections_order$display_order
+table(items_sections_order$display_order,items_sections_order$display_order2)
+sections<-merge(sections,items_sections_order[,c("display_order","display_order2")],by="display_order",all.x=T)
+
+
+
+# find date of each week, we look at open date for lecture
+# number of unique date should be more or less the number of sections
+origin<-"1970-01-01" #never change it
+lecture_metadata$type<-"lecture"
+lecture_metadata$type_id<-paste(lecture_metadata$type,lecture_metadata$parent_id,sep="_")
+lecture_metadata$open_day<-as.Date(as.POSIXct(lecture_metadata$open_time,origin=origin),format = "%d/%m/%Y")
+lecture_metadata<-merge(lecture_metadata,items_sections_order[,c("type_id","display_order2","title")],by="type_id",all.x=T)
+colnames(lecture_metadata)[grep("title.y",colnames(lecture_metadata))]<-"title_section"
+colnames(lecture_metadata)[grep("title.x",colnames(lecture_metadata))]<-"title"
+# take a look at the table below to find the date
+table(lecture_metadata$title_section,lecture_metadata$open_day)
+table(lecture_metadata$display_order,lecture_metadata$open_day)
+# regroup first sections opened, cf sections$display_order
+section_1<-c()
+items_sections_order$display_order_bis<-items_sections_order$display_order
+items_sections_order$display_order_bis[items_sections_order$display_order %in% section_1]<-1
+lecture_metadata$display_order_bis<-lecture_metadata$display_order
+lecture_metadata$display_order_bis[lecture_metadata$display_order %in% section_1]<-1
+
+open_inscription_date<-"" #to be find -> table(users$inscription_day)
+b_date<-as.Date("2014-01-09") #1st day, 1st week  
+b_week1<-b_date #1er 
+b_week2<-as.Date("2014-01-16")
+b_week3<-as.Date("2014-01-23")
+b_week4<-as.Date("2014-01-30")
+b_week5<-as.Date("2014-02-07")
+b_week6<-as.Date("2014-02-14")
+b_week7<-as.Date("2014-02-21")
+b_week8<-as.Date("2014-02-28")
+e_date<-as.Date("2014-03-06") #last day, last week course
+close_inscription_date<-as.Date("") #to be find -> max(studentes$last_access_time_day)
+
+# matrix merging the dates
+week_course<-matrix(NA,2,8) #course in 9 weeks
+week_course[1,]<-c(as.character(b_week1),as.character(b_week2),as.character(b_week3),as.character(b_week4),as.character(b_week5),as.character(b_week6),as.character(b_week7),as.character(b_week8))
+colnames(week_course)<-c("week 1","week 2","week 3","week 4","week 5","week 6","week 7","week 8")
+week_course[2,]<-c("Semaine 1","Semaine 2","Semaine 3","Semaine 4","Semaine 5","Semaine 6","Semaine 7","Semaine 8")
+
+mooc<-"artificialvision_001"
+
+save.image("artificialvision_001_initial.RData")
+load("artificialvision_001_initial.RData")
