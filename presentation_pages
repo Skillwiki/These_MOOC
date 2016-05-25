@@ -1,0 +1,148 @@
+path="C:/MOOC_Data/FUN/tmp"
+ setwd(path)
+ list.files(path)
+
+prez=read.csv("Pages.prez.FUN.2.csv", h=T, sep=",")
+
+summary(prez)
+
+head(prez)
+
+# Petit code pour rentrer le code exact du cours dans la BDD
+
+pattern1="courses/"
+pattern2="/about"
+
+prez$code.cours=rep(NA, nrow(prez))
+
+
+for (i in 1: nrow(prez)) {
+  
+line=  prez$url[i]
+
+pos1=regexpr(pattern1, line)[[1]][1]+nchar(pattern1)
+pos2=regexpr(pattern2, line)[[1]][1]-1
+code=substr(line, pos1, pos2)
+prez$code.cours[i]=code
+
+}
+
+table.API=as.data.frame(matrix(NA,nrow(prez),1))
+for(i in 1:nrow(table.API)) {
+  int=paste("https://www.fun-mooc.fr/api/course_structure/v0/course_structures/", prez$code.cours[i], sep="")
+  table.API[i,1]=int
+}
+
+
+
+  table.exports=as.data.frame(matrix(NA,nrow(prez),1))
+for(i in 1:nrow(table.exports)) {
+  int=paste("https://studio.france-universite-numerique-mooc.fr/export/", prez$code.cours[i], sep="")
+  table.exports[i,1]=int
+}
+
+
+write.table(prez$tit, "clipboard", sep="\t", row.names=FALSE)
+
+
+for(i in 1:nrow(table.exports)) {
+  int=gsub("/", "_", prez$code.cours[i])
+  path.i=paste(path, "exports_Anja", int, sep="/")
+dir.create(path.i, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+dir.create(path.i)
+}
+
+
+
+  https://www.fun-mooc.fr/api/course_structure/v0/course_structures/Strasbourg/17002/session01/
+  
+  prez[which(prez$nbr_MC=="DIVERS"),]$nbr_MC=NA
+
+prez$nbr_MC=as.numeric(as.character(prez$nbr_MC))
+prez$nbr_PU=as.numeric(as.character(prez$nbr_PU))
+prez$nbr_POST=as.numeric(as.character(prez$nbr_POST))
+prez$nbr_chercheur=as.numeric(as.character(prez$nbr_chercheur))
+prez$nbr_expert_extÃ.rieur=as.numeric(as.character(prez$nbr_expert_extÃ.rieur))
+
+
+for (i in 1:nrow(prez)) {prez$nbr_prof.u[i]=sum(prez$nbr_MC[i],prez$nbr_PU[i],prez$nbr_POST[i],prez$nbr_chercheur[i], na.rm=T)}
+for (i in 1:nrow(prez)) {prez$nbr_prof.l[i]=sum(prez$nbr_MC[i],prez$nbr_PU[i],prez$nbr_POST[i],prez$nbr_chercheur[i],prez$nbr_expert_extÃ.rieur[i], na.rm=T)}
+
+length(which(prez$nbr_prof.u==prez$nbr_prof.l))
+length(which(prez$nbr_expert_extÃ.rieur>0))
+
+
+summary(prez$nbr_expert_extÃ.rieur)
+prez[which(prez$nbr_prof.l==0),]$tit
+prez[which(prez$nbr_prof==0),]$tit
+prez[which(prez$nbr_prof.l==0),]$url
+
+
+prez$pub.Vis=rep(NA, nrow(prez))
+prez$pub.Vis[which((prez$etud=="OUI")&(prez$pro=="OUI")&(prez$gp=="OUI"))]="Tous"
+prez$pub.Vis[which((prez$etud=="NON")&(prez$pro=="OUI")&(prez$gp=="OUI"))]="Pro et GP"
+prez$pub.Vis[which((prez$etud=="OUI")&(prez$pro=="NON")&(prez$gp=="OUI"))]="Etud et GP"
+prez$pub.Vis[which((prez$etud=="OUI")&(prez$pro=="OUI")&(prez$gp=="NON"))]="Etud et pro"
+prez$pub.Vis[which((prez$etud=="NON")&(prez$pro=="NON")&(prez$gp=="OUI"))]="GP seulement"
+prez$pub.Vis[which((prez$etud=="OUI")&(prez$pro=="NON")&(prez$gp=="NON"))]="Etud seulement"
+prez$pub.Vis[which((prez$etud=="NON")&(prez$pro=="OUI")&(prez$gp=="NON"))]="Pro seulement"
+
+prez[which(is.na(prez$pub.Vis)==T),]
+
+
+prez$acad=rep(NA, nrow(prez))
+prez$acad[which((prez$nbr_prof.u>0)&(prez$nbr_expert_extÃ.rieur==0))]="Academ"
+prez$acad[which((prez$nbr_prof.u==0)&(prez$nbr_expert_extÃ.rieur>0))]="Pro"
+prez$acad[which((prez$nbr_prof.u>0)&(prez$nbr_expert_extÃ.rieur>0))]="Mixte"
+
+
+attach(prez)
+A=table(cond_util)
+A=table(nbr_etab_contr)
+A=table(prez$nbr_prof.u)
+A=table(taille_equipe)
+A=table(nbr_PERSCLEF)
+A=table(nbr_MC)
+A=table(nbr_PU)
+A=table(nbr_chercheur)
+A=table(nbr_POST)
+A=table(nbr_ETUD)
+A=table(parcours)
+A=table(nbr_expert_extÃ.rieur)
+A=table(nbr_prof.l)
+A=table(prez$acad)
+
+A=table(prereq_expli)
+
+A=table(expli_zero_prereq)
+A=table(etud)
+A=table(gp)
+A=table(pro)
+A=table(prereq_expli_connais)
+A=table(prereq_expli_techn)
+A=table(prereq_expli_RF)
+A=table(prereq_expli_RNF)
+A=table(expli_zero_prereq)
+A=table(detail_nfp)
+A=table(prereq_expli_RC)
+A=table(ENG)
+A=table(cat_publ_pres)
+A=table(publ_expli_pres)
+A=table(prez$pub.Vis)
+A=table(expli_objectif)
+A=table(exist_syll)
+A=table(nbr_lien_rÃ.s)
+A=prez$code.cours
+A=prez$tit
+A=prez$nbr_sem
+
+cbind(prez$code.cours,prez$tit)
+
+
+
+write.table(A, "clipboard-6384", sep="\t", row.names=FALSE)
+write.table(table.API, "clipboard", sep="\t", row.names=FALSE)
+
+table(cond_util, parcours)
+
+A=summary(prez, max=15)
