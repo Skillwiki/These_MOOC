@@ -1,0 +1,252 @@
+
+path="C:/MOOC_Data/MOOCAZ/"
+setwd(path)
+library(XML)
+#install.packages('DescTools')
+library(DescTools)
+library(rvest)
+
+SN.ex=NULL
+contr=NULL
+moocaz.fb = read_html("MOOCAZ_FB.html", useInternal = TRUE)
+moocaz.g = read_html("MOOCAZ_G.html", useInternal = T)
+moocaz.T = read_html("MOOCAZ_Twitter.html", useInternal = T)
+
+# Google+
+SN.ex=moocaz.g
+contrib=SN.ex %>%   html_nodes(".Hf") %>%   html_text()  #Avoir le nom de tous les contributeurs de la page G+
+contribu=as.data.frame(contrib)
+
+decoup=c(
+table.contribu=as.data.frame(table(contribu))
+
+A=table(cut(table.contribu$Freq, breaks=c(0,1,3,5,10,20,100)))
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+table.contribu$class.g=
+
+length(unique(contrib))
+table(contrib)
+
+
+nrow(contribu)      # Nombre de contributions
+length(post.date)
+
+table(contribu)
+post.text=SN.ex %>%   html_nodes(".Pm .Ct") %>%   html_text()  #Avoir le texte de tous les messages de la page G+ (hors commentaires)
+post.text
+post.text.nchar=nchar(post.text)    # Longueur moyenne des posts
+
+post.text.nword=StrCountW(post.text)   # Compte le nombre de mots    
+
+length.post.prop=prop.table(table(cut(post.text.nword, c(0,20,40,60,80,100,200,300,1000))))*100 # Table qui compte les proportions de nombre de mots dans les ?changes
+
+write.table(length.post.prop, "clipboard", sep="\t", row.names=FALSE)
+
+comment.text=SN.ex %>%   html_nodes(".gA .Ct") %>%   html_text()  #Avoir le texte de tous les commentaire de la page G+ 
+comments.nword=StrCountW(comment.text)   # Compte le nombre de mots    
+length.comment.prop=prop.table(table(cut(comments.nword, c(0,20,40,60,80,100,200,300,1000))))*100 # Table qui compte les proportions de nombre de mots dans les ?changes
+
+ write.table(length.comment.prop, "clipboard", sep="\t", row.names=FALSE)
+
+post.comment.text=c(post.text, comment.text)
+p.c.nword=StrCountW(post.comment.text)   # Compte le nombre de mots    
+length.p.c.prop=prop.table(table(cut(p.c.nword, c(0,20,40,60,80,100,200,300,1000))))*100 # Table qui compte les proportions de nombre de mots dans les ?changes
+
+ write.table(length.p.c.prop, "clipboard", sep="\t", row.names=FALSE)
+
+
+contrib.comment=SN.ex %>%   html_nodes(".TD") %>%   html_text()  #Avoir le nom des contributeurs (commentaires)
+contrib.comment
+table(contrib.comment)
+nrow(as.data.frame(contrib.comment))  # Nombre de commentaires
+
+names(contribu)="name"
+contribu.comment=as.data.frame(contrib.comment)
+names(contribu.comment)="name"
+mixed.contrib=rbind(contribu,contribu.comment )     # On m?lange contribution des posts et des commentaires
+mixed.contrib.df= as.data.frame(table(mixed.contrib))
+decoup=c(0,1,2,3,5,10,20,50,1000)
+mixed.contrib.df$postr.classe=cut(mixed.contrib.df$Freq, decoup)
+with(mixed.contrib.df, aggregate(Freq, by=list(Category=postr.classe),sum))
+head(mixed.contrib)
+
+mixed.contributeurs.prop=prop.table(table(cut(as.numeric(as.character(table(mixed.contrib))), c(0,1,2,3,5,10,20,50,100))))*100 # Classes de contributeurs par nombre de contributino
+mixed.contributeurs.prop=prop.table(table( cut(as.numeric(as.character(table(mixed.contrib))), c(0,1,2,3,5,10,20,50,100))))*100 # Classes de contributeurs par nombre de contributino
+
+
+write.table(mixed.contributeurs.prop, "clipboard", sep="\t", row.names=FALSE)
+
+
+post.date=SN.ex %>%   html_nodes(".PL , .Rg") %>%   html_text()  
+post.date
+
+write.csv(as.data.frame(post.date), "date.comments.csv", row.names=F)
+posts=read.csv("date.comments.csv", h=T, sep=",")
+#posts=post.date
+names(posts)
+
+start.date= as.POSIXct(strptime("2014-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2015-12-31 01:30:00", "%Y-%m-%d %H:%M:%S"))
+esp=(end.date-start.date)/12
+cut(as.POSIXct(posts$post.date)  ,seq(start.date,end.date,esp))
+str(posts)
+
+plot(table(cut(posts$post.date  ,seq(start.date,end.date,esp))), type="l",lty="dotdash", col="black")
+plot(posts$post.date)
+hist(posts$post.date)
+
+
+
+
+
+
+date.text=
+
+#Facebook
+SN.ex=moocaz.fb
+path="C:/MOOC_Data/GDP/"
+setwd(path)
+
+
+#Twitter
+path="C:/MOOC_Data/EDC/"
+setwd(path)
+
+EDC.T.deb = read_html("EDC_Twitter_deb.html", useInternal = T)
+EDC.T.mid = read_html("EDC_Twitter_mid.html", useInternal = T)
+EDC.T.end = read_html("EDC_Twitter_end.html", useInternal = T)
+SN.ex=EDC.T.deb
+
+path="C:/MOOC_Data/ModPo/"
+setwd(path)
+ModPo.T = read_html("ModPo_T.html", useInternal = T)
+SN.ex=ModPo.T
+
+path="C:/MOOC_Data/Itypa/"
+setwd(path)
+Itypa.T = read_html("Itypa_Twitter.html", useInternal = T)
+SN.ex=Itypa.T
+
+contrib=SN.ex %>%   html_nodes(".js-action-profile-name b") %>%   html_text()  #Avoir le nom de tous les contributeurs sur Twitter
+contribu=as.data.frame(contrib)
+nrow(contribu)
+
+decoup=c(0,1,2,5,10, 50,100,200,500, 1000)
+nrow(unique(contribu))
+table.contribu=as.data.frame(table(contribu))
+table.contribu$classeTw=cut(table.contribu$Freq, decoup)
+table(cut(table.contribu$Freq, decoup)) # R?partition des diff?rences classes de Twittos
+A=with(table.contribu, aggregate(Freq, by=list(Category=classeTw), FUN=sum))
+A=with(table.contribu, aggregate(Freq, by=list(Category=classeTw), FUN=mean))
+
+tweet.text=SN.ex %>%   html_nodes(".tweet-text") %>%   html_text()  #Avoir le texte de tous les messages sur Twitter
+tweet.text
+write.csv(as.data.frame(tweet.text), "EDC.tweet.posts.csv", row.names=F)
+
+
+RT=SN.ex %>%   html_nodes(".js-actionRetweet .IconTextContainer") %>%   html_text()  #Avoir le nombre de RT
+RT
+table(contrib.comment)
+
+Tweet.date=SN.ex %>%   html_nodes(".js-short-timestamp") %>%   html_text()  #Avoir le nom des contributeurs dans les commentaires
+Tweet.date
+
+
+Tweet.dates=rep(NA, length(Tweet.date))
+Tweet.dates=Tweet.date
+
+for (i in grep(" janv.",Tweet.date)) {Tweet.dates[i]=gsub(" janv. ", "/01/", Tweet.date[i])}
+for (i in grep(" févr.",Tweet.date)) {Tweet.dates[i]=gsub(" févr. ", "/02/", Tweet.date[i])}
+for (i in grep(" mars ", "/03/",Tweet.date)) {Tweet.dates[i]=gsub(" mars ", "/03/", Tweet.date[i])}
+for (i in grep(" avr. ",Tweet.date)) {Tweet.dates[i]=gsub(" avr. ", "/04/", Tweet.date[i])}
+for (i in grep(" mai ",Tweet.date)) {Tweet.dates[i]=gsub(" mai ", "/05/", Tweet.date[i])}
+for (i in grep(" juin ",Tweet.date)) {Tweet.dates[i]=gsub(" juin ", "/06/", Tweet.date[i])}
+for (i in grep(" juil. ",Tweet.date)) {Tweet.dates[i]=gsub(" juil. ", "/07/", Tweet.date[i])}
+for (i in grep(" août ",Tweet.date)) {Tweet.dates[i]=gsub(" août ", "/08/", Tweet.date[i])}
+for (i in grep(" sept. ",Tweet.date)) {Tweet.dates[i]=gsub(" sept. ", "/09/", Tweet.date[i])}
+for (i in grep(" oct. ",Tweet.date)) {Tweet.dates[i]=gsub(" oct. ", "/10/", Tweet.date[i])}
+for (i in grep(" nov. ",Tweet.date)) {Tweet.dates[i]=gsub(" nov. ", "/11/", Tweet.date[i])}
+for (i in grep(" déc. ",Tweet.date)) {Tweet.dates[i]=gsub(" déc. ", "/12/", Tweet.date[i])}
+
+
+for (i in grep("2012",Tweet.dates)) {Tweet.dates[i]=gsub("2012", "12", Tweet.dates[i])}
+for (i in grep("2013",Tweet.dates)) {Tweet.dates[i]=gsub("2013", "13", Tweet.dates[i])}
+for (i in grep("2014",Tweet.dates)) {Tweet.dates[i]=gsub("2014", "14", Tweet.dates[i])}
+for (i in grep("2015",Tweet.dates)) {Tweet.dates[i]=gsub("2015", "15", Tweet.dates[i])}
+
+for (i in grep(" janv.",Tweet.dates)) {Tweet.dates[i]=gsub(" janv.", "/01/15", Tweet.dates[i])}
+for (i in grep(" févr.",Tweet.dates)) {Tweet.dates[i]=gsub(" févr.", "/02/15", Tweet.dates[i])}
+for (i in grep(" mars",Tweet.dates)) {Tweet.dates[i]=gsub(" mars", "/03/15", Tweet.dates[i])}
+for (i in grep(" avr.",Tweet.dates)) {Tweet.dates[i]=gsub(" avr.", "/04/15", Tweet.dates[i])}
+for (i in grep(" mai",Tweet.dates)) {Tweet.dates[i]=gsub(" mai", "/05/15", Tweet.dates[i])}
+for (i in grep(" juin",Tweet.dates)) {Tweet.dates[i]=gsub(" juin", "/06/15", Tweet.dates[i])}
+for (i in grep(" juil.",Tweet.dates)) {Tweet.dates[i]=gsub(" juil.", "/07/15", Tweet.dates[i])}
+for (i in grep(" août",Tweet.dates)) {Tweet.dates[i]=gsub(" août", "/08/15", Tweet.dates[i])}
+for (i in grep(" sept.",Tweet.dates)) {Tweet.dates[i]=gsub(" sept.", "/09/15", Tweet.dates[i])}
+for (i in grep(" oct.",Tweet.dates)) {Tweet.dates[i]=gsub(" oct.", "/10/15", Tweet.dates[i])}
+for (i in grep(" nov.",Tweet.dates)) {Tweet.dates[i]=gsub(" nov.", "/11/15", Tweet.dates[i])}
+for (i in grep(" déc.",Tweet.dates)) {Tweet.dates[i]=gsub(" déc.", "/12/15", Tweet.dates[i])}
+
+for (i in grep("15 13",Tweet.dates)) {Tweet.dates[i]=gsub("15 13", "13", Tweet.dates[i])}
+for (i in grep("12/15",Tweet.dates)) {Tweet.dates[i]=gsub("12/15", "12/14", Tweet.dates[i])}
+for (i in grep("11/15",Tweet.dates)) {Tweet.dates[i]=gsub("11/15", "11/14", Tweet.dates[i])}
+
+
+head(Tweet.date, 250)
+tail(Tweet.dates, 50)
+Tweet.date
+
+Tweet.dates.ok=as.Date(Tweet.dates, format = "%d/%m/%y")
+summary(Tweet.dates.ok)
+
+posts=read.csv("date.comments.csv", h=T, sep=",")
+names(posts)
+
+start.date= as.POSIXct(strptime("2012-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2015-10-18 01:30:00", "%Y-%m-%d %H:%M:%S"))
+esp=(end.date-start.date)/36
+table(cut(as.POSIXct(Tweet.dates.ok)  ,seq(start.date,end.date,esp)))
+
+plot(table(cut(as.POSIXct(Tweet.dates.ok)  ,seq(start.date,end.date,esp))),lty="dotdash", col="black")
+
+plot(posts$post.date)
+hist(posts$post.date)
+
+
+
+
+URL="https://plus.google.com/communities/114968139191662533660"
+SN.ex <- read_html(URL)
+
+
+
+html_nodes(SN.ex, ".Hf")
+
+html_nodes(".")
+
+contr
+
+.Hf
+
+
+doc.text = unlist(xpathApply(doc.html, '//p', xmlValue))
+
+
+URL="https://www.facebook.com/groups/235635403307658/?fref=ts"
+
+URL
+
+
+
+contr
+
+.Hf
+
+
+url="https://www.france-universite-numerique-mooc.fr/courses/ENSCachan/20007/Trimestre_3_2014/discussion/forum"
+course.ex <- read_html(url)
+
+chiffres=course.ex %>%   html_nodes(".forum-nav-thread-title") %>%   html_text()
+
+chiffres=course.ex %>%   html_nodes(".forum-nav-thread-title")
