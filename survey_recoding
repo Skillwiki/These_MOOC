@@ -1,0 +1,2158 @@
+ path="C:/MOOC_Data/Questionnaires"
+ setwd(path)
+list.files(path)
+surveys.fun=read.csv("Surveys.FUN.csv", h=T, sep=";")
+surveys.gform=read.csv("Surveys.csv", h=T, sep=";")
+countries.HDI=read.csv("countries.HDI.csv", h=T, sep=";")
+surveys=read.csv("Surveys.gform.rec.csv", h=T, sep=",")
+
+names
+
+ names(surveys.gform)
+ names(surveys)
+ summary(surveys.gform)
+summary(surveys)
+
+names(surveys.fun)[which(names(surveys.fun)=="CSP")]="CSP1" 
+names(surveys.gform)[which(names(surveys.gform)=="CSP")]="CSP3" 
+
+names.col=c("Course", "job.status","Informal.learn", "business.sector", "Formation")
+
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+nrow(surveys.fun)
+nrow(surveys.gform)
+
+summary(surveys.gform$Course)
+
+names(surveys)
+
+
+with(surveys.gform[which(surveys.gform$Course=="Creative Box"),], summary(job.status))
+
+ with(surveys, table(Non,Certif.motiv))
+ 
+A= with(surveys, table(Non,Certif.motiv))
+ 
+ A= with(surveys, table(job.freq,Certif.motiv))
+ A= with(surveys, table(Exp.theme,Certif.motiv))
+ A= with(surveys, table(Stud.train,Certif.motiv))
+
+# Motiv pro
+
+summary(surveys.gform$Motiv.pro)
+A=summary(surveys.fun$Motiv.pro)
+
+summary(surveys.gform$work.related)
+
+
+
+with(surveys.gform[which(surveys.gform$work.related=="Non",),], table(Course,Motiv.pro))
+
+A=with(surveys.gform, table(work.related, Course)) [2:3,]
+A=with(surveys.gform, table(student.related, Course))[2:8,]
+A=with(surveys.gform, table(link.study, Course))
+A=with(surveys.fun, table(Course,Motiv.pro))
+A=t(with(surveys.fun, table(Course,Student.type))[,c(2,3,5:8)])
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+write.table(t(colSums(A)), "clipboard", sep="\t", row.names=T)
+
+
+names(surveys.gform)
+
+
+
+summary(surveys.gform)
+
+
+
+
+# Country
+
+ 
+names.col=c("Course", "Country")
+summary(surveys.gform$Country)
+summary(surveys.fun$Country)
+#surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+#surveys=surveys.gform
+ summary(surveys$Country)
+
+surveys=merge(surveys, countries.HDI, by="Country") 
+summary(surveys)
+surveys$HDI=as.factor(surveys$HDI)
+
+A=with(surveys, table(HDI, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(HDI, Course))
+a=t(chi$residuals)
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Incitation
+
+names.col=c("Course", "Incit.motiv")
+#surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+ surveys=surveys.gform
+ 
+surveys[surveys == ""] <- NA
+ for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+ 
+ 
+ levels(surveys.gform$Incit.motiv)
+lev2=levels(surveys.gform$Incit.motiv)[2]
+lev3=levels(surveys.gform$Incit.motiv)[3]
+lev4=levels(surveys.gform$Incit.motiv)[4]
+lev5=levels(surveys.gform$Incit.motiv)[5]
+lev6=levels(surveys.gform$Incit.motiv)[6]
+lev7=levels(surveys.gform$Incit.motiv)[7]
+
+surveys[which(surveys$Incit.motiv==lev2),]$Incit.motiv=lev5
+surveys[which(surveys$Incit.motiv==lev3),]$Incit.motiv=lev7
+surveys[which(surveys$Incit.motiv==lev4),]$Incit.motiv=lev6
+surveys$Incit.motiv=factor(surveys$Incit.motiv)
+
+A=with(surveys.fun, table(Incit.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Diploma, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+summary(surveys.gform$Incit.motiv)
+
+
+
+
+
+# Diploma
+
+names.col=c("Course", "Diploma")
+
+#surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+ #surveys=surveys.gform
+ 
+ levels(surveys$Diploma)
+summary(surveys.gform$Diploma)
+
+summary(surveys$Diploma)
+summary(surveys.fun$Diploma)
+summary(surveys.gform$Diploma)
+
+ surveys[which(surveys$Diploma=="Bac 5 (Master, titre d'ingénieur ou équivalent)"),]$Diploma="Bac+5 (Master ou équivalent)"
+ surveys[which(surveys$Diploma=="Bac+5 (Master, titre d'ingénieur ou équivalent)"),]$Diploma="Bac+5 (Master ou équivalent)"
+ surveys[which(surveys$Diploma=="Bac 2 (L2, Deug, IUT, BTS ou équivalent)"),]$Diploma="Bac+2 (L2, Deug, IUT, BTS ou équivalent)"
+ surveys[which(surveys$Diploma=="Baccalauréat général, technologique ou professionnel"),]$Diploma="Bac ou équivalent"
+ surveys[which(surveys$Diploma=="CAP ou BEP"),]$Diploma="Pré-bac"
+ surveys[which(surveys$Diploma=="Sans dipléme ou Brevet des colléges"),]$Diploma="Pré-bac"
+
+surveys$Diploma=factor(surveys$Diploma)
+
+A=with(surveys, table(Diploma, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Diploma, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+ 
+ # Analyse que sur gform
+
+ surveys.gform[which(surveys.gform$Diploma=="Bac 5 (Master, titre d'ingénieur ou équivalent)"),]$Diploma="Bac+5 (Master ou équivalent)"
+ surveys.gform[which(surveys.gform$Diploma=="Bac 2 (L2, Deug, IUT, BTS ou équivalent)"),]$Diploma="Bac+2 (L2, Deug, IUT, BTS ou équivalent)"
+ 
+ surveys.gform$Diploma=factor(surveys.gform$Diploma)
+ summary((surveys.gform$Diploma))
+ 
+
+
+
+# Job status
+
+# On enl?ve tous les "Autre" qui parasitent tout
+levels(surveys$job.status)
+levels(surveys$job.status)=c(levels(surveys$job.status),"Autre","Je suis ?tudiant","Je suis au ch?mage")
+lev.job.stat=attributes(head(summary(surveys$job.status), 13))$names # Niveaux du job status
+surveys$job.status[which(!(surveys$job.status %in%  lev.job.stat))]="Autre"
+surveys[which(surveys$job.status=="Je fais encore mes ?tudes"),]$job.status="Je suis ?tudiant"
+surveys[which(surveys$job.status=="Je suis homme/femme au foyer, ou en cong? maternit?/paternit?"),]$job.status="Je suis femme/homme au foyer, ou en cong? maternit?/paternit?"
+surveys[which(surveys$job.status=="Je suis au ch?mage mais je ne cherche pas d'emploi"),]$job.status="Je suis au ch?mage"
+surveys[which(surveys$job.status=="Je suis au ch?mage et je cherche un emploi"),]$job.status="Je suis au ch?mage"
+surveys[which(surveys$job.status=="Inactif"),]$job.status="Je suis au ch?mage"
+surveys[which(surveys$job.status== levels(surveys$job.status)[5]),]$job.status="Je suis au ch?mage"
+surveys[which(surveys$job.status=="Autre situation"),]$job.status="Autre"
+
+surveys$job.status=factor(surveys$job.status)
+summary(surveys$job.status)
+with(surveys, table(job.status, Course))
+A=with(surveys, table(job.status, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(job.status, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Pour GFORM
+ levels(surveys.gform$job.status)
+ surveys.gform$job.status.rec=surveys.gform$job.status
+ levels(surveys.gform$job.status.rec) 
+ lev.job.stat=c(attributes(head(summary(surveys.gform$job.status.rec), 9))$names,"Autre","Je suis étudiant","Je suis au chômage")  # Niveaux du job status
+ levels(surveys.gform$job.status.rec)=c(levels(surveys.gform$job.status.rec),"Autre","Je suis étudiant","Je suis au chômage") 
+ surveys.gform[which(surveys.gform$job.status.rec== lev.job.stat[9]),]$job.status.rec="Je suis au chômage"
+ surveys.gform[which(surveys.gform$job.status.rec== lev.job.stat[8]),]$job.status.rec="Je suis au chômage"
+ surveys.gform[which(surveys.gform$job.status.rec== lev.job.stat[3]),]$job.status.rec="Je suis au chômage"
+ surveys.gform$job.status.rec[which(!(surveys.gform$job.status.rec %in%  lev.job.stat))]=NA
+ 
+ surveys.gform$job.status.rec=factor(surveys.gform$job.status.rec)
+ summary(surveys.gform$job.status.rec)
+ 
+ 
+ 
+ 
+levels(surveys$CSP)
+summary(surveys$CSP)
+lev.csp=attributes(head(summary(surveys$CSP3), 38))$names 
+head(summary(surveys$CSP3), 38)
+ 
+ 
+
+ lev.csp=c("Ingénieurs et cadres techniques d'entreprise", "Enseignant du secondaire", "Enseignants du supérieur, professions scientifiques", "Cadre de la fonction publique", "Cadres administratifs et commerciaux d'entreprise","Profession libérale et assimilés", "Technicien, contremaître, agent de maîtrise", "Etudiant",                                                                        
+           "Autre", "Professeurs des écoles, instituteurs et assimilés", "Employé de la fonction publique","Employé", "Enseignant", "Profession libérale et assimilé", "Professions de l'information, des arts et des spectacles", "Employé administratif d'entreprise", "Professions intermédiaires de la santé et du travail social",                    
+           "Professions intermédiaires administratives de la fonction publique", "Profession intermédiaire de l'enseignement, de la santé, de la fonction publique", "Employés administratifs d'entreprise", "Cadre de la fonction publique, professions intellectuelles et artistiques", "Employé de commerce", "Professions intermédiaires administratives et commerciales des entreprises",      
+           "Chef d'entreprise de 10 salariés ou plus", "Ouvrier qualifié, non qualifié, agricole, chauffeur","Personnels des services directs aux particuliers" , "Commerçant et assimilés","Employés civils et agents de service de la fonction publique",                                                                       
+           "Policiers et militaires","Artisan", "Employé administratif d'entreprise ","Agriculteur-exploitant", "Cadre d'entreprise", "Employé de la fonction publique ", "Inactifs divers (autre que étudiant, retraité, ou en recherche d'emploi)" )
+
+
+ surveys.gform$CSP3.rec=surveys.gform$CSP
+ surveys.gform$CSP3.rec[surveys.gform$CSP3.rec==""]=NA
+ levels(surveys.gform$CSP3.rec)=c(surveys.gform$CSP3.rec, "Autre")
+ surveys.gform$CSP3.rec[which(!(surveys.gform$CSP3.rec %in%  lev.csp))]=NA
+ surveys.gform$CSP3.rec=factor(surveys.gform$CSP3.rec)
+summary( surveys.gform$CSP3.rec) 
+ summary( surveys.gform$CSP) 
+
+lev.csp
+ surveys$CSP3[which(!(surveys$CSP3 %in%  lev.csp))]="Autre"
+
+
+surveys$CSP3=factor(surveys$CSP3)
+
+surveys$CSP3[
+
+
+
+summary(surveys$CSP3)
+
+with(surveys, table(CSP3, Course))
+
+surveys.fun$CSP1=factor(surveys.fun$CSP1)
+with(surveys.fun, table(CSP1, Course)) 
+chi=with(surveys.gform, chisq.test(Non, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+A=with(surveys.fun, table(CSP1, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+chi=with(surveys.fun, chisq.test(CSP1, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Apprentissages informels
+
+levels(surveys.gform$Informal.learn)
+summary(surveys.gform$Informal.learn)
+lev.csp=attributes(head(summary(surveys.gform$Informal.learn), 20))$names 
+lev.csp
+
+surveys.gform$Informal.learn[which(!(surveys.gform$Informal.learn %in%  lev.csp))]="Autre"
+surveys.gform$Informal.learn=factor(surveys.gform$Informal.learn)
+
+lev.Internet=levels(surveys.gform$Informal.learn)[grep("Par Internet", levels(surveys.gform$Informal.learn))]
+lev.conférence=levels(surveys.gform$Informal.learn)[grep("Par des conférences", levels(surveys.gform$Informal.learn))]
+lev.Non=levels(surveys.gform$Informal.learn)[grep("Non, c'est la première", levels(surveys.gform$Informal.learn))]
+lev.sp?c=levels(surveys.gform$Informal.learn)[grep("spécialisées", levels(surveys.gform$Informal.learn))]
+lev.person=levels(surveys.gform$Informal.learn)[grep("Via des personnes", levels(surveys.gform$Informal.learn))]
+lev.vulga=levels(surveys.gform$Informal.learn)[grep("revues de vulgarisation", levels(surveys.gform$Informal.learn))]
+
+surveys.gform$Internet=rep(0, nrow(surveys.gform))
+surveys.gform$Vulga=rep(0, nrow(surveys.gform))
+surveys.gform$sp?c=rep(0, nrow(surveys.gform))
+surveys.gform$person=rep(0, nrow(surveys.gform))
+surveys.gform$Non=rep(0, nrow(surveys.gform))
+surveys.gform$conf?rence=rep(0, nrow(surveys.gform))
+
+na.T=which(is.na(surveys.gform$Informal.learn)==T)
+surveys.gform[which(surveys.gform$Informal.learn  %in% lev.Internet),]$Internet=1
+surveys.gform[na.T,]$Internet=NA
+surveys.gform[which(surveys.gform$Informal.learn  %in% lev.vulga),]$Vulga=1
+surveys.gform[na.T,]$Vulga=NA
+surveys.gform[which(surveys.gform$Informal.learn  %in% lev.sp?c),]$sp?c=1
+surveys.gform[na.T,]$sp?c=NA
+surveys.gform[which(surveys.gform$Informal.learn  %in% lev.person),]$person=1
+surveys.gform[na.T,]$person=NA
+surveys.gform[which(surveys.gform$Informal.learn  %in% lev.conf?rence),]$conf?rence=1
+surveys.gform[na.T,]$conf?rence=NA
+surveys.gform[which(surveys.gform$Informal.learn  %in% lev.Non),]$Non=1
+surveys.gform[na.T,]$Non=NA
+
+summary(as.factor(surveys.gform$Internet))
+
+
+A=with(surveys.gform, table(Non, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+with(surveys.gform, table(Non, Course)) 
+chi=with(surveys.gform, chisq.test(Non, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# 
+
+# Accompagnement
+
+names(surveys.gform)
+names.col=c("Course", "Accomp")
+
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+levels(surveys$Accomp)
+
+surveys[which(surveys$Accomp=="Non, pas à ma connaissance"),]$Accomp="Non"
+surveys[which(surveys$Accomp=="Oui, mais nous n'avons pas l'intention d'interagir"),]$Accomp="Non"
+surveys[which(surveys$Accomp=="Non, pas que je sache"),]$Accomp="Non"
+surveys[which(surveys$Accomp==levels(surveys$Accomp)[6]),]$Accomp=levels(surveys$Accomp)[3]
+surveys[which(surveys$Accomp==levels(surveys$Accomp)[7]),]$Accomp="Non"
+surveys[which(surveys$Accomp==levels(surveys$Accomp)[2]),]$Accomp="Non"
+surveys$Accomp=factor(surveys$Accomp)
+summary(surveys$Accomp)
+
+A=with(surveys, table(Accomp, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Accomp, Course))
+a=t(chi$residuals)
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Internet
+
+A=with(surveys.gform, table(Internet, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+with(surveys.gform, table(Internet, Course)) 
+chi=with(surveys.gform, chisq.test(Internet, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# MOOC on CV
+
+A=t(with(surveys.gform, table(Course,MOOC.on.CV))[,3:6])
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+colSums(A)
+write.table(t(colSums(A)), "clipboard", sep="\t", row.names=T)
+
+# Revues de sp?cialisation
+
+A=with(surveys.gform, table(sp?c, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+with(surveys.gform, table(sp?c, Course)) 
+chi=with(surveys.gform, chisq.test(sp?c, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Apprentissage par Vulgarisation
+
+A=with(surveys.gform, table(Vulga, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+with(surveys.gform, table(Vulga, Course)) 
+chi=with(surveys.gform, chisq.test(Vulga, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Apprentissage par conf?rence
+
+A=with(surveys.gform, table(conf?rence, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+with(surveys.gform, table(conf?rence, Course)) 
+chi=with(surveys.gform, chisq.test(conf?rence, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Apprentissage par personne
+
+A=with(surveys.gform, table(person, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+
+with(surveys.gform, table(person, Course)) 
+chi=with(surveys.gform, chisq.test(person, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+a=cor( surveys.gform[c("Internet", "sp?c", "Vulga", "person", "conf?rence")],  use="complete")   # Lien entre diff?rentes m?thodes d'apprentissage informel
+
+ # Analyse des secteurs d'activité
+
+surveys.gform$business.sector.rec=surveys.gform$business.sector
+
+levels(surveys.gform$business.sector.rec)=c(levels(surveys.gform$business.sector.rec), "Autre")
+summary(surveys.gform$business.sector.rec)
+lev.csp=attributes(head(summary(surveys.gform$business.sector.rec), 19))$names 
+lev.csp
+surveys.gform$business.sector.rec[which(!(surveys.gform$business.sector.rec %in%  lev.csp))]=NA
+surveys.gform$business.sector.rec[which(surveys.gform$business.sector.rec=="")]=NA
+surveys.gform$business.sector.rec=factor(surveys.gform$business.sector.rec)
+
+
+A=with(surveys.gform, table(business.sector.rec, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(business.sector, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Formation suivie
+
+names.col=c("Formation", "Course")
+
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+
+levels(surveys$Formation)
+summary(surveys$Formation)
+lev.csp=attributes(head(summary(surveys$Formation), 15))$names #
+lev.csp
+surveys$Formation[which(!(surveys$Formation %in%  lev.csp))]="Autre"
+surveys$Formation[which(surveys$Formation==" Math?matiques, informatique")]="Math?matiques, informatique"
+surveys$Formation=factor(surveys$Formation)
+
+A=with(surveys, table(Formation, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Formation, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+# Avec Gform
+surveys.gform$Formation.rec=surveys.gform$Formation
+levels(surveys.gform$Formation.rec)=c(levels(surveys.gform$Formation.rec), "Autre")
+lev.csp=attributes(head(summary(surveys.gform$Formation.rec), 15))$names #
+lev.csp
+surveys.gform$Formation.rec[which(!(surveys.gform$Formation.rec %in%  lev.csp))]=NA
+surveys.gform[which(surveys.gform$Formation.rec==""),]$Formation.rec=NA
+surveys.gform$Formation.rec=factor(surveys.gform$Formation.rec)
+
+summary(surveys.gform$Formation.rec, max.sum=40)
+
+names(surveys)
+
+with(surveys, table(Discov
+
+chi=with(surveys, chisq.test(Discovery.motiv, Complete.def))  # !!!!!!!!!!!!!!! G?nial, ?a va dans ton sens
+chi=with(surveys, chisq.test(work.related, Complete.def))  # !!!!!!!!!!!!!!! G?nial, ?a va dans ton sens
+
+# Posture et attitude par rapport au fait de terminer
+
+surveys$Complete.def.rec <- as.character(surveys$Complete.def)
+surveys$Complete.def.rec[surveys$Complete.def == "J'ai la ferme intention de terminer ce MOOC"] <- 1
+surveys$Complete.def.rec[surveys$Complete.def == "Je n'ai pas l'intention de terminer ce MOOC"] <- 0
+surveys$Complete.def.rec[surveys$Complete.def == "Je ne suis pas encore fixé quant à mon intention de terminer ce MOOC"] <- 0
+surveys$Complete.def.rec=as.numeric(surveys$Complete.def.rec)
+
+chi=with(surveys, chisq.test(Certif.motiv, MOOC.motiv))
+
+mod=with(surveys, glm(Complete.def.rec~Course+Incit.motiv+Gender+Diploma+Posture+Discovery.motiv+job.status+Exp.theme+CSP+MOOC.on.CV+Stud.train+Post.stud.train+First.MOOC, family="binomial"))
+summary(mod)
+anova(mod)
+
+mod=with(surveys, glm(Complete.def.rec~Discovery.motiv+Interact.motiv+project.motiv.rec, family="binomial"))
+
+summary(mod)
+A=exp(coef(mod))
+A=anova(mod)
+
+A=with(surveys, table(Diploma,HDI) )
+A=with(surveys, table(MOOC.motiv,job.status.rec) )
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+mod=with(surveys, glm(Complete.def.rec~Certif.motiv.rec, family="binomial"))
+
+chi=with(surveys, chisq.test(project.motiv.rec, Non)) 
+
+with(surveys, table(Course, Non)) 
+
+write.table(chi$residuals, "clipboard", sep="\t", row.names=T)
+
+surveys$Complete.def.rec <- as.character(surveys$Complete.def)
+surveys$Complete.def.rec[surveys$Complete.def == "J'ai la ferme intention de terminer ce MOOC"] <- 0
+surveys$Complete.def.rec[surveys$Complete.def == "Je n'ai pas l'intention de terminer ce MOOC"] <- NA
+surveys$Complete.def.rec[surveys$Complete.def == "Je ne suis pas encore fix? quant ? mon intention de terminer ce MOOC"] <- 1
+surveys$Complete.def.rec=as.numeric(surveys$Complete.def.rec)
+
+mod=with(surveys, glm(Complete.def.rec~Course+Incit.motiv+Gender+Diploma+Posture+Discovery.motiv+job.status+Exp.theme+CSP+MOOC.on.CV+Stud.train+Post.stud.train+First.MOOC, family="binomial"))
+summary(mod)
+anova(mod)
+
+A=with(surveys, table(project.motiv.rec, How.regist.rec))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+
+
+chi=with(surveys, chisq.test(project.motiv.rec, How.regist.rec))
+A=chi$residuals
+
+
+
+
+# Posture et attitude par rapport au fait de mettre un certificat sur son CV
+
+surveys.gform$MOOC.on.CV.rec <- as.character(surveys.gform$MOOC.on.CV)
+surveys.gform$MOOC.on.CV.rec[surveys.gform$MOOC.on.CV == "Non, je n'en n'ai jamais obtenu"] <- NA
+surveys.gform$MOOC.on.CV.rec[surveys.gform$MOOC.on.CV == "Non, même si j'en ai obtenu"] <- 0
+surveys.gform$MOOC.on.CV.rec[surveys.gform$MOOC.on.CV == "Oui, dans la rubrique expérience"] <- 1
+surveys.gform$MOOC.on.CV.rec[surveys.gform$MOOC.on.CV == "Oui, dans la rubrique formation"] <- 1
+surveys.gform$MOOC.on.CV.rec[surveys.gform$MOOC.on.CV == "Oui, dans la rubrique loisirs"] <- 1
+surveys.gform$MOOC.on.CV.rec=as.numeric(surveys.gform$MOOC.on.CV.rec)
+summary(as.factor(surveys.gform$MOOC.on.CV.rec))
+
+mod=with(surveys.gform, glm(MOOC.on.CV.rec~Course+Incit.motiv+Gender+Diploma+Posture+Discovery.motiv+job.status+CSP, family="binomial"))
+summary(mod)
+anova(mod)
+
+# Positions par rapport au certificat
+
+surveys=surveys.gform
+names(surveys)
+surveys=merge(surveys, countries.HDI, by="Country") 
+summary(surveys)
+surveys$HDI=as.factor(surveys$HDI)
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+summary(surveys$Certif.motiv)
+levels(surveys$Certif.motiv)[2]
+
+surveys$Certif.motiv.rec <- as.character(surveys$Certif.motiv)
+surveys$Certif.motiv.rec[surveys$Certif.motiv == "Je ne suis pas intéressé(e) par l'obtention d'une attestation de réussite"] <- 0
+surveys$Certif.motiv.rec[surveys$Certif.motiv == levels(surveys$Certif.motiv)[2]] <- 1
+surveys$Certif.motiv.rec[surveys$Certif.motiv == levels(surveys$Certif.motiv)[3]] <- 0
+surveys$Certif.motiv.rec=as.numeric(surveys$Certif.motiv.rec)
+summary(surveys$Certif.motiv.rec)
+summary(as.factor(surveys$Certif.motiv.rec))
+mod=with(surveys, glm(Certif.motiv.rec~Course+Incit.motiv+Gender+Diploma+HDI+Posture+Discovery.motiv+job.status+Exp.theme+MOOC.on.CV+Stud.train+Post.stud.train+First.MOOC, family="binomial"))
+
+
+mod=with(surveys, glm(Certif.motiv.rec~HDI+Gender+Course+Incit.motiv+Stud.train+Exp.theme+Discovery.motiv+First.MOOC, family="binomial"))
+#exp(coef(mod))
+#summary(mod)
+anova(mod)
+
+A=with(surveys, aggregate(100*Certif.motiv.rec, by=list(Category=HDI), FUN =mean, na.rm=T))
+A=with(surveys, aggregate(100*Certif.motiv.rec/2, by=list(Category=HDI), FUN =sd, na.rm=T))
+A=with(surveys, aggregate(100*Certif.motiv.rec, by=list(Category=HDI), FUN =mean, na.rm=T))
+A=with(surveys, aggregate(100*Certif.motiv.rec/2, by=list(Category=HDI), FUN =sd, na.rm=T))
+write.table(A, "clipboard-16384", sep="\t", row.names=T)
+
+# on refait l'analyse avec GFORM exclusivement
+
+levels(surveys.gform$Certif.motiv)
+
+surveys.gform$Certif.motiv.rec <- as.character(surveys.gform$Certif.motiv)
+
+levels(surveys.gform$Certif.motiv.rec)=c(levels(surveys.gform$Certif.motiv.rec), 0,1)
+
+surveys.gform$Certif.motiv.rec[surveys.gform$Certif.motiv == "Je ne suis pas intéressé(e) par l'obtention d'une attestation de réussite"] <- 0
+#surveys.gform$Certif.motiv.rec[surveys.gform$Certif.motiv == "Je suis intéressé(e) par l’attestation de réussite, pour la faire valoir dans un contexte professionnel  (reconversion professionnelle, recherche de légitimité, justifier du temps passé, etc)"] <- 1
+#surveys.gform$Certif.motiv.rec[surveys.gform$Certif.motiv == "Je suis intéressé(e) par l’obtention d’une attestation de réussite, mais pas pour la faire valoir dans un contexte professionnel"] <- 1
+surveys.gform$Certif.motiv.rec[surveys.gform$Certif.motiv ==levels(surveys.gform$Certif.motiv)[3] ] <- 1
+surveys.gform$Certif.motiv.rec[surveys.gform$Certif.motiv ==levels(surveys.gform$Certif.motiv)[4] ] <- 1
+
+surveys.gform$Certif.motiv.rec=factor(surveys.gform$Certif.motiv.rec)
+summary(surveys.gform$Certif.motiv.rec)
+summary(as.factor(surveys.gform$Certif.motiv.rec))
+
+
+levels(surveys.gform$Certif.motiv)
+
+surveys.gform$Certif.motiv.pro <- as.character(surveys.gform$Certif.motiv)
+
+levels(surveys.gform$Certif.motiv.pro)=c(levels(surveys.gform$Certif.motiv.pro), 0,1)
+
+surveys.gform$Certif.motiv.pro[surveys.gform$Certif.motiv == "Je ne suis pas intéressé(e) par l'obtention d'une attestation de réussite"] <- NA
+#surveys.gform$Certif.motiv.pro[surveys.gform$Certif.motiv == "Je suis intéressé(e) par l’attestation de réussite, pour la faire valoir dans un contexte professionnel  (reconversion professionnelle, recherche de légitimité, justifier du temps passé, etc)"] <- 1
+#surveys.gform$Certif.motiv.pro[surveys.gform$Certif.motiv == "Je suis intéressé(e) par l’obtention d’une attestation de réussite, mais pas pour la faire valoir dans un contexte professionnel"] <- 1
+surveys.gform$Certif.motiv.pro[surveys.gform$Certif.motiv ==levels(surveys.gform$Certif.motiv)[3] ] <- 1
+surveys.gform$Certif.motiv.pro[surveys.gform$Certif.motiv ==levels(surveys.gform$Certif.motiv)[4] ] <- 0
+
+surveys.gform$Certif.motiv.pro=factor(surveys.gform$Certif.motiv.pro)
+
+summary(surveys.gform$Certif.motiv.pro)
+
+
+summary(surveys.gform$Birth.date)
+surveys.gform$age=2015-surveys.gform$Birth.date
+summary(surveys.gform$period.age)
+
+surveys.gform$period.age=cut(surveys.gform$age, breaks=c(0,20,30,40,50,60,70,100))
+
+
+
+# Le fameux modèle qu'on publie dans la thèse
+
+
+mod=with(surveys.gform, glm(Certif.motiv.rec~Course+Incit.motiv+How.regist.rec+job.freq+Gender+relevel(surveys.gform$Instit.motiv.rec, ref="Je n'avais jamais entendu le nom") +relevel(surveys.gform$Diploma, ref="Sans diplôme ou Brevet des collèges")+relevel(surveys.gform$HDI, ref="TH")+Discovery.motiv+relevel(surveys.gform$job.status.rec, ref = "Je suis employé à plein temps")+relevel(period.age, ref="(20,30]")+relevel(surveys.gform$Exp.theme, ref="Je suis un débutant complet")+Stud.train+Post.stud.train+First.MOOC, family="binomial"))
+
+mod=with(surveys.gform, glm(Certif.motiv.rec~Course+Incit.motiv+How.regist.rec+job.freq+Gender+relevel(surveys.gform$Instit.motiv.rec, ref="Je n'avais jamais entendu le nom") +relevel(surveys.gform$Diploma, ref="Sans diplôme ou Brevet des collèges")+relevel(surveys.gform$HDI, ref="TH")+Discovery.motiv+relevel(surveys.gform$job.status.rec, ref = "Je suis employé à plein temps")+relevel(surveys.gform$Exp.theme, ref="Je suis un débutant complet")+Train+First.MOOC, family="binomial"))
+
+
+# mod=with(surveys.gform[which(surveys.gform$Course!="Creative Box"),], glm(Certif.motiv.rec~Course+Incit.motiv+How.regist.rec+relevel(period.age, ref="(20,30]")+Gender++relevel(surveys.gform$Diploma, ref="Sans diplôme ou Brevet des collèges")+relevel(surveys.gform$HDI, ref="TH")+Discovery.motiv+relevel(surveys.gform$job.status.rec, ref = "Je suis employé à plein temps")+relevel(surveys.gform$Exp.theme, ref="Je suis un débutant complet")+Stud.train+Post.stud.train+First.MOOC, family="binomial"))
+
+
+levels(surveys.gform$Course)
+
+summary(mod)
+exp(coef(mod))
+a=cbind(exp(coef(mod)),coef(summary(mod))[,4])
+a
+write.table(a, "clipboard", sep="\t", row.names=T)
+anova(mod)
+
+mod=with(surveys.gform, glm(Certif.motiv.pro~Course+Incit.motiv+relevel(period.age, ref="(20,30]")+How.regist.rec+Gender+relevel(surveys.gform$Instit.motiv.rec, ref="Je n'avais jamais entendu le nom") +relevel(surveys.gform$Diploma, ref="Sans diplôme ou Brevet des collèges")+relevel(surveys.gform$HDI, ref="TH")+Discovery.motiv+relevel(surveys.gform$job.status.rec, ref = "Je suis employé à plein temps")+relevel(surveys.gform$Exp.theme, ref="Je suis un débutant complet")+Stud.train+Post.stud.train+First.MOOC, family="binomial"))
+a=cbind(exp(coef(mod)),coef(summary(mod))[,4])
+
+summary(mod)
+exp(coef(mod))
+anova(mod)
+
+
+names(surveys.gform)
+
+A=with(surveys.gform, table(Certif.motiv.rec, period.age))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+A=with(surveys.gform, table(Certif.motiv.rec, HDI))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+
+A=with(surveys.gform, table(Certif.motiv.pro, period.age))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+
+
+A=with(surveys.gform, table(Certif.motiv.pro, HDI))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+
+
+names(surveys.fun)
+names(surveys.gform)
+
+
+# Non, on peut pas m?langer tout ?a, c'est vraiment dommage, mais bon
+
+names.col=c("Course", "Certif.motiv")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+
+surveys.gform[surveys.gform == ""] <- NA
+levels(surveys.gform$Certif.motiv)
+summary(surveys.gform$Certif.motiv)
+surveys.gform$Certif.motiv=factor(surveys.gform$Certif.motiv)
+
+A=with(surveys.gform, table(Certif.motiv, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Certif.motiv, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard-16384", sep="\t", row.names=T)
+
+
+surveys.fun[surveys.fun == ""] <- NA
+levels(surveys.fun$Certif.motiv)
+summary(surveys.fun$Certif.motiv)
+surveys.fun$Certif.motiv=factor(surveys.fun$Certif.motiv)
+
+A=with(surveys.fun, table(Certif.motiv, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.fun, chisq.test(Certif.motiv, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard-16384", sep="\t", row.names=T)
+
+
+# Positions par rapport au certificat
+
+levels(surveys.gform$Posture)
+summary(surveys.gform$Posture)
+surveys.gform$Posture=factor(surveys.gform$Posture)
+
+A=with(surveys.gform, table(Posture, Course)) 
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Posture, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard-16384", sep="\t", row.names=T)
+
+
+summary(surveys$Posture)
+levels(surveys$Posture)[2]
+
+surveys$Posture.rec <- as.character(surveys$Posture)
+surveys$Posture.rec[surveys$Posture == "Adapter le MOOC ? mes besoins en d?tournant les consignes si n?cessaire"] <- 1
+surveys$Posture.rec[surveys$Posture == "Me concentrer uniquement sur ce qui m'int?resse"] <- 1
+surveys$Posture.rec[surveys$Posture == "Suivre l'ensemble des instructions donn?es par l'?quipe p?dagogique et consulter l'ensemble des ressources propos?es"] <- 0
+surveys$Posture.rec=as.numeric(surveys$Posture.rec)
+summary(surveys$Posture.rec)
+summary(as.factor(surveys$Posture.rec))
+mod=with(surveys, glm(Posture.rec~Course+Gender+Diploma+Discovery.motiv+job.status+Exp.theme+First.MOOC, family="binomial"))   # Tr?s beau, ils ont une posture d'autant plus cherry
+#picking qu'ils ont de l'exp?rience dans le domaine, mais c'est surtout un effet cours
+summary(mod)
+anova(mod)
+
+# Horaires du MOOC
+
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+surveys$Time.MOOC[surveys$Time.MOOC == "Plut?t sur mon temps de travail??(ou d'?tude)"] <- "Plut?t sur mon temps de travail"
+surveys$Time.MOOC[surveys$Time.MOOC == "Seulement sur mon temps de travail (ou d'?tude)"] <- "Seulement sur mon temps de travail"
+
+surveys.gform[surveys.gform == ""] <- NA
+A=with(surveys.gform, table(Time.MOOC, Course))
+
+A=with(surveys.fun, table(Time.MOOC, Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Time.MOOC, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard-16384", sep="\t", row.names=T)
+
+summary(surveys$Time.MOOC)
+
+surveys$Time.MOOC.rec <- as.character(surveys$Time.MOOC)
+surveys$Time.MOOC.rec[surveys$Time.MOOC == "Plut?t sur mon temps de travail??(ou d'?tude)"] <- 1
+surveys$Time.MOOC.rec[surveys$Time.MOOC == "Seulement sur mon temps de travail (ou d'?tude)"] <- 1
+surveys$Time.MOOC.rec[surveys$Time.MOOC == "Plut?t sur mon temps libre"] <- 0
+surveys$Time.MOOC.rec[surveys$Time.MOOC == "Seulement sur mon temps libre"] <- 0
+surveys$Time.MOOC.rec=as.numeric(surveys$Time.MOOC.rec)
+summary(surveys$Time.MOOC.rec)
+summary(as.factor(surveys$Time.MOOC.rec))
+
+mod=with(surveys, glm(Time.MOOC.rec~Course+Incit.motiv+Gender+Diploma+Posture+Discovery.motiv+job.status+Exp.theme+CSP+Stud.train+Post.stud.train, family="binomial")) # Gros effet CSP, Incit, and Course
+summary(mod)
+anova(mod)
+
+# Nombre de MOOC simultan?s
+
+summary(surveys$sim.MOOC)
+levels(surveys$sim.MOOC)[2]
+
+surveys$sim.MOOC.rec <- as.character(surveys$sim.MOOC)
+surveys$sim.MOOC.rec[surveys$sim.MOOC == "Aucun"] <- 0
+surveys$sim.MOOC.rec[surveys$sim.MOOC == "1"] <- 1
+surveys$sim.MOOC.rec[surveys$sim.MOOC == "2"] <- 2
+surveys$sim.MOOC.rec[surveys$sim.MOOC == "3"] <- 3
+surveys$sim.MOOC.rec[surveys$sim.MOOC == "4"] <- 4
+surveys$sim.MOOC.rec[surveys$sim.MOOC == "Entre 5 et 10"] <- 5
+surveys$sim.MOOC.rec=as.numeric(surveys$sim.MOOC.rec)
+summary(surveys$sim.MOOC.rec)
+summary(as.factor(surveys$sim.MOOC.rec))
+mod=with(surveys, lm(sim.MOOC.rec~Course+Incit.motiv+Gender+Diploma+Posture+Discovery.motiv+job.status+CSP+Stud.train+Post.stud.train))
+summary(mod)
+anova(mod)
+
+with(surveys, aggregate(sim.MOOC.rec, by=list(Category=Course), FUN=mean, na.rm=T))       # Les gens ne vont pas tant sur les autres plates-formes
+with(surveys, aggregate(sim.MOOC.rec, by=list(Category=Post.stud.train), FUN=mean, na.rm=T))    # Les mecs qui sont bien form?s suivent souvent un autre MOOC en parall?le
+
+names(surveys)
+
+
+
+
+
+# Exp?rience du domaine, comment elle a ?t? acquise ? Ce sont des gens qui se sont form?s pendant leurs ?tudes ou par eux-m?mes ?    Surtout par leurs ?tudes. Ce ne sont pas de grands autodidactes
+
+names.col=c("Course", "Exp.theme")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])
+surveys[surveys == ""] <- NA
+
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+surveys$Exp.theme.rec <- as.character(surveys$Exp.theme)
+surveys$Exp.theme.rec[surveys$Exp.theme == "J?ai une tr?s bonne connaissance du domaine"] <- "Expert ou tr?s bonne connaissance du domaine"
+surveys$Exp.theme.rec[surveys$Exp.theme == "Je suis un expert du domaine"] <- "Expert ou tr?s bonne connaissance du domaine"
+
+
+surveys$Exp.theme.rec=as.numeric(surveys$Exp.theme.rec)
+
+with(surveys.fun, table(Exp.theme, Course))
+
+
+summary(surveys.fun$Exp.theme)
+summary(surveys.gform$Exp.theme)
+
+surveys$Exp.theme.rec <- as.character(surveys$Exp.theme)
+surveys$Exp.theme.rec[surveys$Exp.theme == "J?ai quelques notions"] <- 0
+surveys$Exp.theme.rec[surveys$Exp.theme == "Je suis un d?butant complet"] <- 0
+surveys$Exp.theme.rec[surveys$Exp.theme == "J?ai une bonne connaissance du domaine"] <- 1
+surveys$Exp.theme.rec[surveys$Exp.theme == "J?ai une tr?s bonne connaissance du domaine"] <- 1
+surveys$Exp.theme.rec[surveys$Exp.theme == "Je suis un expert du domaine"] <- 1
+surveys$Exp.theme.rec=as.numeric(surveys$Exp.theme.rec)
+
+mod=with(surveys, glm(Exp.theme.rec~Course+Stud.train+Post.stud.train+job.freq+Informal.learn, family="binomial"))
+summary(mod)
+anova(mod)
+
+mod=with(surveys,  glm(Complete.def.rec~Course+CSP, family="binomial") )
+summary(mod)
+anova(mod)
+
+# Lien secteur et type de cours                   Bien s?r qu'il y a un peu une sp?cificit? !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+chi=with(surveys[which(!(surveys$Course %in% c("Animafac", "PDM"))),],  chisq.test(business.sector,Course) )
+chi
+chi$residuals
+chi$observed
+chi$expected
+
+chi=with(surveys[which(!(surveys$Course %in% c("Animafac", "PDM"))),],  chisq.test(Course,Formation) )   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+chi
+chi$residuals
+chi$observed
+chi$expected
+
+chi=with(surveys[which(!(surveys$Course %in% c("Animafac", "PDM"))),],  chisq.test(Course,CSP) )   # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+chi
+chi$residuals
+chi$observed
+chi$expected
+
+surveys=surveys.gform
+summary(surveys$other.pf)             # travailler un peu sur le c?t? multiplate-forme
+?grep
+
+lev.FUN=levels(surveys$other.pf)[grep("FUN", levels(surveys$other.pf))]
+lev.Unow=levels(surveys$other.pf)[grep("Unow", levels(surveys$other.pf))]
+lev.Coursera=levels(surveys$other.pf)[grep("Coursera", levels(surveys$other.pf))]
+lev.edX=levels(surveys$other.pf)[grep("edX", levels(surveys$other.pf))]
+lev.Udacity=levels(surveys$other.pf)[grep("Udacity", levels(surveys$other.pf))]
+lev.OpenClassrooms=levels(surveys$other.pf)[grep("OpenClassrooms", levels(surveys$other.pf))]
+
+surveys$FUN=rep(0, nrow(surveys))
+surveys$Unow=rep(0, nrow(surveys))
+surveys$Coursera=rep(0, nrow(surveys))
+surveys$edX=rep(0, nrow(surveys))
+surveys$Udacity=rep(0, nrow(surveys))
+surveys$OpenClassrooms=rep(0, nrow(surveys))
+
+
+surveys[which(surveys$other.pf  %in% lev.FUN),]$FUN=1
+surveys[which(surveys$other.pf  %in% lev.Unow),]$Unow=1
+surveys[which(surveys$other.pf  %in% lev.Coursera),]$Coursera=1
+surveys[which(surveys$other.pf  %in% lev.edX),]$edX=1
+surveys[which(surveys$other.pf  %in% lev.Udacity),]$Udacity=1
+surveys[which(surveys$other.pf  %in% lev.OpenClassrooms),]$OpenClassrooms=1
+
+
+mod=with(surveys, glm(as.factor(Coursera)~Course+Incit.motiv+Gender+Diploma+Posture+Discovery.motiv+job.status+Exp.theme+CSP+Stud.train+Post.stud.train, family="binomial"))
+anova(mod)
+summary(mod)
+
+summary(surveys[which(surveys$FUN==1),])    # On voit la pr?sence sur les autres plates-formes
+summary(surveys[which(surveys$Coursera==1),]) # On voit notamment les amateurs de plate-formes am?ricaines
+
+
+length(which(surveys$other.pf!="")) # Nombre de r?pondants
+length(which(surveys$other.pf=="")) # Nombre de r?pondants
+summary(surveys[which(surveys$other.pf!=""),c("Coursera", "Unow", "edX", "Udacity", "OpenClassrooms")])
+
+
+library(FactoMineR)
+library(cluster)
+library(HSAUR)
+library(fpc)
+
+with(surveys[which(surveys$other.pf!=""),], cor.test(edX, Coursera))
+
+
+with(surveys[which(surveys$other.pf!=""),], cor.test(OpenClassrooms, Unow))
+
+res.pca=with(surveys, PCA(FUN, Coursera, Unow, edX))
+
+k=kmeans(res.pca$ind$coord, centers=8, iter.max = 1000)
+
+
+
+
+chi=with(surveys, chisq.test(job.status, Accomp2))
+
+for (i in 1: length(names(surveys)))
+
+
+# Activit?s non directement accessibles ? l'observation
+
+# Prise de note
+
+with(surveys, summary(note.taking))
+
+a=with(surveys[which(surveys$First.MOOC=="Non"),], summary(note.taking))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+surveys$note.taking.rec <- as.character(surveys$note.taking)
+surveys$note.taking.rec[surveys$note.taking == "Non"] <- 0
+surveys$note.taking.rec[surveys$note.taking == "Oui, et je m'en suis resservi (au sein du MOOC ou ailleurs)"] <- 1
+surveys$note.taking.rec[surveys$note.taking == "Oui, mais je ne les ai jamais relues"] <- 1
+surveys$note.taking.rec=factor(surveys$note.taking.rec)
+
+with(surveys, summary(note.taking.rec))
+
+surveys$note.taking.rec=as.numeric(as.character(surveys$note.taking.rec))
+
+names(surveys)
+
+# Ok, y a des cours o? l'on prend moins de notes, genre le CB, mais pourquoi ? Parce que c'?tait un effet premier cours
+mod=with(surveys[which(surveys$First.MOOC=="Non"),], glm(note.taking.rec~Course+Diploma+Incit.motiv, family="binomial"))  # Et ils prennent toujours beaucoup moins de notes quand c'est leur premier cours. C'est stupide, c'est sur des usages pass?s.
+
+anova(mod)
+summary(mod)
+names(surveys)
+
+with(surveys, aggregate(note.taking.rec, by=list(Category=First.MOOC), FUN=mean, na.rm=T))
+with(surveys, aggregate(note.taking.rec/2, by=list(Category=First.MOOC), FUN=sd, na.rm=T))
+
+
+# Rencontre avec d'autres personnes dans les MOOC pass?s
+
+surveys=surveys.gform
+
+surveys$Accomp2.rec <- as.character(surveys$Accomp2)
+surveys$Accomp2.rec[surveys$Accomp2 == "Non, je ne me suis jamais inscrit ? un MOOC avec qui que ce soit"] <- 0
+surveys$Accomp2.rec[surveys$Accomp2 == "J'ai d?j? suivi un MOOC avec quelqu'un et nous avons interagi (?changes, ou entraide, ou ?mulation, etc)"] <- 1
+surveys$Accomp2.rec[surveys$Accomp2 == "Je me suis d?j? inscrit ? un MOOC avec quelqu'un, mais nous n'avons pas interagi"] <- 0
+surveys$Accomp2.rec=factor(surveys$Accomp2.rec)
+
+a=with(surveys[which(surveys$First.MOOC=="Non"),], summary(Accomp2.rec))
+
+surveys[surveys==""]=NA
+surveys$Accomp2=factor(surveys$Accomp2)
+
+A=with(surveys[which(surveys$First.MOOC=="Non"),], table(Accomp2,Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+mod=with(surveys[which(surveys$First.MOOC=="Non"),], glm(Accomp2~Course+Diploma+Incit.motiv, family="binomial"))
+anova(mod)
+# Qui a ?chang?
+
+with(surveys[which(surveys$First.MOOC=="Non"),], summary(Accomp.who))
+
+lev.Ami=levels(surveys$Accomp.who)[grep("Ami, connaissance", levels(surveys$Accomp.who))]
+lev.Coll?gue=levels(surveys$Accomp.who)[grep("Coll?gue", levels(surveys$Accomp.who))]
+lev.Famille=levels(surveys$Accomp.who)[grep("Famille", levels(surveys$Accomp.who))]
+lev.mooc.ant=levels(surveys$Accomp.who)[grep("Personne rencontr?e dans un MOOC ant?rieur", levels(surveys$Accomp.who))]
+
+
+surveys$Ami=rep(0, nrow(surveys))
+surveys$Coll?gue=rep(0, nrow(surveys))
+surveys$Famille=rep(0, nrow(surveys))
+surveys$mooc.ant=rep(0, nrow(surveys))
+
+surveys[which(surveys$Accomp.who  %in% lev.Ami),]$Ami=1
+surveys[which(surveys$Accomp.who  %in% lev.Coll?gue),]$Coll?gue=1
+surveys[which(surveys$Accomp.who  %in% lev.Famille),]$Famille=1
+surveys[which(surveys$Accomp.who  %in% lev.mooc.ant),]$mooc.ant=1
+
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(Ami)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(Coll?gue)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(Famille)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(mooc.ant)))
+
+
+surveys[surveys==""]=NA
+surveys$Accomp2=factor(surveys$Accomp2)
+
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(Ami,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(Coll?gue,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(Famille,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(mooc.ant,Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(Ami, Famille, Coll?gue))
+
+
+
+# Comment ?a a ?chang?
+
+
+
+with(surveys[which(surveys$First.MOOC=="Non"),], summary(Accomp.how))
+
+lev.face.face2=levels(surveys$Accomp.how)[grep("face-?-face, ? deux", levels(surveys$Accomp.how))]
+lev.mail=levels(surveys$Accomp.how)[grep("envoy? des mails", levels(surveys$Accomp.how))]
+lev.synchro=levels(surveys$Accomp.how)[grep("? distance de mani?re synchrone", levels(surveys$Accomp.how))]
+lev.groupe=levels(surveys$Accomp.how)[grep("3 personnes", levels(surveys$Accomp.how))]
+lev.res.soc=levels(surveys$Accomp.how)[grep("via les r?seaux sociaux", levels(surveys$Accomp.how))]
+
+surveys$face.face2=rep(0, nrow(surveys))
+surveys$mail=rep(0, nrow(surveys))
+surveys$synchro=rep(0, nrow(surveys))
+surveys$groupe=rep(0, nrow(surveys))
+surveys$res.soc=rep(0, nrow(surveys))
+
+surveys[which(surveys$Accomp.how  %in% lev.face.face2),]$face.face2=1
+surveys[which(surveys$Accomp.how  %in% lev.mail),]$mail=1
+surveys[which(surveys$Accomp.how  %in% lev.synchro),]$synchro=1
+surveys[which(surveys$Accomp.how  %in% lev.groupe),]$groupe=1
+surveys[which(surveys$Accomp.how  %in% lev.res.soc),]$res.soc=1
+
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(face.face2,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(mail,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(synchro,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(groupe,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(res.soc,Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(face.face2)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(mail)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(synchro)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(groupe)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(res.soc)))
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names(surveys)                                                     
+
+# nature des interactions
+
+with(surveys[which(surveys$First.MOOC=="Non"),], summary(Accomp.nature))
+
+lev.ens.act.ind=levels(surveys$Accomp.nature)[grep("activit?s individuelles", levels(surveys$Accomp.nature))]
+lev.ens.act.col=levels(surveys$Accomp.nature)[grep("ensemble des activit?s collectives", levels(surveys$Accomp.nature))]
+lev.encour=levels(surveys$Accomp.nature)[grep("encourag?s mutuellement", levels(surveys$Accomp.nature))]
+lev.ech=levels(surveys$Accomp.nature)[grep("Nous avons ?chang? sur le cours", levels(surveys$Accomp.nature))]
+lev.reg.vid=levels(surveys$Accomp.nature)[grep("regard? les vid?os p?dagogiques", levels(surveys$Accomp.nature))]
+
+surveys$ens.act.ind=rep(0, nrow(surveys))
+surveys$ens.act.col=rep(0, nrow(surveys))
+surveys$encour=rep(0, nrow(surveys))
+surveys$ech=rep(0, nrow(surveys))
+surveys$reg.vid=rep(0, nrow(surveys))
+
+surveys[which(surveys$Accomp.nature  %in% lev.ens.act.ind),]$ens.act.ind=1
+surveys[which(surveys$Accomp.nature  %in% lev.ens.act.col),]$ens.act.col=1
+surveys[which(surveys$Accomp.nature  %in% lev.encour),]$encour=1
+surveys[which(surveys$Accomp.nature  %in% lev.ech),]$ech=1
+surveys[which(surveys$Accomp.nature  %in% lev.reg.vid),]$reg.vid=1
+
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(ens.act.ind,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(ens.act.col,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(encour,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(ech,Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], table(reg.vid,Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(ens.act.ind)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(ens.act.col)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(encour)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(ech)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$Accomp2.rec==1)),], summary(as.factor(reg.vid)))
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+a
+
+############## Avec des gens rencontr?s sur les forums du cours #############
+
+
+surveys$New.friend.rec <- as.character(surveys$New.friend)
+surveys$New.friend.rec[surveys$New.friend == "Non, jamais"] <- 0
+surveys$New.friend.rec[surveys$New.friend == "Oui, et nous avons continu? ? interagir au-del? du cours. Mais cela n'a pas dur? longtemps"] <- 1
+surveys$New.friend.rec[surveys$New.friend == "Oui, et nous avons continu? ? interagir au-del? du cours. Nous sommes d'ailleurs toujours en contact"] <- 1
+surveys$New.friend.rec[surveys$New.friend == "Oui, mais uniquement pendant le cours"] <- 1
+surveys$New.friend.rec=factor(surveys$New.friend.rec)
+surveys$New.friend=factor(surveys$New.friend)
+
+a=with(surveys[which(surveys$First.MOOC=="Non"),], summary(New.friend))
+
+A=with(surveys[which(surveys$First.MOOC=="Non"),], table(New.friend,Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+# Comment ?a a ?chang?
+
+with(surveys[which(surveys$First.MOOC=="Non"),], summary(New.friend.who))
+
+lev.face.face2=levels(surveys$New.friend.who)[grep("face-?-face, ? deux", levels(surveys$New.friend.who))]
+lev.mail=levels(surveys$New.friend.who)[grep("envoy? des mails", levels(surveys$New.friend.who))]
+lev.synchro=levels(surveys$New.friend.who)[grep("? distance de mani?re synchrone", levels(surveys$New.friend.who))]
+lev.groupe=levels(surveys$New.friend.who)[grep("3 personnes", levels(surveys$New.friend.who))]
+lev.res.soc=levels(surveys$New.friend.who)[grep("via les r?seaux sociaux", levels(surveys$New.friend.who))]
+
+surveys$face.face2=rep(0, nrow(surveys))
+surveys$mail=rep(0, nrow(surveys))
+surveys$synchro=rep(0, nrow(surveys))
+surveys$groupe=rep(0, nrow(surveys))
+surveys$res.soc=rep(0, nrow(surveys))
+
+surveys[which(surveys$New.friend.who  %in% lev.face.face2),]$face.face2=1
+surveys[which(surveys$New.friend.who  %in% lev.mail),]$mail=1
+surveys[which(surveys$New.friend.who  %in% lev.synchro),]$synchro=1
+surveys[which(surveys$New.friend.who  %in% lev.groupe),]$groupe=1
+surveys[which(surveys$New.friend.who  %in% lev.res.soc),]$res.soc=1
+
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], table(as.factor(face.face2), Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], table(as.factor(mail), Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], table(as.factor(synchro), Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], table(as.factor(groupe), Course))
+A=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], table(as.factor(res.soc), Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(face.face2)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(mail)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(synchro)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(groupe)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(res.soc)))
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names(surveys)                                                     
+
+# nature des interactions
+
+with(surveys[which(surveys$First.MOOC=="Non"),], summary(New.friend.how))
+
+lev.ens.act.ind=levels(surveys$New.friend.how)[grep("activit?s individuelles", levels(surveys$New.friend.how))]
+lev.ens.act.col=levels(surveys$New.friend.how)[grep("activit?s collectives", levels(surveys$New.friend.how))]
+lev.encour=levels(surveys$New.friend.how)[grep("encourag?s mutuellement", levels(surveys$New.friend.how))]
+lev.ech=levels(surveys$New.friend.how)[grep("Nous avons ?chang? sur le cours", levels(surveys$New.friend.how))]
+
+summary(surveys$New.friend.how)
+
+surveys$ens.act.ind=rep(0, nrow(surveys))
+surveys$ens.act.col=rep(0, nrow(surveys))
+surveys$encour=rep(0, nrow(surveys))
+surveys$ech=rep(0, nrow(surveys))
+
+surveys[which(surveys$New.friend.how  %in% lev.ens.act.ind),]$ens.act.ind=1
+surveys[which(surveys$New.friend.how  %in% lev.ens.act.col),]$ens.act.col=1
+surveys[which(surveys$New.friend.how  %in% lev.encour),]$encour=1
+surveys[which(surveys$New.friend.how  %in% lev.ech),]$ech=1
+surveys[which(surveys$New.friend.how  %in% lev.reg.vid),]$reg.vid=1
+
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(ens.act.ind)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(ens.act.col)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(encour)))
+a=with(surveys[which((surveys$First.MOOC=="Non")&(surveys$New.friend.rec==1)),], summary(as.factor(ech)))
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+
+# Genre   Pas tr?s int?ressant car on a les donn?es de FUN
+
+names.col=c("Course", "Gender")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])   
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+A=with(surveys, table(Gender, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Gender, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names(surveys.fun)[which(names(surveys.fun)=="year_of_birth")]="Birth.date"
+names.col=c("Course", "Birth.date")
+
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])   
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+A=with(surveys, table(Gender, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Gender, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Caract?re op?ratoire des motivations
+
+
+names(surveys.gform)[which(names(surveys.gform)=="project.motiv")]="Project.motiv"
+names.col=c("Course", "Project.motiv")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])   
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+summary(surveys$Project.motiv)
+
+summary(surveys$Posture)
+levels(surveys$Posture)[2]
+
+surveys$Project.motiv.rec <- as.character(surveys$Project.motiv)
+surveys$Project.motiv.rec[surveys$Project.motiv == "Oui, pour un projet futur, dans le cadre de mon travail"] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Oui, pour un projet futur, hors du cadre de mon travail"] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances ? l'avenir, je n'ai pas de projet imm?diat"] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances ? l?avenir, mais hors du cadre de mon travail, je n?ai pas de projet imm?diat"] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances ? l?avenir dans le cadre de mon travail, je n?ai pas de projet imm?diat"] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Oui, pour un projet sur lequel je travaille actuellement, dans le cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Oui, pour un projet sur lequel je travaille actuellement, hors du cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances dans un projet sur lequel je travaille actuellemen"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances dans un projet sur lequel je travaille actuellement dans le cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances dans un projet sur lequel je travaille actuellement, dans le cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour appliquer les comp?tences et connaissances dans un projet sur lequel je travaille actuellement, hors du cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+
+surveys$Project.motiv.rec[surveys$Project.motiv == "sans intention d\u0092appliquer les connaissances ou comp?tences acquises"] <- "Non, je n'ai pas l'intention d?appliquer les connaissances ou comp?tences acquises dans un projet concret"
+surveys$Project.motiv.rec[surveys$Project.motiv == "Pour le plaisir essentiellement, sans intention d'appliquer les connaissances ou comp?tences acquises"] <- "sans intention d?appliquer les connaissances ou comp?tences acquises"
+surveys$Project.motiv.rec[surveys$Project.motiv == "sans intention d?appliquer les connaissances ou comp?tences acquises"] <- "Non, je n'ai pas l'intention d?appliquer les connaissances ou comp?tences acquises dans un projet concret"
+surveys$Project.motiv.rec=factor(surveys$Project.motiv.rec)
+summary(surveys$Project.motiv.rec)
+levels(surveys$Project.motiv.rec)[4]
+levels(surveys$Project.motiv.rec)[5]
+
+surveys$Project.motiv.rec[surveys$Project.motiv == levels(surveys$Project.motiv.rec)[4]] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv == levels(surveys$Project.motiv.rec)[5]] <- "Oui, pour un projet futur"
+surveys$Project.motiv.rec[surveys$Project.motiv.rec == levels(surveys$Project.motiv.rec)[6]] <- levels(surveys$Project.motiv.rec)[1]
+surveys$Project.motiv.rec[surveys$Project.motiv.rec == levels(surveys$Project.motiv.rec)[7]] <- levels(surveys$Project.motiv.rec)[1]
+surveys$Project.motiv.rec=factor(surveys$Project.motiv.rec)
+
+A=with(surveys, table(Project.motiv.rec, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys, chisq.test(Project.motiv.rec, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+summary(surveys$Project.motiv.rec)
+
+
+# GFORM Uniquement
+summary(surveys.gform$project.motiv)
+surveys.gform$project.motiv.rec=surveys.gform$project.motiv
+
+levels(surveys.gform$project.motiv.rec)
+
+surveys.gform$project.motiv.rec[surveys.gform$project.motiv == "Oui, pour un projet futur, dans le cadre de mon travail"] <- "Oui, pour un projet futur"
+surveys.gform$project.motiv.rec[surveys.gform$project.motiv == "Oui, pour un projet futur, hors du cadre de mon travail"] <- "Oui, pour un projet futur"
+surveys.gform$project.motiv.rec[surveys.gform$project.motiv == "Oui, pour un projet sur lequel je travaille actuellement, dans le cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys.gform$project.motiv.rec[surveys.gform$project.motiv == "Oui, pour un projet sur lequel je travaille actuellement, hors du cadre de mon travail"] <- "Oui, pour un projet sur lequel je travaille actuellement"
+surveys.gform$project.motiv.rec=factor(surveys.gform$project.motiv.rec)
+summary(surveys.gform$project.motiv.rec)
+
+
+# Connaissance de l'institution
+
+names(surveys.gform)
+ with(surveys.gform, table(Instit.motiv, Course))
+
+surveys.gform$Instit.motiv.rec <- as.character(surveys.gform$Instit.motiv)
+surveys.gform$Instit.motiv.rec[surveys.gform$Course =="Animafac" ] <- NA
+surveys.gform$Instit.motiv.rec[surveys.gform$Instit.motiv =="J'y travaille ou j'y ai travaillé" ] <- NA
+surveys.gform$Instit.motiv.rec[surveys.gform$Instit.motiv =="J'ai collaboré avec Animafac, de prés ou de loin" ] <- NA
+surveys.gform$Instit.motiv.rec[surveys.gform$Instit.motiv =="J'y fais ou j'y ai fait des études ou des formations" ] <- "J'ai fait des études ou des formations avec/chez eux"
+surveys.gform$Instit.motiv.rec[surveys.gform$Instit.motiv =="J'y ai travaillé ou fait des études" ] <- "J'ai fait des études ou des formations avec/chez eux"
+surveys.gform$Instit.motiv.rec[surveys.gform$Instit.motiv =="Je connaissais l'institution de réputation" ] <- "Je connaissais de réputation"
+
+surveys.gform$Instit.motiv.rec=factor(surveys.gform$Instit.motiv.rec)
+summary(surveys.gform$Instit.motiv.rec)
+
+A=with(surveys.gform,  table(Instit.motiv.rec, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Instit.motiv.rec, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Temps Dispo
+
+names.col=c("Course", "Temps.Dispo")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])   
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+summary(surveys$Temps.Dispo)
+summary(surveys.fun$Temps.Dispo)
+summary(surveys.gform$Temps.Dispo)
+
+# On est oblig? de les faire s?par?ment 
+surveys.gform[surveys.gform == ""] <- NA
+surveys.gform$Temps.Dispo=factor(surveys.gform$Temps.Dispo)
+A=with(surveys.gform,  table(Temps.Dispo, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Temps.Dispo, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# On est oblig? de les faire s?par?ment 
+surveys.fun[surveys.fun == ""] <- NA
+surveys.fun$Temps.Dispo=factor(surveys.fun$Temps.Dispo)
+A=with(surveys.fun,  table(Temps.Dispo, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.fun, chisq.test(Temps.Dispo, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Niveau de formation
+
+names.col=c("Course", "Stud.train")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])   
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+
+summary(surveys.gform$Stud.train)
+summary(surveys.fun$Stud.train)
+
+with(surveys.fun, table(Course, Stud.train))
+
+with(surveys.fun, table(Course, Post.stud.train))
+
+
+A=with(surveys.gform, table(Stud.train, Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Stud.train, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+A=with(surveys.gform, table(Post.stud.train, Course))
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Post.stud.train, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+
+
+
+
+# D?couverte des MOOC
+summary(surveys.gform$Discovery.motiv)
+
+A=with(surveys.gform, table(Discovery.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Discovery.motiv, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names(surveys.gform)
+
+# Intention de terminer un MOOC
+
+A=with(surveys.gform, table(Complete.def, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Complete.def, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Idem sur surveys FUN
+
+names(surveys.fun)
+
+
+A=with(surveys.fun, table(video.int, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+A=with(surveys.fun, table(activ.int, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+A=with(surveys.fun, table(complet.intent, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+A=with(surveys.fun, table(Proba.comp, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+A=with(surveys.fun, table(Mean.Intention, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+
+"video.int"          "activ.int"          "complet.intent"      "Mean.Intention"     "Proba.comp"  
+
+A=with(surveys.fun[which(surveys.fun$Course %in% c("EQDF", "PDM")),], table(activ.int, Course))
+
+# Intention eu ?gard au CV
+
+A=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], table(MOOC.on.CV, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], chisq.test(MOOC.on.CV, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Prise de notes
+
+A=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], table(note.taking, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], chisq.test(note.taking, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Comment ont eu vent du cours
+summary(surveys.gform$How.regist)
+
+surveys.gform$How.regist.rec=surveys.gform$How.regist
+
+surveys.gform[surveys.gform==""]=NA
+
+lev=attributes(head(summary(surveys.gform$How.regist.rec), 4))$names
+levels(surveys.gform$How.regist.rec)=c(levels(surveys.gform$How.regist.rec), "Autre") 
+#surveys.gform$How.regist.rec[which(!(surveys.gform.rec$How.regist %in%  lev))]="Autre"
+surveys.gform$How.regist.rec[which(!(surveys.gform$How.regist.rec %in%  lev))]=NA
+surveys.gform$How.regist.rec=factor(surveys.gform$How.regist.rec)
+summary(surveys.gform$How.regist.rec)
+
+A=with(surveys.gform, table(How.regist, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(How.regist, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# MOOC abandonn?es
+
+A=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], table(MOOC.dropped, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], chisq.test(MOOC.dropped, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Motivation interaction
+
+surveys.gform[surveys.gform==""]=NA
+A=with(surveys.gform, table(Interact.motiv, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(Interact.motiv, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# MOOC termin?s
+
+A=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], table(MOOC.finished, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform[which(surveys.gform$First.MOOC=="Non"),], chisq.test(MOOC.finished, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+A=with(surveys.fun, table(MOOC.finished, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.fun, chisq.test(MOOC.finished, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+
+
+
+# MOOC en simultan?
+A=with(surveys.gform, table(sim.MOOC, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(sim.MOOC, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+surveys.fun$sim.MOOC[surveys.fun$sim.MOOC=="1" ] <- "Oui, un"
+surveys.fun$sim.MOOC[surveys.fun$sim.MOOC =="2" ] <- "Oui, plusieurs"
+surveys.fun$sim.MOOC[surveys.fun$sim.MOOC =="3 et plus" ] <- "Oui, plusieurs"
+surveys.fun$sim.MOOC[surveys.fun$sim.MOOC =="Non" ] <- "Aucun"
+surveys.fun$sim.MOOC=factor(surveys.fun$sim.MOOC)
+
+A=with(surveys.fun, table(sim.MOOC, Course))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(t(B), "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(sim.MOOC, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+# Motivation principale pour suivre le MOOC
+
+names.col=c("Course", "MOOC.motiv")
+surveys=rbind(surveys.fun[names.col], surveys.gform[names.col])   
+surveys[surveys == ""] <- NA
+for (i in 1:ncol(surveys)) {surveys[,i]=factor(surveys[,i])}
+summary(surveys.fun$MOOC.motiv)
+
+with(surveys.fun, table(Course,MOOC.motiv))
+
+
+
+summary(surveys.gform$MOOC.motiv)
+summary(surveys$MOOC.motiv)
+
+levels(surveys$MOOC.motiv)=c(levels(surveys$MOOC.motiv), "Autre")
+
+lev=attributes(head(summary(surveys$MOOC.motiv), 6))$names 
+surveys$MOOC.motiv[which(!(surveys$MOOC.motiv %in%  lev))]=NA
+surveys$MOOC.motiv=factor(surveys$MOOC.motiv)
+
+A=with(surveys.gform, table(Course,MOOC.motiv))
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+
+A=chi$residuals
+A=with(surveys, table(MOOC.motiv, Certif.motiv))
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform, chisq.test(MOOC.motiv, Course))
+a=t(chi$residuals)
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+surveys.gform=merge(surveys.gform, countries.HDI, by="Country")
+
+write.csv(surveys.gform, "Surveys.gform.rec.csv", row.names=F)
+
+# Petite réflexion sur le fait qu'on peut être formé après et pas avant
+
+surveys.gform=surveys
+surveys.gform$Train=surveys.gform$Stud.train
+
+levels(surveys.gform$Post.stud.train)
+
+surveys.gform[which(surveys.gform$Post.stud.train=="Oui, une brève formation"),]$Train="Oui, une brève formation"
+surveys.gform[which(surveys.gform$Post.stud.train=="Oui, une spécialisation"),]$Train="Oui, une spécialisation"
+
+
+A=with(surveys.gform, table(Train, Course))
+A=with(surveys.gform, table(Train, Certif.motiv))
+A=with(surveys.gform, table(Exp.theme, Certif.motiv))
+A=with(surveys.gform, table(Post.stud.train, Course))
+A=with(surveys.gform, table(Posture, Complete.def))
+
+levels(surveys.gform$Post.stud.train)
+levels(surveys.gform$Stud.train)
+
+A=with(surveys.gform, table(Post.stud.train, Stud.train)) # Lien entre formation initiale et formation continue
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+A=with(surveys.gform, table(Train, Post.stud.train))
+A=with(surveys.gform, table(Train, job.freq))
+
+A=with(surveys.gform[which(surveys.gform$Certif.motiv==levels(surveys.gform$Certif.motiv)[2]),], table(Train, job.freq))
+A=with(surveys.gform[which(surveys.gform$Certif.motiv==levels(surveys.gform$Certif.motiv)[3]),], table(Train, job.freq))
+
+summary(surveys.gform$note.taking)
+
+
+surveys.gform[which(surveys.gform$Post.stud.train==levels(surveys.gform$Post.stud.train)[3]),]$Train=levels(surveys.gform$Stud.train)[3]
+surveys.gform[which(surveys.gform$Post.stud.train==levels(surveys.gform$Post.stud.train)[4]),]$Train=levels(surveys.gform$Stud.train)[4]
+  
+  rep(NA, nrow(surveys.gform))
+
+
+
+
+
+###### Analyses chapitre Motivation ##########
+
+lev1=levels(surveys.gform$Certif.motiv)[3]
+lev2=levels(surveys.gform$Certif.motiv)[2]
+
+A=with(surveys.gform, table(Certif.motiv, job.status.rec))
+A=with(surveys.gform, table(Certif.motiv, Posture))
+A=with(surveys.gform, table(Certif.motiv, CSP3.rec))
+
+surveys.gform[surveys.gform==""]=NA
+surveys.gform$Certif.motiv=factor(surveys.gform$Certif.motiv)
+
+A=with(surveys.gform[which(surveys.gform$Certif.motiv==lev1),], table(job.freq, Stud.train))
+A=with(surveys.gform[which(surveys.gform$Certif.motiv==lev1),], table(job.freq, Post.stud.train))
+A=with(surveys.gform[which(surveys.gform$Certif.motiv==lev1),], table(job.freq, Train))
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+chi=with(surveys.gform[which(surveys.gform$Certif.motiv==lev1),], chisq.test(job.freq, Stud.train))
+chi=with(surveys.gform[which(surveys.gform$Certif.motiv==lev1),], chisq.test(job.freq, Post.stud.train))
+#chi=with(surveys.gform[which(surveys.gform$Certif.motiv==lev2),], chisq.test(job.freq, Stud.train))
+
+
+chi=with(surveys.gform, chisq.test(Discovery.motiv, Complete.def))
+
+
+A=chi$residuals
+A=chi$observed
+
+
+
+chi=with(surveys.gform, chisq.test(How.regist.rec, Complete.def))
+
+chi=with(surveys.gform[which(surveys.gform$How.regist.rec!=levels(surveys.gform$How.regist.rec)[4]),], chisq.test(How.regist.rec, sim.MOOC))
+A=with(surveys.gform[which(surveys.gform$How.regist.rec!=levels(surveys.gform$How.regist.rec)[4]),], table(How.regist.rec, sim.MOOC))
+
+
+
+A=with(surveys.gform, table(How.regist.rec, Complete.def))
+A
+names(surveys.gform)
+
+
+
+
+
+#########################################################################
+############## Compilation Questionnaires FUN ###########################
+#########################################################################
+
+
+########## Chargement des questionnaires d'int?r?t ######################
+
+
+# MOOC EMI
+
+path="C:/MOOC_Data/EMI"
+setwd(path)
+quest.init.emi=read.csv("quest.init.emi.rec.csv", h=T, sep=",")
+
+# MOOC D?veloppement et durabilit?
+
+path="C:/MOOC_Data/DD"
+setwd(path)
+quest.init.dd=read.csv("quest.init.dd.rec.csv", h=T, sep=",")
+
+# MOOC MOOCAZ
+
+path="C:/MOOC_Data/MOOCAZ"
+setwd(path)
+quest.init.moocaz1=read.csv("quest.init.moocaz1.rec.csv", h=T, sep=",")
+quest.init.moocaz2=read.csv("quest.init.moocaz2.rec.csv", h=T, sep=",")
+quest.init.moocaz3=read.csv("quest.init.moocaz3.rec.csv", h=T, sep=",")
+
+# MOOC Equadiff C?dric Villani
+
+path="C:/MOOC_Data/Equadiff"
+setwd(path)
+quest.init.equadiff=read.csv("quest.init.equadiff.rec.csv", h=T, sep=",")
+
+# MOOC Pratique du dimensionnement m?canique
+
+path="C:/MOOC_Data/PDM"
+setwd(path)
+quest.init.pdm=read.csv("quest.init.pdm.rec.csv", h=T, sep=",")
+
+# MOOC FBD
+
+path="C:/MOOC_Data/fbd"
+setwd(path)
+quest.init.fbd=read.csv("quest.init.fbd.rec.csv", h=T, sep=",")   # Merde, qu'est-ce qui s'est pass?
+
+# Introduction ? la statistique avec R
+
+path="C:/MOOC_Data/IntroR"
+setwd(path)
+
+quest.init.rmooc1=read.csv("quest.init.rmooc1.rec.csv", h=T, sep=";")
+quest.init.rmooc2=read.csv("quest.init.rmooc2.rec.csv", h=T, sep=",")
+quest.init.rmooc3=read.csv("quest.init.rmooc3.rec.csv", h=T, sep=",")
+quest.init.rmooc4=read.csv("quest.init.rmooc4.rec.csv", h=T, sep=",")
+
+summary(quest.init.rmooc2)
+
+####################### Identification des variables communes ########################
+
+names(quest.init.emi)
+names(quest.init.dd)
+names(quest.init.equadiff)
+names(quest.init.pdm)
+names(quest.init.moocaz1)
+names(quest.init.moocaz2)
+names(quest.init.moocaz3)
+names(quest.init.rmooc1)
+
+summary(quest.init.rmooc1)
+names(quest.init.rmooc1)
+names(quest.init.rmooc2)
+names(quest.init.rmooc3)
+names(quest.init.rmooc4)
+
+names.compil=c("Course", "id", "gender", "year_of_birth", "level_of_education", "Country", "Diploma", "Formation", "CSP", "CSP3","Gender", "Student.type", "job.status", "sector.type", "sector", "job.size",  "Temps.Dispo",
+"Time.MOOC", "Mean.Intention","Proba.comp","Project.motiv", "Interact.motiv","Certif.motiv","Incit.motiv", "How.regist","Motiv.pro", "Instit.motiv", "video.int", "activ.int",  "complet.intent","certif.intent", 
+"MOOC.motiv","Accomp", "Recommand", "Exp.theme", "Stud.train","Post.stud.train","job.freq",  "learn.mode","MOOC.started","MOOC.finished", "Motiv", "Exp.MOOC",  "Freq.stat", "Project.motiv","sim.MOOC",  "Exp.FOAD", "training") 
+
+Quest.compil.FUN=rep(NA, 1 , length(names.compil))
+names(Quest.compil.FUN)=names.compil
+
+quest.init.mooc= quest.init.rmooc1
+quest.init.mooc= quest.init.rmooc2
+quest.init.mooc= quest.init.rmooc3
+quest.init.mooc= quest.init.rmooc4
+quest.init.mooc= quest.init.moocaz1
+quest.init.mooc= quest.init.moocaz2
+quest.init.mooc= quest.init.moocaz3
+quest.init.mooc= quest.init.pdm
+quest.init.mooc= quest.init.equadiff
+quest.init.mooc= quest.init.dd
+quest.init.mooc= quest.init.emi
+
+write.table
+write.table(quest.init.mooc$Motiv.choice, "clipboard-16324", sep="\t", row.names=T)
+
+
+path="C:/MOOC_Data/Questionnaires/ "
+setwd(path)
+
+summary(quest.init.mooc)
+names(quest.init.mooc)[which(names(quest.init.mooc)=="Intention.video")]="video.int"  # Changer les noms qui doivent l'?tre
+names(quest.init.mooc)[which(names(quest.init.mooc)=="Intention.video")]="video.int"  # Changer les noms qui doivent l'?tre
+
+
+# names(quest.init.emi)[which(names(quest.init.emi)=="CSP")]="CSP3"     # Je mets en place deux colonnes pour les CSP car on a fait deux questions diff?rentes selon les questionnaires
+setdiff(names.compil, names(quest.init.mooc))
+setdiff(names(quest.init.mooc),names.compil)
+
+names.2.keep=names(quest.init.mooc)[which(names(quest.init.mooc)%in%names.compil)]
+head(quest.init.mooc[,names.2.keep])
+names.2.add= setdiff(names.compil, names.2.keep)
+quest.init.mooc=quest.init.mooc[,names.2.keep]  # On ?limine les colonnes en trop dans le MOOC que l'on compil en ne conservant que les colonnes d'int?r?t
+quest.init.mooc[,names.2.add]=NA  # Au contraire, on rajoute les colonnes inexistantes dans le fichier d'int?r?t
+summary(quest.init.mooc)
+quest.init.mooc$Course=as.factor("PDM")  
+int.1=intersect(names(quest.init.mooc), names(Quest.compil.FUN))     # On va utiliser ce petit code pour mettre les noms dans le m?me ordre
+
+# On a le probl?me des lignes NA, ? prendre au cas par cas
+numNAs <- apply(quest.init.mooc[,int.1], 1, function(z) sum(is.na(z)))
+numNAs 
+N=27  # Fixer le chiffre qui correspond ? une ligne vide
+quest.init.mooc.1=quest.init.mooc[which(numNAs<N),int.1]
+
+
+write.csv(quest.init.mooc.1[,right.order], "pdm.csv",  row.names=F)
+
+right.order=c("id","gender","year_of_birth","level_of_education","Gender","Diploma","Formation","CSP","Student.type","job.status","Country","Exp.theme","Exp.MOOC","Freq.stat",
+"Project.motiv","Certif.motiv","Accomp","Temps.Dispo","video.int","activ.int","complet.intent","certif.intent","Course","CSP3","sector.type","sector","job.size","Time.MOOC","Mean.Intention",
+"Proba.comp","Interact.motiv","Incit.motiv","How.regist","Motiv.pro","Instit.motiv","MOOC.motiv","Recommand","Stud.train","Post.stud.train","job.freq","learn.mode","MOOC.started","MOOC.finished",
+"Motiv","sim.MOOC","Exp.FOAD")
+
+
+
+Quest.compil.FUN[,int.1]=rbind(Quest.compil.FUN[,int.1],quest.init.mooc[,int.1])  # On compil
+
+
+
+   # Rajouter la colonne li?e au cours
+
+
+quest.init.emi$Course=as.factor("EMI")
+
+names(quest.init.emi)
+
+
+summary(Quest.compil.FUN1)
+
+quest.init.dd$Course=as.factor("DD")
+quest.init.dd$Course=rep(NA, nrow(quest.init.dd))
+names(quest.init.dd)[which(names(quest.init.dd)=="CSP")]="CSP3" # On remet bien les noms des colonnes comme il faut
+Quest.compil.FUN2=rbind(Quest.compil.FUN1,quest.init.dd[,which(names(quest.init.dd)%in%names.compil)])
+summary(Quest.compil.FUN2)
+
+quest.init.moocaz1$Course=rep(NA, nrow(quest.init.moocaz1))
+quest.init.moocaz1$Course=as.factor("MOOCAZ1")
+names(quest.init.moocaz1)[which(names(quest.init.moocaz1)=="Intention.video")]="video.int"
+names(quest.init.moocaz1)
+head(quest.init.moocaz1, 5)
+
+setdiff( names(quest.init.moocaz1), names.compil)
+
+names.diff=setdiff(names.compil, names(quest.init.moocaz1)[which(names(quest.init.moocaz1)%in%names.compil)]) # Trucs qui manquent
+names.diff
+names(quest.init.moocaz1)[which(names(quest.init.moocaz1)%in%names.compil)]
+
+summary(quest.init.moocaz1$Exp.theme)
+
+int=intersect(names(quest.init.moocaz1),names(Quest.compil.FUN2)) 
+
+test=rbind(Quest.compil.FUN2[,int],quest.init.moocaz1[,int])
+summary(test)
+
+
+Quest.compil.FUN2[,int]
+
+
+
+quest.init.moocaz1[,int][which(numNAs<29),]
+
+int=intersect(names(quest.init.rmooc1),names(Quest.compil.FUN2)) 
+
+quest.init.rmooc1[,int]
+numNAs <- apply(quest.init.rmooc1[,int], 1, function(z) sum(is.na(z)))
+quest.init.rmooc1[,int][which(numNAs<11),]
+
+
+write.csv(Quest.compil.FUN2[,int], "compil.1.csv",  row.names=F)
+
+
+summary(quest.init.moocaz1)
+
+setdiff(names(quest.init.moocaz1[,col.nam]),names.compil) # Les noms qui manquent
+
+match(names(quest.init.moocaz1)[col.nam],names.compil) 
+
+quest.init.moocaz1
+
+Quest.compil.FUN3=rbind(Quest.compil.FUN2,quest.init.moocaz1[,col.nam])
+summary(Quest.compil.FUN3)
+
+b.toAdd <- setdiff (names(Quest.compil.FUN2), names(quest.init.moocaz1))
+if (length(b.toAdd))
+  b[, b.toAdd] <- NA
+
+a.toAdd <- setdiff (names(b), names(a))
+if (length(a.toAdd))
+  a[, a.toAdd] <- NA
+
+rbind(a, b)
+
+
+
+summary(quest.init.moocaz1)
+
+summary(Quest.compil.FUN3)
+
+
+
+
+b.toAdd <- setdiff (names(quest.init.emi), names(Quest.compil.FUN))
+if (length(b.toAdd))
+ Quest.compil.FUN[, b.toAdd] 
+ 
+
+a.toAdd <- setdiff (names(b), names(a))
+if (length(a.toAdd))
+  a[, a.toAdd] <- NA
+
+rbind(a, b)
+ 
+
+### 
+names(surveys)
+A=with(surveys, table(project.motiv.rec, Posture))
+
+A=with(surveys, table(project.motiv.rec, How.regist.rec))
+
+write.table(t(B), "clipboard-6384", sep="\t", row.names=T)
+
+
+A=with(surveys, aggregate( by=list(project.motiv.rec,How.regist.rec, Posture), FUN=sum))
+
+A=with(surveys, chisq.test( CSP3.rec, Complete.def ))
+
+A=with(surveys, chisq.test( Instit.motiv, Certif.motiv ))
+
+A=with(surveys, chisq.test( business.sector.rec, Discovery.motiv ))
+
+business.sector.rec
+
+A=prop.table(table(surveys$CSP3.rec))*100
+A=with(surveys, table( CSP3.rec, Course))
+
+summary(surveys$CSP3.rec)
+
+
+B=NULL
+for (i in 1:ncol(A)) {B=cbind(B, A[,i]/margin.table(A,2)[i]*100) }
+colnames(B)= colnames(A)
+B
+
+A$residuals
+
+
