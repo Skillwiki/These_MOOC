@@ -1,0 +1,1398 @@
+
+path="C:/Users/Matthieu/Dropbox/MOOC/GdP1/Analytics/Data"
+setwd(path)
+gdp1=read.csv("MOOC.gdp1.210214.csv", h=T, sep=",")
+
+
+path="C:/MOOC_Data/EMOOCs"
+setwd(path)
+
+effec.quest.1=read.csv("effec1.quest.compil.csv", h=T, sep=",")
+effec.quest.2=read.csv("effec2.quest.compil.csv", h=T, sep=",")
+effec.quest.3=read.csv("effec3.quest.compil.csv", h=T, sep=",")
+effec.quest.3=effec.quest.3 #Eliminer des analyses les ?tudiants en cursus ? l'EM Lyon pour ?viter tout biais
+effec.quest.2=effec.quest.2[-which((effec.quest.2$EMLyon=="Oui")&(effec.quest.2$CSP=="Etudiants")),] #Eliminer des analyses les ?tudiants en cursus ? l'EM Lyon pour ?viter tout biais
+effec.log.1=read.csv("usages.effec1.csv", h=T, sep=",")
+effec.log.2=read.csv("usages.effec2.csv", h=T, sep=",")
+effec.log.3=read.csv("usages.effec3.csv", h=T, sep=",") 
+gdp2.quest=read.csv("gdp2.quest.compil.csv", h=T, sep=",")
+gdp2.log=read.csv("usages.gdp2.csv", h=T, sep=",")
+#gdp2.capt=gdp2.log[which(gdp2.log$Captif.etud==1),]  
+gdp2.log=gdp2.log[which(gdp2.log$Captif.etud==0),]   
+
+names( gdp2.quest)
+
+A=with(gdp2.log, table(cert.tot.bin, Captif.etud))
+
+
+
+
+summary(gdp2.capt)
+summary(gdp2.log)
+summary(gdp2.capt$cert.tot.bin)         # 0.8618
+summary(gdp2.log$cert.tot.bin)         # 0.3043
+
+mod=with(gdp2.log, glm(cert.tot.bin~as.factor(Captif.etud), family="binomial"))
+summary(mod)
+anova(mod)
+# exp(+ 2.81061) [1] 16.6200   OR ?tudiants pas ?tudiant    < 10 -16
+
+sum
+
+gdp2=merge(gdp2.quest, gdp2.log, by.x=("Student_ID"))
+effec.1=merge(effec.quest.1, effec.log.1, by.x=("Student_ID"))
+effec.2=merge(effec.quest.2, effec.log.2, by.x=("Student_ID"))
+effec.3=merge(effec.quest.3, effec.log.3, by.x=("Student_ID"))
+effec.3=effec.3[which(effec.3$EMLYON.et=="Non"),]
+summary(effec.3)
+
+nrow(effec.1)
+summary(effec.quest.2)
+
+# Compter les bystanders, les non-completers et les completers  #Grosse embrouille autour de la d?finition
+
+#Sur GDP1
+summary(gdp1)
+summary(gdp1[which(gdp1$Quizz_completion==0),])
+summary(as.factor(gdp1[which(gdp1$Quizz_completion==0),]$Assignment_1))   #Personne qui fait pas les quizz mais rend les devoirs
+nrow(gdp1[which((gdp1$Quizz_completion==0)|(is.na(gdp1$Quizz_completion)==T)),])
+
+nrow(gdp1[which(((gdp1$Quizz_completion==0))&(gdp1$wiki>=4)),])       #Auditing +
+nrow(gdp1[which((gdp1$Quizz_completion==0)&(gdp1$wiki<4)),]) + nrow(gdp1[which(is.na(gdp1$Quizz_completion)==T),])    # Auditing -
+nrow(gdp1[which((gdp1$Quizz_completion>0)&(gdp1$cert.tot.bin==0)),])   # Voil? mes non completers !
+
+summary(gdp1$skip.eval)
+
+
+a=summary(as.factor(gdp1[which(gdp1$cert.av.bin==1),]$nb.assignment.tot))  # Certifi?s avanc?s qui n'ont fait que trois devoirs
+a=summary(as.factor(gdp1[which(gdp1$cert.av.bin==1),]$nb.comments_eval.tot))     # Commentaires laiss?s sur les devoirs
+a=summary(as.factor(gdp1[which(gdp1$cert.av.bin==1),]$skip.eval))     # Commentaires laiss?s sur les devoirs
+a=summary(as.factor(gdp1[which(gdp1$cert.av.bin==1),]$nb.eval.tot))     # Evaluations r?alis?es
+
+a=with(, aggregate(nb.assignment.tot, by=list(Category=as.factor()), FUN=mean))
+a=with(gdp1, aggregate(100*prop.videos.vues/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+
+
+#Sur GdP2
+names(gdp2)
+sum(gdp2$vid.sem.2.nul, na.rm=T)
+summary(gdp2[which(gdp2$sum.quizz.tot==0),])
+gdp2[which(gdp2$sum.quizz.tot==0),]
+names(gdp2)
+
+gdp2$sum.quizz=(apply(gdp2[,c(113:141)],1,sum))
+hist(gdp2$sum.quizz)
+
+nrow((gdp2[which((gdp2$sum.quizz>0)&(gdp2$cert.tot.bin==0)),]))     # Non completers 
+nrow(gdp2[which((gdp2$cert.tot.bin>0)),])                # Completers 
+
+nrow(gdp2[which(gdp2$sum.quizz==0),]) + nrow(gdp2[which(is.na(gdp2$sum.quizz)==T),]) # Auditing
+nrow(gdp2[which((gdp2$sum.quizz==0)&(gdp2$videos.deciles>=1)),]) #Auditing +
+nrow(gdp2[which((gdp2$sum.quizz==0)&(gdp2$videos.deciles<1)),])+nrow(gdp2[which((gdp2$sum.quizz==0)&(is.na(gdp2$videos.deciles)==T)),])   #Auditing -
+
+nrow(gdp2[which((gdp2$prop.videos.vues==0)&(gdp2$sum.quizz.tot==0)),])+nrow(gdp2[which(is.na(gdp2$prop.videos.vues)==T),])  #Bystanders
+
+
+a=summary(as.factor(gdp2[which(gdp2$cert.av.bin==1),]$nb.assignment.tot))  # Certifi?s avanc?s qui n'ont fait que trois devoirs
+a=summary(as.factor(gdp2[which(gdp2$cert.av.bin==1),]$nb.eval.tot))     # Evaluations r?alis?es
+a=summary(as.factor(gdp2[which(gdp2$cert.av.bin==1),]$nb.comments_eval.tot))     # Commentaires laiss?s
+a=summary(as.factor(gdp2[which(gdp2$cert.av.bin==1),]$skip.eval))     #
+
+
+a=with(, aggregate(nb.assignment.tot, by=list(Category=as.factor()), FUN=mean))
+a=with(gdp1, aggregate(100*prop.videos.vues/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names(gdp2.log)
+
+[which(gdp2.log$Captif.etud==0),] 
+
+
+# Sur effectuation   1
+
+summary(as.factor(effec.log.2$Assignment.bin))
+hist(effec.log.3$Assignment.score)
+
+
+nrow(effec.log.1[which((effec.log.1$Assignment.bin==0)&(effec.log.1$last.quizz>0)),])    # Non completers
+nrow(effec.log.1[which((effec.log.1$Assignment.bin==0)&(effec.log.1$last.quizz==0)),])        #Auditeurs
+nrow(effec.log.1[which((effec.log.1$Assignment.bin==0)&(effec.log.1$last.quizz==0)&(effec.log.1$last.video>=4)),])
+nrow(effec.1[which((effec.1$Assignment.bin==0)&(effec.1$last.quizz==0)&(effec.1$videos.deciles>=1)),])      #Auditeurs
+nrow(effec.1[which((effec.1$Assignment.bin==0)&(effec.1$last.quizz==0)&(effec.1$videos.deciles==0)),])  #Bystanders
+nrow(effec.log.1[which((effec.log.1$Assignment.bin>0)&(effec.log.1$last.quizz==0)),])  # Emmerders
+
+nrow(effec.log.1)
+names(effec.log.1)
+summary(effec.log.1$last.quizz)
+summary(effec.log.1)
+summary(effec.log.1$Assignment.bin)
+
+
+# Effectuation 2
+
+
+nrow(effec.log.2[which((effec.log.2$Assignment.bin==0)&(effec.log.2$last.quizz>0)),])    # Non completers
+nrow(effec.log.2[which((effec.log.2$Assignment.bin==0)&(effec.log.2$last.quizz==0)),])        #Auditeurs
+nrow(effec.2[which((effec.2$Assignment.bin==0)&(effec.2$last.quizz==0)&(effec.2$videos.deciles>=1)),])      #Auditing
+nrow(effec.2[which((effec.2$Assignment.bin==0)&(effec.2$last.quizz==0)&(effec.2$videos.deciles==0)),])  #Bystanders
+nrow(effec.log.2[which((effec.log.2$Assignment.bin>0)&(effec.log.2$last.quizz==0)),])  # Emmerders
+
+# Effectuation 3
+
+
+nrow(effec.log.3[which((effec.log.3$Assignment.bin==0)&(effec.log.3$last.quizz>0)),])    # Non completers
+nrow(effec.log.3[which((effec.log.3$Assignment.bin==0)&(effec.log.3$last.quizz==0)),])        #Auditeurs
+nrow(effec.3[which((effec.3$Assignment.bin==0)&(effec.3$last.quizz==0)&(effec.3$videos.deciles>=1)),])      #Auditing
+nrow(effec.3[which((effec.3$Assignment.bin==0)&(effec.3$last.quizz==0)&(effec.3$videos.deciles==0)),])  #Bystanders
+nrow(effec.log.3[which((effec.log.3$Assignment.bin>0)&(effec.log.3$last.quizz==0)),])  # Emmerders
+
+nrow(effec.log.3[which((effec.log.3$Assignment.bin==1)),])
+nrow(effec.log.3)
+
+
+
+nrow(effec.log.1[which(effec.log.1$Assignment.bin==1),])       # Se baser sur le rendu de l'assignment
+nrow(effec.log.2[which(effec.log.2$Assignment.bin==1),])     
+nrow(effec.log.3[which(effec.log.3$Assignment.bin==1),]) 
+
+
+#########################  Activit? globale  ######################
+
+# Effectuation 1
+
+#Identification de la séquence pédagogique à étudier
+names.vid=c("S1.L1","S1.L2","S1.L3","S1.L4","S1.L5","S1.L6","S2.L1","S2.L2","S2.L3","S2.L4","S2.L5","S3.L1.1","S3.L1.2",
+ "S3.L2", "S3.L3", "S3.L4","S3.L5", "S4.L1.1","S4.L1.2", "S4.L2", "S4.L3","S4.L4", "S4.L5","S5.L1.1","S5.L1.2","S5.L2","S5.L3","S5.L4","S5.L5")
+
+effec.1=effec.log.1 
+
+names(effec.1)
+
+db.int=effec.1[,c(match(names.vid, names(effec.1)))] #    On sélectionne dans le jeu de données exactement les vidéos que l'on veut.
+effec.1$prop.videos.vues=rep(NA, nrow(effec.1))
+effec.1$sum.videos.vues=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) { 
+effec.1$prop.videos.vues[i]=sum(db.int[i,])/length(names.vid) #Proportion des vidéos vues
+effec.1$sum.videos.vues[i]=sum(db.int[i,])  
+     }
+     summary(effec.1$prop.videos.vues)
+
+with(effec.1, )
+
+effec.1$videos.deciles=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) {effec.1$videos.deciles[i]=floor(effec.1$prop.videos.vues[i]*10)}
+hist(effec.1$videos.deciles)
+hist(effec.1$sum.videos.vues)
+
+a=with(effec.1, aggregate(100*prop.videos.vues, by=list(Category=as.factor(Assignment.bin)), FUN=mean))
+a=with(effec.1, aggregate(100*prop.videos.vues/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+vect.int=NULL
+for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.1$Assignment.bin==1)&(effec.1$prop.videos.vues>n))))} # Code permettant de mesurer l'échantillonnage chez les utilisateurs
+
+#vect.int=NULL
+#for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.1$Assignment.bin==0)&(effec.1$prop.videos.vues>n))))}
+
+plot(seq(0,1,by=0.05),vect.int)
+mean(vect.int)/max(vect.int) # Indicateur d'échantillonage moyen 69,4%
+
+eff1.sk.vid=vect.int
+
+write.table(cbind(seq(0,1,by=0.05),eff1.sk.vid/max(vect.int)), "clipboard", sep="\t", row.names=FALSE)
+
+
+
+#M?me travail pour les quizz
+
+names.quizz=c("Quizz.1.bin","Quizz.2.bin","Quizz.3.bin","Quizz.4.bin","Quizz.5.bin")
+
+names(effec.1)
+
+db.int=effec.1[,c(match(names.quizz, names(effec.1)))] #    On s?lectionne dans le jeu de donn?es exactement les vid?os que l'on veut.
+effec.1$prop.quizz=rep(NA, nrow(effec.1))
+effec.1$sum.quizz=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) { 
+effec.1$prop.quizz[i]=sum(db.int[i,])/length(names.quizz)
+effec.1$sum.quizz[i]=sum(db.int[i,])
+} 
+
+#Proportion des quiz faits
+
+effec.1$quizz.deciles=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) {effec.1$quizz.deciles[i]=floor(effec.1$prop.quizz[i]*10)}
+hist(effec.1$sum.quizz)
+
+effec.1$non.completers=rep(0, nrow(effec.1))
+effec.1[which((effec.1$Assignment.bin==0)&(effec.1$last.quizz>0)),]$non.completers=1
+
+effec.1$bystanders=rep(0, nrow(effec.1))
+effec.1[which((effec.1$Assignment.bin==0)&(effec.1$last.quizz==0)&(effec.1$videos.deciles==0)),]$bystanders=1
+
+effec.1$auditing=rep(0, nrow(effec.1))
+effec.1[which((effec.1$Assignment.bin==0)&(effec.1$last.quizz==0)&(effec.1$videos.deciles>=1)),]$auditing=1
+
+sum(effec.1[which(effec.1$non.completers==1),]$sum.videos.vues)
+sum(effec.1[which(effec.1$bystanders==1),]$sum.videos.vues)
+sum(effec.1[which(effec.1$auditing==1),]$sum.videos.vues)
+
+
+sum(effec.1[which(effec.1$non.completers==1),]$sum.quizz)
+sum(effec.1[which(effec.1$bystanders==1),]$sum.quizz)
+sum(effec.1[which(effec.1$auditing==1),]$sum.quizz)
+
+
+summary(effec.1)
+
+a=with(effec.1, aggregate(100*prop.quizz, by=list(Category=as.factor(Assignment.bin)), FUN=mean))
+a=with(effec.1, aggregate(100*prop.quizz/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+
+vect.int=NULL
+for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.1$Assignment.bin==1)&(effec.1$prop.quizz>n))))}
+plot(seq(0,1,by=0.05),vect.int)
+mean(vect.int)/max(vect.int) # 93,7%
+
+eff1.sk.quiz=vect.int
+
+write.table(cbind(seq(0,1,by=0.05),eff1.sk.quiz/max(vect.int)), "clipboard", sep="\t", row.names=FALSE)
+
+
+# Effectuation 2
+
+effec.2=effec.log.2
+
+                                                                                                                                                #On dit les colonnes que l'on veut ?tudier.
+names.vid=c("S1.L1","S1.L2","S1.L3","S1.L4","S1.L5","S1.L6","S2.L1","S2.L2","S2.L3","S2.L4","S2.L5", "S3.L1.1","S3.L1.2",
+ "S3.L2", "S3.L3", "S3.L4","S3.L5", "S4.L1.1","S4.L1.2", "S4.L2", "S4.L3","S4.L4", "S4.L5","S5.L1.1","S5.L1.2","S5.L2","S5.L3","S5.L4","S5.L5")
+
+db.int=effec.2[,c(match(names.vid, names(effec.2)))] #    On s?lectionne dans le jeu de donn?es exactement les vid?os que l'on veut.
+effec.2$prop.videos.vues=rep(NA, nrow(effec.2))
+effec.2$sum.videos.vues=rep(NA, nrow(effec.2))
+for (i in 1:nrow(effec.2)) { 
+effec.2$prop.videos.vues[i]=sum(db.int[i,])/length(names.vid)    #Proportion des vid?os vues !
+effec.2$sum.videos.vues[i]=sum(db.int[i,])  
+} 
+
+vect.int=NULL
+for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.2$Assignment.bin==1)&(effec.2$prop.videos.vues>n))))}
+plot(seq(0,1,by=0.05),vect.int)
+mean(vect.int)/max(vect.int) # 76,0%
+
+eff2.sk.vid=vect.int
+write.table(cbind(seq(0,1,by=0.05),eff2.sk.vid/max(vect.int)), "clipboard", sep="\t", row.names=FALSE)
+
+
+
+effec.2$videos.deciles=rep(NA, nrow(effec.2))
+for (i in 1:nrow(effec.2)) {effec.2$videos.deciles[i]=floor(effec.2$prop.videos.vues[i]*10)}
+
+effec.2$non.completers=rep(0, nrow(effec.2))
+effec.2[which((effec.2$Assignment.bin==0)&(effec.2$last.quizz>0)),]$non.completers=1
+
+effec.2$bystanders=rep(0, nrow(effec.2))
+effec.2[which((effec.2$Assignment.bin==0)&(effec.2$last.quizz==0)&(effec.2$videos.deciles==0)),]$bystanders=1
+
+effec.2$auditing=rep(0, nrow(effec.2))
+effec.2[which((effec.2$Assignment.bin==0)&(effec.2$last.quizz==0)&(effec.2$videos.deciles>=1)),]$auditing=1
+
+sum(effec.2[which(effec.2$non.completers==1),]$sum.videos.vues)
+sum(effec.2[which(effec.2$bystanders==1),]$sum.videos.vues)
+sum(effec.2[which(effec.2$auditing==1),]$sum.videos.vues)
+sum(effec.2$bystanders)
+
+sum(effec.2[which(effec.2$non.completers==1),]$sum.quizz)
+sum(effec.2[which(effec.2$bystanders==1),]$sum.quizz)
+sum(effec.2[which(effec.2$auditing==1),]$sum.quizz)
+
+summary(effec.2$prop.videos.vues)
+hist(effec.2$prop.videos.vues)
+a=with(effec.2, aggregate(100*prop.videos.vues, by=list(Category=as.factor(Assignment.bin)), FUN=mean))  # Skipping
+a=with(effec.2, aggregate(100*prop.videos.vues/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))  # Skipping
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names.quizz=c("Quizz.1.bin","Quizz.2.bin","Quizz.3.bin","Quizz.4.bin","Quizz.5.bin")
+
+names(effec.2)
+
+db.int=effec.2[,c(match(names.quizz, names(effec.2)))] #    On s?lectionne dans le jeu de donn?es exactement les vid?os que l'on veut.
+effec.2$prop.quizz=rep(NA, nrow(effec.2))
+effec.2$sum.quizz=rep(NA, nrow(effec.2))
+for (i in 1:nrow(effec.2)) { 
+effec.2$prop.quizz[i]=sum(db.int[i,])/length(names.quizz)
+effec.2$sum.quizz[i]=sum(db.int[i,])
+} 
+
+
+vect.int=NULL
+for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.2$Assignment.bin==1)&(effec.2$prop.quizz>n))))}
+plot(seq(0,1,by=0.05),vect.int)
+mean(vect.int)/max(vect.int) # 91,9%
+
+eff2.sk.quiz=vect.int
+
+write.table(cbind(seq(0,1,by=0.05),eff2.sk.quiz/max(vect.int)), "clipboard", sep="\t", row.names=FALSE)
+
+
+#Proportion des quiz faits
+
+effec.2$quizz.deciles=rep(NA, nrow(effec.2))
+for (i in 1:nrow(effec.2)) {effec.2$quizz.deciles[i]=floor(effec.2$prop.quizz[i]*10)}
+hist(effec.2$sum.quizz)
+
+a=with(effec.2, aggregate(100*prop.quizz, by=list(Category=as.factor(Assignment.bin)), FUN=mean))
+a=with(effec.2, aggregate(100*prop.quizz/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Effectuation 3
+                                                                                                                                              #On dit les colonnes que l'on veut ?tudier.
+effec.3=effec.log.3
+
+names.vid=c("S1.L1","S1.L2","S1.L3","S1.L4","S1.L5","S1.L6","S2.L1","S2.L2","S2.L3","S2.L4","S2.L5","S3.L1.1","S3.L1.2",
+ "S3.L2", "S3.L3", "S3.L4","S3.L5", "S4.L1.1","S4.L1.2", "S4.L2", "S4.L3","S4.L4", "S4.L5","S5.L1.1","S5.L1.2","S5.L2","S5.L3","S5.L4","S5.L5")
+
+ names(effec.3)
+
+db.int=effec.3[,c(match(names.vid, names(effec.3)))] #    On s?lectionne dans le jeu de donn?es exactement les vid?os que l'on veut.
+effec.3$prop.videos.vues=rep(NA, nrow(effec.3))
+effec.3$sum.videos.vues=rep(NA, nrow(effec.3))
+for (i in 1:nrow(effec.3)) { 
+effec.3$prop.videos.vues[i]=sum(db.int[i,])/length(names.vid)  #Proportion des vid?os vues !
+effec.3$sum.videos.vues[i]=sum(db.int[i,]) 
+} 
+
+effec.3$videos.deciles=rep(NA, nrow(effec.3))
+for (i in 1:nrow(effec.3)) {effec.3$videos.deciles[i]=floor(effec.3$prop.videos.vues[i]*10)}
+
+vect.int=NULL
+for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.3$Assignment.bin==1)&(effec.3$prop.videos.vues>n))))}
+plot(seq(0,1,by=0.05),vect.int)
+mean(vect.int)/max(vect.int) # 76,1%
+
+eff3.sk.vid=vect.int
+
+write.table(cbind(seq(0,1,by=0.05),eff3.sk.vid/max(vect.int)), "clipboard", sep="\t", row.names=FALSE)
+
+
+
+
+effec.3$non.completers=rep(0, nrow(effec.3))
+effec.3[which((effec.3$Assignment.bin==0)&(effec.3$last.quizz>0)),]$non.completers=1
+
+effec.3$bystanders=rep(0, nrow(effec.3))
+effec.3[which((effec.3$Assignment.bin==0)&(effec.3$last.quizz==0)&(effec.3$videos.deciles==0)),]$bystanders=1
+
+effec.3$auditing=rep(0, nrow(effec.3))
+effec.3[which((effec.3$Assignment.bin==0)&(effec.3$last.quizz==0)&(effec.3$videos.deciles>=1)),]$auditing=1
+
+sum(effec.3[which(effec.3$non.completers==1),]$sum.videos.vues)
+sum(effec.3[which(effec.3$bystanders==1),]$sum.videos.vues)
+sum(effec.3[which(effec.3$auditing==1),]$sum.videos.vues)
+sum(effec.3$bystanders)
+sum(effec.3$non.completers)
+sum(effec.3$auditing)
+
+
+sum(effec.3[which(effec.3$non.completers==1),]$sum.quizz)
+sum(effec.3[which(effec.3$bystanders==1),]$sum.quizz)
+sum(effec.3[which(effec.3$auditing==1),]$sum.quizz)
+sum(effec.3$bystanders)
+
+
+summary(effec.3$prop.videos.vues)
+hist(effec.3$prop.videos.vues)
+a=with(effec.3, aggregate(100*prop.videos.vues, by=list(Category=as.factor(Assignment.bin)), FUN=mean))  # Skipping
+a=with(effec.3, aggregate(100*prop.videos.vues/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))  # Skipping
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+names.quizz=c("Quizz.1.bin","Quizz.2.bin","Quizz.3.bin","Quizz.4.bin","Quizz.5.bin")
+
+names(effec.3)
+
+db.int=effec.3[,c(match(names.quizz, names(effec.3)))] #    On s?lectionne dans le jeu de donn?es exactement les vid?os que l'on veut.
+effec.3$prop.quizz=rep(NA, nrow(effec.3))
+effec.3$sum.quizz=rep(NA, nrow(effec.3))
+for (i in 1:nrow(effec.3)) { 
+effec.3$prop.quizz[i]=sum(db.int[i,])/length(names.quizz)
+effec.3$sum.quizz[i]=sum(db.int[i,])
+} 
+
+vect.int=NULL
+for (n in seq(0,1,by=0.05)) {vect.int=c(vect.int,length(which((effec.3$Assignment.bin==1)&(effec.3$prop.quizz>n))))}
+plot(seq(0,1,by=0.05),vect.int)
+eff3.sk.quiz=vect.int
+mean(vect.int)/max(vect.int) # 92,1%
+
+write.table(cbind(seq(0,1,by=0.05),eff3.sk.quiz/max(vect.int)), "clipboard", sep="\t", row.names=FALSE)
+
+
+#Proportion des quiz faits
+
+effec.3$quizz.deciles=rep(NA, nrow(effec.3))
+for (i in 1:nrow(effec.3)) {effec.3$quizz.deciles[i]=floor(effec.3$prop.quizz[i]*10)}
+hist(effec.3$sum.quizz)
+
+a=with(effec.3, aggregate(100*prop.quizz, by=list(Category=as.factor(Assignment.bin)), FUN=mean))       # !!!!!!!!!!!!!!!
+a=with(effec.3, aggregate(100*prop.quizz/2, by=list(Category=as.factor(Assignment.bin)), FUN=sd))
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+write.csv(effec.1, "effec.1.csv", row.names=F)
+write.csv(effec.2, "effec.2.csv", row.names=F)
+write.csv(effec.3, "effec.3.csv", row.names=F)
+
+
+# Réflexion formes de complétion alternatives
+
+nrow(effec.1[which((effec.1$Assignment.bin==0)&(effec.1$prop.videos.vues>0.90)),])/nrow(effec.1[which(effec.1$Assignment.bin==0),])*100 # 4.682396
+nrow(effec.1[which((effec.1$Assignment.bin==0)&(effec.1$prop.videos.vues>0.90)),])/nrow(effec.2[which(effec.2$Assignment.bin==1),]) # Ratio compléteurs 0.2857143
+
+nrow(effec.2[which((effec.2$Assignment.bin==0)&(effec.2$prop.videos.vues>0.90)),])/nrow(effec.2[which(effec.2$Assignment.bin==0),])*100 # 4.490501
+nrow(effec.2[which((effec.2$Assignment.bin==0)&(effec.2$prop.videos.vues>0.90)),])/nrow(effec.2[which(effec.2$Assignment.bin==1),]) # Ratio compléteurs 0.1439646
+
+nrow(effec.3[which((effec.3$Assignment.bin==0)&(effec.3$prop.videos.vues>0.90)),])/nrow(effec.3[which(effec.3$Assignment.bin==0),])*100 # 3.349754
+nrow(effec.3[which((effec.3$Assignment.bin==0)&(effec.3$prop.videos.vues>0.90)),])/nrow(effec.3[which(effec.3$Assignment.bin==1),]) # Ratio compléteurs 0.1217184
+
+
+# Réflexion échantillonnage
+nrow(effec.1[which((effec.1$Assignment.bin==1)&(effec.1$prop.videos.vues<0.90)),])/nrow(effec.1[which(effec.1$Assignment.bin==1),])*100 #53.23829
+nrow(effec.1[which((effec.1$Assignment.bin==1)&(effec.1$prop.videos.vues<0.20)),])/nrow(effec.1[which(effec.1$Assignment.bin==1),])*100 #11.32383
+
+nrow(effec.2[which((effec.2$Assignment.bin==1)&(effec.2$prop.videos.vues<0.90)),])/nrow(effec.2[which(effec.2$Assignment.bin==1),])*100 # 50.71982
+nrow(effec.2[which((effec.2$Assignment.bin==1)&(effec.2$prop.videos.vues<0.20)),])/nrow(effec.2[which(effec.2$Assignment.bin==1),])*100 # 9.856035
+
+nrow(effec.3[which((effec.3$Assignment.bin==1)&(effec.3$prop.videos.vues<0.90)),])/nrow(effec.3[which(effec.3$Assignment.bin==1),])*100 #43.67542
+nrow(effec.3[which((effec.3$Assignment.bin==1)&(effec.3$prop.videos.vues<0.20)),])/nrow(effec.3[which(effec.3$Assignment.bin==1),])*100 # 11.81384
+
+###############  GDP1 ##############
+
+summary(as.factor(gdp1[which(gdp1$Quizz_completion==0),]$Assignment_1))   #Personne qui fait pas les quizz mais rend les devoirs
+nrow(gdp1[which((gdp1$Quizz_completion==0)|(is.na(gdp1$Quizz_completion)==T)),])
+
+nrow(gdp1[which(((gdp1$Quizz_completion==0))&(gdp1$wiki>=4)),])       #Auditing +
+nrow(gdp1[which((gdp1$Quizz_completion==0)&(gdp1$wiki<4)),]) + nrow(gdp1[which(is.na(gdp1$Quizz_completion)==T),])    # Auditing -
+nrow(gdp1[which((gdp1$Quizz_completion>0)&(gdp1$cert.tot.bin==0)),])   # Voil? mes non completers !
+
+
+gdp1$non.completers=rep(0, nrow(gdp1))
+gdp1[which((gdp1$Quizz_completion>0)&(gdp1$cert.tot.bin==0)),]$non.completers=1
+summary(gdp1$non.completers)
+
+gdp1$bystanders=rep(0, nrow(gdp1))
+gdp1[which((gdp1$Quizz_completion==0)&(gdp1$wiki<4)),]$bystanders=1
+
+gdp1$auditing=rep(0, nrow(gdp1))
+gdp1[which(((gdp1$Quizz_completion==0))&(gdp1$wiki>=4)),]$auditing=1
+summary(gdp1$auditing)
+
+sum(gdp1[which(gdp1$non.completers==1),]$wiki)
+sum(gdp1[which(gdp1$bystanders==1),]$wiki)
+sum(gdp1[which(gdp1$auditing==1),]$wiki)
+sum(gdp1[which(gdp1$cert.tot.bin==1),]$wiki, na.rm=T)
+
+sum(gdp1[which(gdp1$non.completers==1),]$Quizz_completion)
+sum(gdp1[which(gdp1$bystanders==1),]$Quizz_completion)
+sum(gdp1[which(gdp1$auditing==1),]$Quizz_completion)
+sum(gdp1[which(gdp1$auditing==1),]$Quizz_completion)
+sum(gdp1[which(gdp1$cert.tot.bin==1),]$Quizz_completion, na.rm=T)
+
+
+################# GDP2 #############
+nrow((gdp2[which((gdp2$sum.quizz>0)&(gdp2$cert.tot.bin==0)),]))     # Non completers 
+nrow(gdp2[which((gdp2$cert.tot.bin>0)),])                # Completers 
+nrow(gdp2[which(gdp2$sum.quizz==0),]) + nrow(gdp2[which(is.na(gdp2$sum.quizz)==T),]) # Auditing
+nrow(gdp2[which((gdp2$sum.quizz==0)&(gdp2$videos.deciles>=1)),]) #Auditing +
+nrow(gdp2[which((gdp2$sum.quizz==0)&(gdp2$videos.deciles<1)),])+nrow(gdp2[which((gdp2$sum.quizz==0)&(is.na(gdp2$videos.deciles)==T)),])   #Auditing -
+
+
+
+gdp2$non.completers=rep(0, nrow(gdp2))
+gdp2[which((gdp2$sum.quizz>0)&(gdp2$cert.tot.bin==0)),]$non.completers=1
+sum(gdp2$non.completers)
+
+gdp2$bystanders=rep(0, nrow(gdp2))
+gdp2[which((gdp2$sum.quizz==0)&(gdp2$videos.deciles<1)),]$bystanders=1
+sum(gdp2$bystanders)
+
+gdp2$auditing=rep(0, nrow(gdp2))
+gdp2[which((gdp2$sum.quizz==0)&(gdp2$videos.deciles>=1)),]$auditing=1
+sum(gdp2$auditing)
+
+sum(gdp2[which(gdp2$non.completers==1),]$sum.tot.video, na.rm=T)
+sum(gdp2[which(gdp2$bystanders==1),]$sum.tot.video)
+sum(gdp2[which(gdp2$auditing==1),]$sum.tot.video)
+sum(gdp2[which(gdp2$cert.tot.bin==1),]$sum.tot.video, na.rm=T)
+
+sum(gdp2[which(gdp2$non.completers==1),]$sum.quizz, na.rm=T)
+sum(gdp2[which(gdp2$bystanders==1),]$sum.quizz)
+sum(gdp2[which(gdp2$auditing==1),]$sum.quizz)
+sum(gdp2[which(gdp2$cert.tot.bin==1),]$sum.quizz, na.rm=T)
+
+
+
+
+#Faire les regressions logistiques
+
+
+
+
+summary(effec.quest.2)
+names(gdp1)
+summary(gdp2.db)
+
+
+summary(gdp1$online_exp)  202/ (3495-1197)
+
+
+
+effec.quest.1$session=1
+effec.quest.2$session=2
+effec.quest.3$session=3
+
+names(effec.quest.1)
+
+names(effec.quest.2)[36]="Country_HDI.fin"
+effec.compil=rbind(effec.quest.1[,c(1:17,32:36)], effec.quest.2[,c(1,4:15,16,18:20,36:39, 41)],effec.quest.3[,c(1,4:7,9:20, 22:23,25:27)] )
+
+
+
+summary(mod)
+anova(mod)
+
+names(effec.quest.1)
+names(effec.quest.2)
+names(effec.quest.3)
+
+names(effec.quest.1[,c(1:17,32:36)])
+names(effec.quest.2[,c(1,4:15,16,18:20,33,36:39, 41)])
+names(effec.quest.3[,c(1,4:7,9:20, 22:23,25:26)])
+
+table(effec.1$auditing, effec.1$Gender)
+table(effec.1$bystander, effec.1$Gender)
+
+mod<- with(effec.1[which(effec.1$auditing==1),], coxph(Surv(videos.deciles, statut.surv.vid) ~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.Dispo.fin, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC) )
+mod<- with(effec.1[which(effec.1$non.completers==1),], coxph(Surv(videos.deciles, statut.surv.vid) ~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.Dispo.fin, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC) )
+mod<- with(effec.2[which(effec.2$auditing==1),], coxph(Surv(videos.deciles, statut.surv.vid) ~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.dispo.fin2, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC) )
+mod<- with(effec.2[which(effec.2$non.completers==1),], coxph(Surv(videos.deciles, statut.surv.vid) ~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.dispo.fin2, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC) )
+
+mod<- with(effec.3[which(effec.3$auditing==1),], coxph(Surv(videos.deciles, statut.surv.vid) ~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.dispo.fin2, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC) )
+mod<- with(effec.3[which(effec.3$non.completers==1),], coxph(Surv(videos.deciles, statut.surv.vid) ~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.dispo.fin2, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC) )
+summary(mod)
+anova(mod)
+   
+
+
+
+
+# Connaitre le nombre de "completers"  non completers no show
+
+names(effec.log.2)
+
+#    Qu'est-ce qui a chang? dans les questionnaires au fil des sessions ?
+
+names(effec.compil)
+
+chisq=with(effec.compil, chisq.test(Gender,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(CSP.fin,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(CSP.fin,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(How.heard,session))  # pb r?seau social
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(Diploma,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.3, chisq.test(Country_HDI,Assignment.bin))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(Temps.dispo.fin,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(Exp.crea,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+chisq=with(effec.compil, chisq.test(Exp.MOOC,session))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+
+chisq=with(gdp2, chisq.test(CSP.fin,Temps.dispo.fin))
+chisq
+chisq$residuals
+chisq$observed
+chisq$expected
+
+
+names(effec.compil)
+
+#mod?les lin?aires
+
+summary(effec.compil)
+
+names(effec.compil)
+mod=with(effec.compil, lm(Certif.self.sat~session))
+summary(mod)
+
+mod=with(effec.compil, lm(Completion.proba~session))
+summary(mod)
+            
+mod=with(effec.compil, lm(as.numeric(Curiosity.MOOC)~session))
+summary(mod)
+
+mod=with(effec.compil, lm(as.numeric(Rencontres)~session))
+summary(mod)
+            
+            
+
+
+
+
+#   Proportion des ?tudiants communs aux diff?rentes ?ditions (sur la base des questionnaires)
+
+match.1=match( effec.quest.2$Student_ID, effec.quest.1$Student_ID)
+match.1
+sum(!is.na(match.1))
+
+match.2=match( effec.quest.3$Student_ID, effec.quest.2$Student_ID)
+match.2
+sum(!is.na(match.2))
+
+match.3=match( effec.quest.3$Student_ID, effec.quest.1$Student_ID)
+match.3
+sum(!is.na(match.3))
+
+match.4=match( effec.quest.1$Student_ID[match.1],effec.quest.3$Student_ID) #Dans les trois MOOC
+match.4
+sum(!is.na(match.4))
+
+#   Proportion des ?tudiants communs aux diff?rentes ?ditions (sur la base des logs)
+ 
+
+match.1=match( effec.quest.2$Student_ID, effec.quest.1$Student_ID)
+match.1
+sum(!is.na(match.1))
+
+match.2=match( effec.quest.3$Student_ID, effec.quest.2$Student_ID)
+match.2
+sum(!is.na(match.2))
+
+match.3=match( effec.quest.3$Student_ID, effec.quest.1$Student_ID)
+match.3
+sum(!is.na(unique(match.3)))
+
+match.4=match( unique(effec.quest.1$Student_ID[match.1]),effec.quest.3$Student_ID) #Dans les trois MOOC
+match.4
+sum(!is.na(match.4))
+
+#  Introduire ?a dans les bases de donn?es
+
+undead.2.1=effec.quest.1$Student_ID[match.1[!is.na(match.1)]] #Etudiants de 1 qui ?taient dans 2
+
+nrow(effec.quest.2[which(effec.quest.2$Student_ID%in%undead.2.1),])
+
+undead.3.2=effec.quest.2$Student_ID[match.2[!is.na(match.2)]] #Etudiants de 2 qui ?taient dans 3
+undead.3.1=effec.quest.1$Student_ID[match.3[!is.na(match.3)]]  #Etudiants de 1 qui ?taient dans 3
+
+length(undead.3.1)
+
+undead.3.both=unique(c(undead.3.2,undead.3.1)) # Etudiants de 3 qui ?taient ou dans 1 ou dans 2
+undead.max=effec.quest.3$Student_ID[match.4[!is.na(match.4)]]   # Etudiants qui ?taient partout.
+
+length(undead.3.both)
+length(undead.max)
+
+
+
+
+
+is.na(unique(match.4))      
+
+
+
+
+
+
+
+#vecteur de moyennes, visualisation des vid?os, au fil du temps ...
+
+mean.videos.eff.1=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.1=c(mean.videos.eff.1,mean(effec.log.1[which(effec.log.1$S1.L1==1),][,i],na.rm=T))}
+plot(mean.videos.eff.1, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?")
+
+abline(v=7, lty="dotted")
+abline(v=13, lty="dotted")
+abline(v=20, lty="dotted")
+abline(v=27, lty="dotted")
+names(effec.log.1)
+
+mean.videos.eff.2=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.2=c(mean.videos.eff.2,mean(effec.log.2[which(effec.log.2$S1.L1==1),][,i],na.rm=T))}
+lines(mean.videos.eff.2, type="l", col="blue")  
+mean.videos.eff.3=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.3=c(mean.videos.eff.3,mean(effec.log.3[which(effec.log.3$S1.L1==1),][,i],na.rm=T))}
+lines(mean.videos.eff.3, type="l", col="red")  
+
+names(effec.log.3)
+
+
+
+#Variante en ne prenant que les gens qui ont rendu le devoir
+
+
+mean.videos.eff.1=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.1=c(mean.videos.eff.1,mean(effec.log.1[which((effec.log.1$S1.L1==1)&(effec.log.1$Assignment.bin==1)),][,i],na.rm=T))}
+plot(mean.videos.eff.1, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?", col="red", lty="dashed")
+
+mean.videos.eff.1=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.1=c(mean.videos.eff.1,mean(effec.log.1[which((effec.log.1$S1.L1==1)&(effec.log.1$Assignment.bin==0)),][,i],na.rm=T))}
+lines(mean.videos.eff.1, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?", col="red")
+
+mean.videos.eff.2=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.2=c(mean.videos.eff.2,mean(effec.log.2[which((effec.log.2$S1.L1==1)&(effec.log.2$Assignment.bin==1)),][,i],na.rm=T))}
+lines(mean.videos.eff.2, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?", col="blue", lty="dashed")
+
+mean.videos.eff.2=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.2=c(mean.videos.eff.2,mean(effec.log.2[which((effec.log.2$S1.L1==1)&(effec.log.2$Assignment.bin==0)),][,i],na.rm=T))}
+lines(mean.videos.eff.2, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?", col="blue")
+
+mean.videos.eff.3=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.3=c(mean.videos.eff.3,mean(effec.log.3[which((effec.log.3$S1.L1==1)&(effec.log.3$Assignment.bin==1)),][,i],na.rm=T))}
+lines(mean.videos.eff.3, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?", lty="dashed")
+
+mean.videos.eff.3=NULL
+for (i in c(18:29,31:51)) {mean.videos.eff.3=c(mean.videos.eff.3,mean(effec.log.3[which((effec.log.3$S1.L1==1)&(effec.log.3$Assignment.bin==0)),][,i],na.rm=T))}
+lines(mean.videos.eff.3, type="l", ylim=c(0,1), ylab="Proportion of learners who watch a given video", xlab="Video N?")
+
+abline(v=7, lty="dotted")
+abline(v=13, lty="dotted")
+abline(v=20, lty="dotted")
+abline(v=27, lty="dotted")
+
+
+#vecteur de moyennes, visualisation des forums, au fil du temps ...
+
+mean.for.eff.1=NULL
+for (i in c(21:27)*2) {mean.for.eff.1=c(mean.for.eff.1,mean(effec.log.1[,i],na.rm=T))}
+plot(mean.for.eff.1, type="l", ylim=c(0,0.8))
+mean.for.eff.2=NULL
+for (i in c(21:27)*2) {mean.for.eff.2=c(mean.for.eff.2,mean(effec.log.2[,i],na.rm=T))}
+lines(mean.for.eff.2, type="l", col="blue")  
+mean.for.eff.3=NULL
+for (i in c(21:27)*2) {mean.for.eff.3=c(mean.for.eff.3,mean(effec.log.3[,i],na.rm=T))}
+lines(mean.for.eff.3, type="l", col="red")  
+
+#vecteur de moyennes, postage sur les forums, au fil du temps ...
+
+mean.for.eff.1=NULL
+for (i in (c(21:27)*2-1)) {mean.for.eff.1=c(mean.for.eff.1,mean(effec.log.1[,i],na.rm=T))}
+plot(mean.for.eff.1, type="l", ylim=c(0,0.8))
+mean.for.eff.2=NULL
+for (i in (c(21:27)*2-1)) {mean.for.eff.2=c(mean.for.eff.2,mean(effec.log.2[,i],na.rm=T))}
+lines(mean.for.eff.2, type="l", col="blue")  
+mean.for.eff.3=NULL
+for (i in (c(21:27)*2-1)) {mean.for.eff.3=c(mean.for.eff.3,mean(effec.log.3[,i],na.rm=T))}
+lines(mean.for.eff.3, type="l", col="red")  
+     
+     
+     #vecteur de moyennes, r?alisation des quizz, au fil des modules ...
+
+mean.for.eff.1=NULL
+for (i in c(7,9,11,12,14)) {mean.for.eff.1=c(mean.for.eff.1,mean(effec.log.1[which(effec.log.1$Quizz.1.bin==1),][,i],na.rm=T))}
+plot(mean.for.eff.1, type="l", ylim=c(0,1))
+mean.for.eff.2=NULL
+for (i in c(7,9,11,12,14)) {mean.for.eff.2=c(mean.for.eff.2,mean(effec.log.2[which(effec.log.2$Quizz.1.bin==1),][,i],na.rm=T))}
+lines(mean.for.eff.2, type="l", col="blue")  
+mean.for.eff.3=NULL
+for (i in c(7,9,11,12,14)) {mean.for.eff.3=c(mean.for.eff.3,mean(effec.log.3[which(effec.log.3$Quizz.1.bin==1),][,i],na.rm=T))}
+lines(mean.for.eff.3, type="l", col="red")  
+     
+     
+ c(7,9,11,12,14)    
+
+names(effec.log.1)
+
+
+#  Compiler les trois jeux de donn?e pour faire une analyse de survie.
+
+effec.log.1$session=1
+effec.log.2$session=2
+effec.log.3$session=3
+
+names(effec.log.2[,c(1:73,75)])
+names(effec.log.2[,c(1:73,75)])
+names(effec.log.3[,c(1:73,77)])
+
+effec.log.comp=rbind(effec.log.1,effec.log.2[,c(1:73,75)],effec.log.3[,c(1:73,77)])
+
+effec.log.comp$statut.surv.vid=rep(NA, nrow(effec.log.comp))
+for (i in 1:nrow(effec.log.comp)) {
+if (effec.log.comp$last.video[i]<35) {effec.log.comp$statut.surv.vid[i]=1}
+if (effec.log.comp$last.video[i]==35) {effec.log.comp$statut.surv.vid[i]=0}  }
+
+#Coder la donn?es de survie pour les diff?rents jeux de donn?es
+
+#Pour les vid?os
+
+gdp2$statut.surv.vid=rep(NA, nrow(gdp2))
+for (i in 1:nrow(gdp2)) {
+if (is.na(gdp2$videos.deciles[i])==T) next
+if (gdp2$videos.deciles[i]<10) {gdp2$statut.surv.vid[i]=1}
+if (is.na(gdp2$videos.deciles[i])==T) next
+if (gdp2$videos.deciles[i]==10) {gdp2$statut.surv.vid[i]=0}  }
+
+
+effec.1$statut.surv.vid=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) {
+if (is.na(effec.1$videos.deciles[i])==T) next
+if (effec.1$videos.deciles[i]<10) {effec.1$statut.surv.vid[i]=1}
+if (is.na(effec.1$videos.deciles[i])==T) next
+if (effec.1$videos.deciles[i]==10) {effec.1$statut.surv.vid[i]=0}  }
+
+effec.2$statut.surv.vid=rep(NA, nrow(effec.2))
+for (i in 2:nrow(effec.2)) {
+if (is.na(effec.2$videos.deciles[i])==T) next
+if (effec.2$videos.deciles[i]<10) {effec.2$statut.surv.vid[i]=1}
+if (is.na(effec.2$videos.deciles[i])==T) next
+if (effec.2$videos.deciles[i]==10) {effec.2$statut.surv.vid[i]=0}  }
+
+effec.3$statut.surv.vid=rep(NA, nrow(effec.3))
+for (i in 3:nrow(effec.3)) {
+if (is.na(effec.3$videos.deciles[i])==T) next
+if (effec.3$videos.deciles[i]<10) {effec.3$statut.surv.vid[i]=1}
+if (is.na(effec.3$videos.deciles[i])==T) next
+if (effec.3$videos.deciles[i]==10) {effec.3$statut.surv.vid[i]=0}  }
+
+
+#Pour les quizz
+
+
+
+effec.1$statut.surv.quiz=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) {
+if (is.na(effec.1$quizz.deciles[i])==T) next
+if (effec.1$quizz.deciles[i]<10) {effec.1$statut.surv.quiz[i]=1}
+if (is.na(effec.1$quizz.deciles[i])==T) next
+if (effec.1$quizz.deciles[i]==10) {effec.1$statut.surv.quiz[i]=0}  }
+
+effec.2$statut.surv.quiz=rep(NA, nrow(effec.2))
+for (i in 2:nrow(effec.2)) {
+if (is.na(effec.2$quizz.deciles[i])==T) next
+if (effec.2$quizz.deciles[i]<10) {effec.2$statut.surv.quiz[i]=1}
+if (is.na(effec.2$quizz.deciles[i])==T) next
+if (effec.2$quizz.deciles[i]==10) {effec.2$statut.surv.quiz[i]=0}  }
+
+effec.3$statut.surv.quiz=rep(NA, nrow(effec.3))
+for (i in 3:nrow(effec.3)) {
+if (is.na(effec.3$quizz.deciles[i])==T) next
+if (effec.3$quizz.deciles[i]<10) {effec.3$statut.surv.quiz[i]=1}
+if (is.na(effec.3$quizz.deciles[i])==T) next
+if (effec.3$quizz.deciles[i]==10) {effec.3$statut.surv.quiz[i]=0}  }
+
+
+########### On sort les mod?les qui tuent ############
+
+# R?gressions logistiques ...
+
+# Effectuation 1
+names(effec.1)
+
+#Regroupement de facteurs
+lev.init=levels(effec.1$Temps.Dispo)  
+effec.1$Temps.Dispo.fin=effec.1$Temps.Dispo
+lev.init
+levels(effec.1$Temps.Dispo.fin)=c( "Entre deux et quatre heures", "Plus de quatre heures",  "Moins de deux heures","Moins de deux heures", "Plus de quatre heures")
+summary(effec.1$Temps.Dispo)
+summary(effec.1$Temps.Dispo.fin)
+
+lev.init=levels(effec.1$CSP.fin)  
+effec.1$CSP.fin2=effec.1$CSP.fin
+lev.init
+levels(effec.1$CSP.fin2)=c("Autre","Autre","Cadres et professions intellectuelles","Employ?s","En recherche d'emploi","Etudiants")
+summary(effec.1$CSP.fin2)
+
+
+mod.glm=with(effec.1,glm(Assignment.bin~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.Dispo.fin, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC.fin, family="binomial"))
+summary(mod.glm)
+exp(mod.glm$coefficients)
+
+
+# Effectuation 2
+lev.init=levels(effec.2$Temps.dispo.fin)  
+effec.2$Temps.dispo.fin2=effec.2$Temps.dispo.fin
+lev.init
+levels(effec.2$Temps.dispo.fin2)=c( "Entre deux et quatre heures", "Plus de quatre heures",  "Moins de deux heures","Plus de quatre heures")
+summary(effec.2$Temps.dispo.fin)
+
+lev.init=levels(effec.2$Exp.MOOC)  
+effec.2$Exp.MOOC.fin=effec.2$Exp.MOOC
+lev.init
+levels(effec.2$Exp.MOOC.fin)=c("Non","Int?gralement","Non","Non")
+summary(effec.2$Exp.MOOC.fin)
+summary(effec.2$Exp.MOOC)
+
+lev.init=levels(effec.2$CSP.fin)  
+effec.2$CSP.fin2=effec.2$CSP.fin
+lev.init
+levels(effec.2$CSP.fin2)=c("Autre","Autre","Cadres et professions intellectuelles","Employ?s","En recherche d'emploi","Etudiants")
+summary(effec.2$CSP.fin2)
+                                         
+names(effec.2)
+mod.glm=with(effec.2,glm(Assignment.bin~relevel(Gender, ref="une femme")++relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.dispo.fin2, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC.fin, family="binomial"))
+summary(mod.glm)
+exp(mod.glm$coefficients)
+
+# Effectuation 3
+names(effec.3)
+lev.init=levels(effec.3$Temps.dispo.fin)
+lev.init  
+effec.3$Temps.dispo.fin2=effec.3$Temps.dispo.fin
+levels(effec.3$Temps.dispo.fin2)=c( "Entre deux et quatre heures", "Plus de quatre heures",  "Moins de deux heures","Plus de quatre heures")
+summary(effec.3$Temps.dispo.fin2)
+
+
+lev.init=levels(effec.3$CSP.fin)  
+effec.3$CSP.fin2=effec.3$CSP.fin
+lev.init
+levels(effec.3$CSP.fin2)=c("Autre","Autre","Cadres et professions intellectuelles","Employ?s","En recherche d'emploi","Etudiants")
+summary(effec.3$CSP.fin2)
+                                         
+names(effec.3)
+mod.glm=with(effec.3,glm(Assignment.bin~relevel(Gender, ref="une femme")+relevel(CSP.fin2, ref="Employ?s")+relevel(Temps.dispo.fin2, ref="Moins de deux heures")+Country_HDI.fin+Exp.MOOC, family="binomial"))
+summary(mod.glm)
+exp(mod.glm$coefficients)
+
+summary(effec.3)
+
+#V?rification
+
+
+table(effec.1$Country_HDI, effec.1$Assignment.bin)
+table(effec.2$Country_HDI, effec.2$Assignment.bin)
+table(effec.3$Country_HDI, effec.3$Assignment.bin)
+summary(effec.3$Country)
+summary(effec.3$Country_HDI)
+
+
+
+#GDP1
+names(gdp1)
+
+lev.init=levels(gdp1$Time_spent)
+lev.init  #Sauvegarder le truc initial
+levels(gdp1$Time_spent)<- c("Entre deux et quatre heures", "Plus de quatre heures", "Moins de deux heures", "Plus de quatre heures")
+summary(gdp1$Time_spent)
+
+lev.init=levels(gdp1$Country_HDI.fin)
+lev.init
+gdp1$Country_HDI.fin2=gdp1$Country_HDI.fin
+levels(gdp1$Country_HDI.fin2)=c("B","H&M", "H&M", "TH")
+summary(gdp1$Country_HDI.fin2)
+
+lev.init=levels(gdp1$online_exp)
+lev.init
+gdp1$online_exp.fin=gdp1$online_exp
+levels(gdp1$online_exp.fin)<- c("Non", "Non", "Oui", "Non", "Oui", "Oui", "Oui", "Oui", "Oui", "Oui", "Oui", "Oui", "Non", "Non")
+summary(gdp1$online_exp.fin)
+                             
+levels(gdp1$CSP)
+gdp1$cert.clas.bin=gdp1$cert.tot.bin                   # Cr?er une variable sp?cifique au certificat basique
+gdp1$cert.clas.bin[which(gdp1$cert.av.bin==1)]=0
+
+mod.glm=with(gdp1,glm(cert.av.bin~relevel(Gender, ref="une femme")+relevel(CSP, ref="Employés")+relevel(Time_spent, "Moins de deux heures")+Country_HDI.fin2, family="binomial"))
+mod.glm=with(gdp1[which(gdp1$cert.av.bin==0),],glm(cert.clas.bin~relevel(Gender, ref="une femme")+relevel(CSP, ref="Employés")+relevel(Time_spent, "Moins de deux heures")+Country_HDI.fin2, family="binomial"))
+#mod.glm=with(gdp1[which(gdp1$cert.clas.bin==0),],glm(cert.av.bin~Gender+relevel(CSP, ref="Employés")+relevel(Time_spent, "Moins de deux heures")+Country_HDI.fin2, family="binomial"))
+mod.glm=with(gdp1,glm(cert.av.bin~Gender+relevel(CSP, ref="Employés")+relevel(Time_spent, "Moins de deux heures")+Country_HDI.fin2, family="binomial"))
+
+
+summary(mod.glm)
+exp(mod.glm$coefficients)
+anova(mod.glm)
+
+#GDP2
+lev.init=levels(gdp2$Time_spent)
+lev.init  #Sauvegarder le truc initial
+levels(gdp2$Temps.dispo.fin)<- c("Entre deux et quatre heures", "Plus de quatre heures", "Moins de deux heures", "Plus de quatre heures")
+summary(gdp2$Temps.dispo.fin)
+
+mod.glm.1=with(gdp2,glm(cert.av.bin~relevel(Gender, ref = "une femme")+relevel(CSP.fin, ref="Employ?s")+exp.MOOC+relevel(Temps.dispo.fin, "Moins de deux heures")+Country_HDI.fin, family="binomial"))
+[which(gdp2$cert.bas.bin==0),]
+mod.glm.2=with(gdp2[which(gdp2$cert.av.bin==0),],glm(cert.tot.bin~relevel(Gender, ref = "une femme")+relevel(CSP.fin, ref="Employ?s")+relevel(Temps.dispo.fin, "Moins de deux heures")+exp.MOOC+Country_HDI.fin, family="binomial"))
+
+summary(mod.glm.1)
+summary(mod.glm.2)
+exp(mod.glm.1$coefficients)
+names(gdp2)
+
+effec.3$Country[which(is.na(effec.3$Country_HDI)==T)] 
+table(gdp2$ecart.obj)
+A=table(gdp1$ecart.score, gdp1$target)
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+
+# Skipping
+
+A=summary(gdp2[c("vid.sem.1.mid","vid.sem.2.mid","vid.sem.3.mid","vid.sem.4.mid","vid.sem.5.mid")])
+A=summary(gdp2[c("vid.sem.1.tot","vid.sem.2.tot","vid.sem.3.tot","vid.sem.4.tot","vid.sem.5.tot")])
+A=summary(gdp2[c("vid.sem.1.nul","vid.sem.2.nul","vid.sem.3.nul","vid.sem.4.nul","vid.sem.5.nul")])
+
+A=summary(gdp2[which(gdp2$cert.tot.bin==1),c("vid.sem.1.mid","vid.sem.2.mid","vid.sem.3.mid","vid.sem.4.mid","vid.sem.5.mid")])
+A=summary(gdp2[which(gdp2$cert.tot.bin==0),c("vid.sem.1.mid","vid.sem.2.mid","vid.sem.3.mid","vid.sem.4.mid","vid.sem.5.mid")])
+A=summary(gdp2[which(gdp2$cert.tot.bin==1),c("vid.sem.1.nul","vid.sem.2.nul","vid.sem.3.nul","vid.sem.4.nul","vid.sem.5.nul")])
+A=summary(gdp2[which(gdp2$cert.tot.bin==0),c("vid.sem.1.nul","vid.sem.2.nul","vid.sem.3.nul","vid.sem.4.nul","vid.sem.5.nul")])
+A=summary(gdp2[which(gdp2$cert.tot.bin==1),c("vid.sem.1.tot","vid.sem.2.tot","vid.sem.3.tot","vid.sem.4.tot","vid.sem.5.tot")])
+A=summary(gdp2[which(gdp2$cert.tot.bin==0),c("vid.sem.1.tot","vid.sem.2.tot","vid.sem.3.tot","vid.sem.4.tot","vid.sem.5.tot")])
+
+A=summary(100*gdp2[which(gdp2$cert.tot.bin==1),c("quizz.sem.1.mid","quizz.sem.2.mid","quizz.sem.3.mid","quizz.sem.4.mid","quizz.sem.5.mid")])
+A=summary(100*gdp2[which(gdp2$cert.tot.bin==0),c("quizz.sem.1.mid","quizz.sem.2.mid","quizz.sem.3.mid","quizz.sem.4.mid","quizz.sem.5.mid")])
+A=summary(100*gdp2[which(gdp2$cert.tot.bin==1),c("quizz.sem.1.nul","quizz.sem.2.nul","quizz.sem.3.nul","quizz.sem.4.nul","quizz.sem.5.nul")])
+A=summary(100*gdp2[which(gdp2$cert.tot.bin==0),c("quizz.sem.1.nul","quizz.sem.2.nul","quizz.sem.3.nul","quizz.sem.4.nul","quizz.sem.5.nul")])
+A=summary(100*gdp2[which(gdp2$cert.tot.bin==1),c("quizz.sem.1.tot","quizz.sem.2.tot","quizz.sem.3.tot","quizz.sem.4.tot","quizz.sem.5.tot")])
+A=summary(100*gdp2[which(gdp2$cert.tot.bin==0),c("quizz.sem.1.tot","quizz.sem.2.tot","quizz.sem.3.tot","quizz.sem.4.tot","quizz.sem.5.tot")])
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+names(gdp2)
+
+
+
+# Regroupement de variables ? la vol?e
+
+lev=levels(gdp2$Temps.dispo.fin)
+levels(gdp2$Temps.dispo.fin)<- c("Entre deux et quatre heures", "Plus de quatre heures", "Moins de deux heures", "Plus de quatre heures")
+
+lev2=levels(gdp2$CSP)
+lev3=c("Autres","Entrepreneurs","Autres","Cadres","Employ?s","En recherche d'emploi","Etudiants","Autres","Autres","Autres","Autres")
+levels(gdp2$CSP)=lev3
+
+summary(mod.glm)
+anova(mod.glm)
+
+
+
+library(survival)
+mod<- with(gdp2, coxph(Surv(videos.deciles, statut.surv.vid) ~ Gender+CSP.fin+Temps.dispo.fin+Country_HDI+cert.tot.bin) )
+
+
+names(gdp2)
+
+fit <- with(gdp2, survdiff(Surv(videos.deciles, statut.surv.vid ) ~ Temps.dispo.fin+Gender+CSP.fin))
+plot(fit)
+
+gdp2
+[which(gdp2$prop.videos.vues>0),]
+with(gdp2[which(gdp2$prop.videos.vues>0),], plot(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1)) )
+
+#Pour les vid?os
+
+with(effec.1[which(effec.1$non.completers==1),], plot(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1),conf.int=F, xlim=c(-1,10), col="blue", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+with(effec.1[which(effec.1$auditing==1),], lines(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1),conf.int=F, xlim=c(-1,10), lty="dotted", col="blue", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+
+with(effec.2[which(effec.2$non.completers==1),], lines(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1),conf.int=F, xlim=c(-1,10), col="green", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+with(effec.2[which(effec.2$auditing==1),], lines(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1),conf.int=F, xlim=c(-1,10), lty="dotted",col="green", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+
+with(effec.3[which(effec.3$non.completers==1),], lines(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1),conf.int=F, xlim=c(-1,10), col="red", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+with(effec.3[which(effec.3$auditing==1),], lines(survfit(Surv(videos.deciles, statut.surv.vid) ~ 1),conf.int=F, xlim=c(-1,10), lty="dotted",col="red", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+
+prop.table(summary(as.factor(effec.1[which(effec.1$auditing==1),]$videos.deciles)))*100
+prop.table(summary(as.factor(effec.2[which(effec.2$auditing==1),]$videos.deciles)))*100
+prop.table(summary(as.factor(effec.3[which(effec.3$auditing==1),]$videos.deciles)))*100
+
+prop.table(summary(as.factor(effec.1[which(effec.1$non.completers==1),]$videos.deciles)))*100
+prop.table(summary(as.factor(effec.2[which(effec.2$non.completers==1),]$videos.deciles)))*100
+prop.table(summary(as.factor(effec.3[which(effec.3$non.completers==1),]$videos.deciles)))*100
+
+# Pour les quizz
+
+with(effec.1[which(effec.1$non.completers==1),], plot(survfit(Surv(quizz.deciles, statut.surv.quiz) ~ 1),conf.int=F, xlim=c(-1,10), col="blue", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+with(effec.2[which(effec.2$non.completers==1),], lines(survfit(Surv(quizz.deciles, statut.surv.quiz) ~ 1),conf.int=F, xlim=c(-1,10), col="green", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+with(effec.3[which(effec.3$non.completers==1),], lines(survfit(Surv(quizz.deciles, statut.surv.quiz) ~ 1),conf.int=F, xlim=c(-1,10), col="red", xlab="Proportion of videos viewed (deciles)", ylab="Proportion of participants") )
+
+
+
+hist(effec.1$quizz.deciles)
+hist(effec.2$quizz.deciles)
+hist(effec.3$quizz.deciles)
+
+
+sum(summary(effec.2[,107])[1:4]
+
+summary(effec.2$Exp.MOOC)
+
+prop.table(summary(effec.1$Exp.MOOC)[1:3])
+prop.table(summary(effec.2$Exp.MOOC)[1:3])
+prop.table(summary(effec.3$Exp.MOOC)[1:3])
+
+prop.table(summary(effec.1$Temps.dispo.fin)[1:3])
+prop.table(summary(effec.2$Temps.dispo.fin)[1:3])
+prop.table(summary(effec.3$Temps.dispo.fin)[1:3])
+
+prop.table(summary(effec.1$CSP.fin)[1:6])
+prop.table(summary(effec.2$CSP.fin)[1:6])
+prop.table(summary(effec.3$CSP.fin)[1:6])
+
+prop.table(summary(effec.1$Country_HDI.fin)[1:3])
+prop.table(summary(effec.2$Country_HDI.fin)[1:3])
+prop.table(summary(effec.3$Country_HDI.fin)[1:3])
+
+prop.table(summary(effec.1$Gender)[1:2])
+prop.table(summary(effec.2$Gender)[1:2])
+prop.table(summary(effec.3$Gender)[1:2])
+
+prop.table(summary(gdp2[which(gdp2$cert.av.bin==1),]$CSP.fin)[1:5])
+prop.table(summary(gdp2[which(gdp2$cert.bas.bin==1),]$CSP.fin)[1:5])
+
+prop.table(summary(gdp2[which(gdp2$cert.av.bin==1),]$Country_HDI.fin)[1:3])
+prop.table(summary(gdp2[which(gdp2$cert.bas.bin==1),]$Country_HDI.fin)[1:3])
+
+
+prop.table(summary(gdp2$Country_HDI.fin)[1:3])
+prop.table(summary(gdp2$CSP.fin)[1:5])
+prop.table(summary(gdp2$Temps.dispo.fin)[1:3])
+prop.table(summary(gdp2$exp.MOOC)[1:3])
+prop.table(summary(gdp2$Gender)[1:2])
+prop.table(summary(gdp1$Gender)[1:2])  
+prop.table(summary(effec.1$Gender)[1:2])
+prop.table(summary(effec.2$Gender)[1:2])
+prop.table(summary(effec.3$Gender)[1:2])
+
+
+ 5316
+
+names(effec.1)
+
+
+
+# Croisement
+
+effec.1=merge(effec.log.1, effec.quest.1, by.x=("Student_ID"))
+effec.2=merge(effec.log.2, effec.quest.2, by.x=("Student_ID"))
+effec.3=merge(effec.log.3, effec.quest.3, by.x=("Student_ID"))
+
+summary(effec.1)
+
+# Introduire le fait qu'ils reviennent
+
+undead.2.1=effec.quest.1$Student_ID[match.1[!is.na(match.1)]] #Etudiants de 1 qui ?taient dans 2
+undead.3.2=effec.quest.2$Student_ID[match.2[!is.na(match.2)]] #Etudiants de 2 qui ?taient dans 3
+undead.3.1=effec.quest.1$Student_ID[match.3[!is.na(match.3)]]  #Etudiants de 1 qui ?taient dans 3
+undead.3.both=unique(c(undead.3.2,undead.3.1)) # Etudiants de 3 qui ?taient ou dans 1 ou dans 2
+undead.3.max=effec.quest.3$Student_ID[match.4[!is.na(match.4)]]   # Etudiants qui ?taient partout.
+
+length(undead.3.max)  # 46
+length(undead.3.both)  #472
+
+effec.3$undead=rep(0, nrow(effec.3))  
+effec.3[which(effec.3$Student_ID%in%undead.3.both),]$undead=1
+#effec.3[which(effec.3$Student_ID%in%undead.3.max),]$undead=2  *     Bof, pas int?ressant
+
+
+mod=with(effec.3, glm(as.factor(Assignment.bin)~as.factor(undead), family="binomial"))
+anova(mod)
+summary(mod)
+
+
+names(effec.2)
+
+
+mod=with(effec.1, glm(Assignment.bin~Country_HDI.fin+Gender+Diploma+CSP.fin+Temps.dispo.fin+Completion.proba)) 
+mod=with(effec.2, glm(Assignment.bin~Country_HDI.fin.1+Gender+Diploma+CSP.fin+Temps.dispo.fin+Completion.proba))
+mod=with(effec.3, glm(Assignment.bin~Country_HDI.fin+Gender+Diploma+CSP.fin+Temps.dispo.fin+Completion.proba+undead, family="binomial"))                     
+
+
+summary(mod)
+anova(mod)
+
+names(effec.1)
+
+hist(effec.2$last.video, 30)
+
+with(effec.2, hist(last.video, 50))
+with(effec.1, hist(last.quizz))
+
+# Analyses de survie
+
+effec.1$statut.surv.vid=rep(NA, nrow(effec.1))
+for (i in 1:nrow(effec.1)) {
+if (effec.1$video.deciles[i]<35) {effec.1$statut.surv.vid[i]=1}
+if (effec.1$video.deciles[i]==35) {effec.1$statut.surv.vid[i]=0}  }
+
+fit <- with(effec.1, survdiff(Surv(video.deciles, statut.surv.vid ) ~ Temps.dispo.fin))
+fit <- with(effec.1, survdiff(Surv(video.deciles, statut.surv.vid ) ~ Temps.dispo.fin+Gender+CSP.fin))
+fit
+
+
+plot(effec.1$Assignment.bin~effec.1[,87])
+
+chisq=chisq.test(effec.1$Assignment.bin,effec.1[,87])
+str(chisq)
+chisq$residuals
+chisq$observed
+chisq$expected
+
+multinom.mooc=with(MOOC.DB, multinom(Certificat~Gender+CSP.fin.2))
+ multinom.mooc
+sum.mod=summary(multinom.mooc)
+
+  
+  # Mesurer l'activit? globale du MOOC.
+  
+  #Effectuation
+
+sum.videos=c(sum(effec.1[which(effec.1$Assignment.bin==1),]$sum.videos.vues),sum(effec.1[which(effec.1$Assignment.bin==0),]$sum.videos.vues),
+sum(effec.2[which(effec.2$Assignment.bin==1),]$sum.videos.vues), sum(effec.2[which(effec.2$Assignment.bin==0),]$sum.videos.vues),
+sum(effec.3[which(effec.3$Assignment.bin==1),]$sum.videos.vues), sum(effec.3[which(effec.3$Assignment.bin==0),]$sum.videos.vues))
+
+sum.quizz=c(sum(effec.1[which(effec.1$Assignment.bin==1),]$sum.quizz), sum(effec.1[which(effec.1$Assignment.bin==0),]$sum.quizz),
+sum(effec.2[which(effec.2$Assignment.bin==1),]$sum.quizz), sum(effec.2[which(effec.2$Assignment.bin==0),]$sum.quizz, na.rm=T), 
+sum(effec.3[which(effec.3$Assignment.bin==1),]$sum.quizz), sum(effec.3[which(effec.3$Assignment.bin==0),]$sum.quizz))
+
+write.table(sum.videos, file="table.csv", row.names=F)
+write.table(sum.quizz, file="table2.csv", row.names=F)
+  
+ #Gestion de Projet 
+sum.videos=
+sum(gdp2[which(gdp2$cert.tot.bin==1),]$sum.tot.video, na.rm=T) 
+sum(gdp2[which(gdp2$cert.av.bin==1),]$sum.tot.video, na.rm=T)
+sum(gdp2[which(gdp2$cert.tot.bin==0),]$sum.tot.video, na.rm=T)
+
+sum(gdp2[which(gdp2$cert.tot.bin==0),]$sum.quizz.tot, na.rm=T)
+sum(gdp2[which(gdp2$cert.tot.bin==1),]$sum.quizz.tot, na.rm=T)
+
+sum(gdp2$cert.av.bin, na.rm=T)
+
+
+# Br?ve analyse des forums
+
+names(effec.1)
+names(effec.1[,c(86:105)])
+names(effec.2[,c(91:110)])
+names(effec.3[,c(75:101)])
+
+attributes(summary( effec.1[,c(86:105)]))$dimnames[[2]]
+
+table(summary( effec.1[,c(86:105)]))
+
+A=summary(effec.1[,c(86:105)])
+A=summary(effec.2[,c(91:110)])
+A=summary(effec.3[,c(77:101)])
+
+A=summary(gdp2[,c(211:244)])
+A=summary(gdp2[,c(211:244)])
+
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+A=with(gdp1, table(post.cat, cert.tot.bin))
+A=with(gdp2, table(post.cat, cert.tot.bin))
+
+A=summary(effec.1[which(effec.1$Assignment.bin==1),c(51:85)])
+A=summary(effec.2[which(effec.2$Assignment.bin==1),c(56:90)])
+A=summary(effec.3[which(effec.3$Assignment.bin==1),c(42:76)])
+A=summary(gdp2[which(gdp2$cert.tot.bin==1),c(167:202)])
+
+write.table(t(A), "clipboard", sep="\t", row.names=T)
+
+A=prop.table(summary(effec.1$How.heard)[1:8])*100
+A=prop.table(summary(effec.2$How.heard)[1:8])*100
+A=prop.table(summary(effec.3$How.heard)[1:8])*100
+
+
+A=prop.table(summary(effec.1$Instit.brand)[1:5])*100
+A=prop.table(summary(effec.2$Instit.brand)[1:5])*100
+A=prop.table(summary(effec.3$Instit.brand)[1:5])*100
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+with(effec.2, table(Instit.brand, Country_HDI.fin))
+
+ with(effec.1, table(Instit.brand, Country_HDI.fin))
+  with(effec.1, chisq.test(Instit.brand, Country_HDI.fin))$residuals    # Pas int?ressant ...
+  
+A=with(gdp1,  summary(as.factor(nb.assignment.tot)))
+A=with(gdp2,  summary(as.factor(nb.assignment.tot)))
+
+A=summary(effec.1[c("Quizz.1.score","Quizz.2.score","Quizz.3.score","Quizz.4.score","Quizz.5.score")])
+A=summary(effec.2[c("Quizz.1.score","Quizz.2.score","Quizz.3.score","Quizz.4.score","Quizz.5.score")])
+A=summary(effec.3[c("Quizz.1.score","Quizz.2.score","Quizz.3.score","Quizz.4.score","Quizz.5.score")])
+A=summary(gdp1[,c(16:41)])
+write.table(A, "clipboard", sep="\t", row.names=T)
+
+# Quantification des réseauteurs
+
+A=with(effec.log.1, table(Assignment.bin, Post.forum.0))
+A1=with(effec.log.1, table(Assignment.bin, Post.forum.1))
+A2=with(effec.log.1, table(Assignment.bin, Post.forum.1.2))
+A3=with(effec.log.1, table(Assignment.bin, Post.forum.2))
+A4=with(effec.log.1, table(Assignment.bin, Post.forum.2.2))
+A5=with(effec.log.1, table(Assignment.bin, Post.forum.3))
+A6=with(effec.log.1, table(Assignment.bin, Post.forum.4))
+#A=with(effec.log.1, table(Assignment.bin, Post.forum.4.2))
+A7=with(effec.log.1, table(Assignment.bin, Post.forum.5))
+
+A8=with(effec.log.2, table(Assignment.bin, Post.forum.0))
+A9=with(effec.log.2, table(Assignment.bin, Post.forum.1))
+A10=with(effec.log.2, table(Assignment.bin, Post.forum.1.2))
+A11=with(effec.log.2, table(Assignment.bin, Post.forum.2))
+A12=with(effec.log.2, table(Assignment.bin, Post.forum.2.2))
+A13=with(effec.log.2, table(Assignment.bin, Post.forum.3))
+A14=with(effec.log.2, table(Assignment.bin, Post.forum.4))
+#A=with(effec.log.2, table(Assignment.bin, Post.forum.4.2))
+A15=with(effec.log.2, table(Assignment.bin, Post.forum.5))
+
+A16=with(effec.log.3, table(Assignment.bin, Post.forum.0))
+A17=with(effec.log.3, table(Assignment.bin, Post.forum.1))
+A18=with(effec.log.3, table(Assignment.bin, Post.forum.1.2))
+A19=with(effec.log.3, table(Assignment.bin, Post.forum.2))
+A20=with(effec.log.3, table(Assignment.bin, Post.forum.2.2))
+A21=with(effec.log.3, table(Assignment.bin, Post.forum.3))
+A22=with(effec.log.3, table(Assignment.bin, Post.forum.4))
+#A=with(effec.log.3, table(Assignment.bin, Post.forum.4.2))
+A23=with(effec.log.3, table(Assignment.bin, Post.forum.5))
+
+B=rbind(A,A1,A2,A3,A4,A5,A6,A7) # EFFEC1
+B=rbind(A8,A9,A10,A11,A12,A13,A14,A15) # EFFEC2
+B=rbind(A16,A17,A18,A19,A20,A21,A22,A23) # EFFEC3
+
+
+
+write.table(B, "clipboard", sep="\t", row.names=T)
+
+
+with(gdp1, glm(as.numeric(as.character(as.factor(post.cat)))~cert.tot.bin, family="binomial"))
+with(gdp1, glm(cert.tot.bin~post.cat, family="binomial"))
+
+
+summary(gdp1$cert.tot.bin)
