@@ -1,0 +1,315 @@
+path="C:/MOOC_Data/ClassCentral"
+setwd(path)
+classes=read.csv("classcentral.v2.csv", h=T, sep=";")
+                    head(classes)
+summary(classes$Parent.Subject)
+summary(classes$Child.Subject)
+summary(classes)
+
+
+classes$selfpaced=rep(0,nrow(classes))
+classes[which(classes$Date=="Self paced"),]$selfpaced=1
+classes$Date[which(classes$Date=="Self paced")]=NA
+classes$Date[which(classes$Date=="")]=NA
+classes$Date=as.POSIXct(classes$Date)
+
+
+classes$Date[which(classes$Date==min(classes$Date, na.rm=T))]=NA
+
+summary(classes$selfpaced)
+summary(classes)
+
+classes$Date2=classes$Date
+
+#classes[which(classes$Date=="Self paced"),]$Date2=NA
+#classes[which(classes$Date==""),]$Date2=NA
+#classes$Date2=as.character(classes$Date2)
+#classes$Date2=as.POSIXct(classes$Date2)
+summary((classes$Date2))
+
+
+start.date= as.POSIXct(strptime("2012-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2016-04-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+esp=(end.date-start.date)/26
+
+# Petite ?tape pour s?lectionner les "vrais" producteurs de MOOC
+levels(classes$Provider)
+fake.providers=c("360training", "EdCast", "Saylor.org", "First Business MOOC", "World Mentoring Academy (WMA)", "TareasPlus", "NPTEL", "Udemy","NovoED", "Udacity", "Desire2learn") 
+true.providers=c("FutureLearn", "ECO Project", "EMMA", "France Université Numerique", "Edraak", "Miríada X", "iversity", "Canvas.net", "Coursera", "edX", "Open2Study", "gacco")
+
+length(which(classes$Provider %in% true.providers))
+
+classes=classes[which(classes$Provider %in% true.providers),]
+classes$Provider=factor(classes$Provider)
+summary(classes$Provider)
+
+names(classes)
+#Evolution temporelle des fournisseurs
+a=summary(classes[which(classes$Provider %in% true.providers),]$Provider) # Parts respectives des diff?rents h?bergeurs dans la production mondiale de MOOC
+a= table(cut( as.POSIXct(classes$Date2)  ,seq(start.date,end.date,esp)))
+
+classes$Universities.Institutions=factor(classes$Universities.Institutions)
+a=table(cut(summary(classes[which(classes$Provider %in% true.providers),]$Universities.Institutions, maxsum=3000), c(0,1,2,3,5,7,10,20,30,50,80))) # Parts respectives des diff?rents h?bergeurs dans la production mondiale de MOOC
+a=with(classes, table(selfpaced, Provider))
+a=table(cut(classes$Length, c(0,3,4,5,6,7,8,10,12,16,100)))
+
+a=with(classes, aggregate(Length, by=list(Category=Provider), FUN=mean, na.rm=T))
+b=with(classes, aggregate(Length/2, by=list(Category=Provider), FUN=mean, na.rm=T))
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+a=with(classes, aggregate(Length, by=list(Category=Child.Subject), FUN=mean, na.rm=T))
+b=with(classes, aggregate(Length/2, by=list(Category=Child.Subject), FUN=mean, na.rm=T))
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+a=with(classes, table(Provider, period)) 
+
+a=with(classes, table(Provider, period)) 
+
+
+a=with(classes, table(Universities.Institutions)) 
+
+classes$period=cut( as.POSIXct(classes$Date2)  ,seq(start.date,end.date,esp*4))
+
+a=with(classes, aggregate(Length, by=list(Category=period), FUN=mean, na.rm=T))
+b=with(classes, aggregate(Length/2, by=list(Category=period), FUN=sd, na.rm=T))
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+
+
+
+
+# int=as.data.frame(table(classes$Universities.Institutions))
+# names(int)
+
+# Perte de temps
+int2=merge(classes, int, by.x="Universities.Institutions", by.y="Var1")
+
+mod=with(classes, lm(Length~Universities.Institutions+Provider))    # Impact de l'institution sur la longueur du cours 
+mod=with(classes, lm(Length~Parent.Subject+Provider))    # Impact de l'institution sur la longueur du cours 
+mod=with(classes, lm(Length~Child.Subject+Provider+period))    # Impact de la discipline sur la longueur du cours   !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+a=with(classes, table(Parent.Subject,Provider))
+ anova(mod)
+ summary(mod)
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+# Regarder l'investissement des institutions en termes de nombre de MOOC cr??s selon les h?bergeurs !!!!!!!!!!!!!
+
+instit.prov=t(with(classes, table(Provider,Universities.Institutions)))
+Vect=NULL
+for(i in 1:ncol(instit.prov)) {
+vect=table(cut(instit.prov[,i], c(0,1,2,3,5,10,20,50,100)))
+Vect=cbind(Vect, vect)}
+Vect= as.data.frame(Vect)
+names(Vect)=colnames(instit.prov)
+
+a=Vect
+
+##################################
+
+
+plot(table(cut( as.POSIXct(classes$Date2)  ,seq(start.date,end.date,esp))), type="l", lty="dashed", col="grey")
+
+
+
+
+lines(table(cut( as.POSIXct(classes[which(classes$Provider=="Coursera"),]$Date2)  ,seq(start.date,end.date,esp))), type="l", lty="dotdash",  col="red")
+list.prov=c("Coursera","edX")
+lines(table(cut(classes[which(classes$Provider%in%list.prov),]$Date2  ,seq(start.date,end.date,esp))), type="l",lty="dotdash", col="green")
+lines(table(cut(classes[which(classes$Provider.real==0),]$Date  ,seq(start.date,end.date,esp))), type="l",lty="dotdash", col="black")
+
+# Tendances des disciplines enseign?es
+
+table.topic.time=table(cut(classes$Date2,seq(start.date,end.date,esp)),classes$Parent.Subject)
+a=table.topic.time
+
+esp=(end.date-start.date)/12
+table.p=NULL
+for (i in 1:nrow(table.topic.time)) {
+table.p=rbind(table.p,prop.table(table.topic.time[i,])*100)} 
+rownames(table.p)=dimnames(table.topic.time)[[1]]
+table.p
+
+
+#threshold.real=10
+#list.real.providers=as.data.frame(table(classes$Provider))[which(as.data.frame(table(classes$Provider))$Freq>threshold.real),][-1,]
+#classes$Provider.real=rep(0, nrow(classes))
+#classes$Provider.real[which(classes$Provider%in%list.real.providers$Var1)]=1
+#nrow(classes[which(classes$Provider.real==1),])/nrow(classes)*100 #Proportion de vrais MOOC
+
+
+hist(summary(classes$Institutions))
+hist(table(classes$Institutions)) # Distribution du nombre de MOOC produits par universit?s
+
+table(cut(table(classes$Institutions), breaks=c(0,1,2,3,4,5,10,20,30,50, 100)))    # Repartition par nombre de MOOC produits
+table(cut(table(classes$Institutions), breaks=c(0,1,2,3,4,5,10,20,30,50, 100)))
+table(cut(table(classes$Provider), breaks=c(0,1,5,10,50,100,200, 500,1000, 1500)))  # Force en pr?sence c?t? h?bergeurs
+
+table(cut(table(classes$Provider), breaks=c(0,10,50,100,1500)))  # Force en pr?sence c?t? h?bergeurs
+
+writeClipboard(levels(classes$Provider))
+
+
+
+cut(table(classes$Provider), breaks=c(0,10,50,100,1500))
+
+mooclist
+with(table.contribu, aggregate(Freq, by=list(Category=classeTw), FUN=mean))
+
+plot(classes$Date)
+
+summary(classes$Parent.Subject)
+
+
+
+with(classes, table(Parent.Subject, Provider))
+with(classes[which(classes$Provider=="Coursera"),], prop.table(summary(Parent.Subject))*100)
+with(classes[which(classes$Provider=="edX"),], prop.table(summary(Parent.Subject))*100)
+with(classes[which(classes$Provider=="FutureLearn"),], prop.table(summary(Parent.Subject))*100)
+with(classes[which(classes$Provider=="Canvas.net"),], prop.table(summary(Parent.Subject))*100)
+barplot(with(classes[which(classes$Provider=="Mir?ada X"),], prop.table(summary(Parent.Subject))*100))
+
+
+head(classes$Length)
+
+
+############## MOOC List ##################
+path="C:/MOOC_Data/ClassCentral"
+setwd(path)
+mooclist=read.csv("mooc.list.full.csv", h=T, sep=",")
+mooclist=read.csv("mooc.list.2810.csv", h=T, sep=";")
+
+nrow(List.courses2)
+
+mooclist=List.courses2
+summary(mooclist)
+summary(List.courses2$Provider)
+length(which(is.na(List.courses2$Provider)==F))
+
+summary(mooclist$Provider)
+summary(mooclist$Country)
+summary(mooclist$Tags)
+summary(mooclist$Subject)
+summary(mooclist$Workload)
+summary(mooclist$Duration)
+summary(mooclist$Workload.min)
+summary(mooclist$Subtitles)
+
+# Il faut filtrer un peu parce qu'il y a plein de "faux providers" de MOOC
+fake.providers=c("360training", "EdCast", "Saylor.org", "World Mentoring Academy (WMA)", "TareasPlus", "Universarium","MongoDB","ECO Project") 
+true.providers=c("FutureLearn", "EMMA", "FUN",  "Miríada X", "iversity", "Canvas Network", "Coursera", "edX", "Open2Study")
+length(which(mooclist$Provider %in% true.providers))
+mooclist=mooclist[which(mooclist$Provider %in% true.providers),]
+
+mooclist$Provider=factor(mooclist$Provider)
+
+
+start.date= as.POSIXct(strptime("2013-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+end.date=as.POSIXct(strptime("2017-01-01 01:30:00", "%Y-%m-%d %H:%M:%S"))
+esp=(end.date-start.date)/12
+
+
+a=with(mooclist, table(cut( as.POSIXct(Date2)  ,seq(start.date,end.date,esp))))
+write.table(a, "clipboard", sep="\t", row.names=T)
+
+with(mooclist,plot(table(cut( as.POSIXct(Date2), seq(start.date,end.date,esp))), type="l", lty="dashed", col="grey")) # Evolution des MOOC mondiaux sur MOOC list
+
+mooclist$period=cut( as.POSIXct(mooclist$Date2), seq(start.date,end.date,esp))  # On rajouter la variable période
+mooclist$Workload.mean=(mooclist$Workload.min + mooclist$Workload.max)/2
+mooclist$Duration=as.numeric(as.character(mooclist$Duration))
+mooclist$Workload.tot=mooclist$Workload.mean*mooclist$Duration
+
+mod=with(mooclist, lm(Workload.mean~period))
+mod=with(mooclist, lm(Workload.tot~period+Provider)) #+Institution
+anova(mod)
+summary(mod)
+
+summary(mooclist$Workload.tot)
+a=with(mooclist, aggregate(Workload.min, by=list(Category=period), FUN=mean, na.rm=T))
+
+a=with(mooclist, aggregate(Workload.tot, by=list(Category=Provider), FUN=mean, na.rm=T))
+b=with(mooclist, aggregate(Workload.tot/2, by=list(Category=Provider), FUN=sd, na.rm=T))
+
+
+a=with(mooclist, aggregate(Workload.mean, by=list(Category=period), FUN=mean, na.rm=T))
+a=with(mooclist, aggregate(Workload.tot, by=list(Category=period), FUN=mean, na.rm=T)) 
+b=with(mooclist, aggregate(Workload.tot/2, by=list(Category=period), FUN=sd, na.rm=T))
+
+a=with(mooclist, table(Country, Language))
+a=with(mooclist, table(Country, Provider))
+
+a=with(mooclist, table(Country))
+a=with(mooclist, table(Language))
+a=with(mooclist, table(Provider))
+a=with(mooclist, table(Provider, Language))
+a=with(mooclist, table(Country, Language))
+
+a=with(mooclist[which(mooclist$Country=="France"),], table(Provider, Language))
+
+summary(mooclist$Tags)
+
+names(mooclist)
+a=summary(mooclist$Certificate)
+
+
+write.table(a, "clipboard", sep="\t", row.names=T)
+write.table(b, "clipboard", sep="\t", row.names=T)
+
+plot(with(mooclist, aggregate(Workload.min, by=list(Category=period), FUN=mean, na.rm=T)))    # On s'int?resse ? p?riode * charge de travail associ?e au cours
+
+mooclist$Duration=as.numeric(as.character(mooclist$Duration))
+plot(with(mooclist, aggregate(Duration, by=list(Category=period), FUN=mean, na.rm=T)))  # On s'int?resse ? p?riode * dur?e du cours
+with(mooclist, cor.test(Workload.max,Duration))
+with(mooclist, cor.test(Workload.mean,Duration))  # Lien dur?e charge de travail  : corr?lation positive ! !!!!!!!!
+with(mooclist, plot(Workload.mean,Duration))
+
+
+with(mooclist, aggregate(Workload.tot, by=list(Category=Institution), FUN=mean, na.rm=T))   # MIT 8,1 SD =53,0
+with(mooclist, aggregate(Workload.tot, by=list(Category=Institution), FUN=sd, na.rm=T))   #
+
+mod=with(mooclist, lm(mooclist$Workload.tot~mooclist$Institution+mooclist$Provider ))
+
+  
+mooclist$Provider=factor(mooclist$Provider)
+with(mooclist, table(Provider, Workload))
+
+with(mooclist, aggregate(Workload.min, by=list(Category=Provider), FUN=mean, na.rm=T))    # Joli, voir l'effet plate-forme et le lien avec la dur?e des cours
+summary(with(mooclist, lm(Workload.min~Provider)))   
+anova(with(mooclist, lm(Workload.min~Provider)))  
+
+with(mooclist, aggregate(Workload.max, by=list(Category=Provider), FUN=mean, na.rm=T))    # Joli, voir l'effet plate-forme et le lien avec la dur?e des cours
+summary(with(mooclist, lm(Workload.max~Provider)))   
+anova(with(mooclist, lm(Workload.max~Provider)))  
+
+as.numeric(as.factor(period)) # Faudra retravailler ?a
+
+summary(with(mooclist, lm(Workload.max~Subject))) 
+ 
+anova(with(mooclist, lm(Workload.max~Provider+Certificate+Language+Examination))) 
+
+names(mooclist)
+
+
+with(mooclist, table(period, Certificate))
+with(mooclist, table(period, Country))
+with(mooclist, table(period, Examination))
+
+
+
+plot(with(mooclist, table(period, Examination))[,3]/with(mooclist, table(period, Examination))[,5])   # Ratio pas d'exam sur exam ...
+
+
+names(mooclist)
+
+# MOOC List API
+
+mooc.list=read.csv("mooc.list.csv", sep=",", h=T)
+summary(mooc.list$textBookMaterials)
+summary(mooc.list$peerAssessments)
+summary(mooc.list$prerequisites)
+summary(mooc.list$teamProjects)
